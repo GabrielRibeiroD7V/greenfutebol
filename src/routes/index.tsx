@@ -125,7 +125,9 @@ function Index() {
 
         if (invokeError) throw invokeError;
         
-        let results: Fixture[] = data || [];
+        let results: Fixture[] = Array.isArray(data?.fixtures)
+          ? data.fixtures
+          : [];
 
         // Filtro para "Ao vivo" no frontend conforme requisito 8
         if (activeTab === 'live') {
