@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -332,7 +332,13 @@ function Index() {
 
                 <div className="grid grid-cols-1 gap-3">
                   {league.matches.map((match) => (
-                    <div key={match.fixture_id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-300 transition-colors">
+                    <Link
+                      key={match.fixture_id}
+                      to="/jogo/$fixtureId"
+                      params={{ fixtureId: String(match.fixture_id) }}
+                      className="block group"
+                    >
+                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group-hover:border-blue-300 transition-colors">
                       <div className="p-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                         <div className="flex flex-col items-center md:items-start space-y-1">
                           <span className="text-sm font-bold text-slate-800">{formatTime(match.kickoff_at)}</span>
@@ -376,8 +382,8 @@ function Index() {
                           <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Estádio:</span>
                           <span className="text-[10px] font-bold text-slate-500">{match.venue}</span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </div>
