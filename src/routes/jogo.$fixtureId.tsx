@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -132,7 +132,7 @@ function MatchDetails() {
 
   const handleBack = () => {
     if (window.history.length > 1) {
-      navigate({ to: -1 as any });
+      window.history.back();
     } else {
       navigate({ to: "/" });
     }
@@ -204,9 +204,19 @@ function MatchDetails() {
 
               <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="flex items-center gap-4 text-4xl md:text-6xl font-black italic">
-                  <span>{fixture.home_score ?? 0}</span>
-                  <span className="text-white/20 text-2xl md:text-4xl">x</span>
-                  <span>{fixture.away_score ?? 0}</span>
+                  {typeof fixture.home_score === 'number' && typeof fixture.away_score === 'number' ? (
+                    <>
+                      <span>{fixture.home_score}</span>
+                      <span className="text-white/20 text-2xl md:text-4xl">x</span>
+                      <span>{fixture.away_score}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>–</span>
+                      <span className="text-white/20 text-2xl md:text-4xl">x</span>
+                      <span>–</span>
+                    </>
+                  )}
                 </div>
                 <div className={cn(
                   "px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest",
@@ -253,14 +263,32 @@ function MatchDetails() {
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Placares Parciais</h3>
               <div className="grid gap-2">
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Intervalo (HT)</span>
-                  <span className="font-black text-slate-800">{fixture.halftime_home ?? 0} - {fixture.halftime_away ?? 0}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Tempo Regulamentar</span>
-                  <span className="font-black text-slate-800">{fixture.fulltime_home ?? fixture.home_score ?? 0} - {fixture.fulltime_away ?? fixture.away_score ?? 0}</span>
-                </div>
+                {!["NS", "TBD", "PST", "CANC"].includes(fixture.status) ? (
+                  <>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Intervalo (HT)</span>
+                      <span className="font-black text-slate-800">
+                        {typeof fixture.halftime_home === 'number' && typeof fixture.halftime_away === 'number' 
+                          ? `${fixture.halftime_home} - ${fixture.halftime_away}`
+                          : "Não disponível"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Tempo Regulamentar</span>
+                      <span className="font-black text-slate-800">
+                        {typeof fixture.fulltime_home === 'number' && typeof fixture.fulltime_away === 'number'
+                          ? `${fixture.fulltime_home} - ${fixture.fulltime_away}`
+                          : (fixture.status === 'FT' || fixture.status === 'AET' || fixture.status === 'PEN') && typeof fixture.home_score === 'number' && typeof fixture.away_score === 'number'
+                            ? `${fixture.home_score} - ${fixture.away_score}`
+                            : "Não disponível"}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 bg-slate-50 rounded-lg text-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase">Partida ainda não iniciada</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
