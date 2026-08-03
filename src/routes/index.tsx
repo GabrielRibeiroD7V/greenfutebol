@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Plataforma de Futebol - Jogos Reais" },
-      { name: "description", content: "Resultados de futebol em tempo real e próximos jogos." },
+      { title: "GreenSport - Futebol Real" },
+      { name: "description", content: "Acompanhe jogos de futebol em tempo real na GreenSport." },
     ],
   }),
   component: Index,
@@ -58,6 +58,11 @@ function Index() {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const normalizeText = (text: string | null | undefined) => {
+    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  };
 
   // Timezone constants
   const TIMEZONE = "America/Campo_Grande";
@@ -149,11 +154,23 @@ function Index() {
     fetchFixtures();
   }, [activeTab]);
 
-  // Agrupamento por campeonato (Requisito 11)
+  // Agrupamento por campeonato com filtro de busca (Requisitos 2 e 3)
   const groupedFixtures = useMemo(() => {
+    const search = normalizeText(searchQuery);
+    
+    // Filtro aplicado antes do agrupamento (Requisito 3)
+    const filtered = search
+      ? fixtures.filter(f => 
+          normalizeText(f.home_team_name).includes(search) ||
+          normalizeText(f.away_team_name).includes(search) ||
+          normalizeText(f.league_name).includes(search) ||
+          normalizeText(f.country).includes(search)
+        )
+      : fixtures;
+
     const groups: Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }> = {};
     
-    fixtures.forEach(f => {
+    filtered.forEach(f => {
       const key = `${f.country}-${f.league_name}`;
       if (!groups[key]) {
         groups[key] = {
@@ -168,7 +185,7 @@ function Index() {
 
     // Ordenar campeonatos pelo nome (Requisito 12)
     return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
-  }, [fixtures]);
+  }, [fixtures, searchQuery]);
 
   const formatTime = (isoString: string) => {
     return new Intl.DateTimeFormat("pt-BR", {
@@ -190,13 +207,15 @@ function Index() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold tracking-tight">Plataforma de Futebol</h1>
+          <h1 className="text-xl font-bold tracking-tight text-blue-400">GreenSport</h1>
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input 
               type="text" 
-              placeholder="Buscar jogos..." 
-              className="bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 w-64"
+              placeholder="Buscar por time, liga ou país..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 w-64 text-white"
             />
           </div>
         </div>
@@ -247,8 +266,12 @@ function Index() {
           </div>
         ) : groupedFixtures.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-2">
-            <p className="text-slate-400 font-medium italic">Nenhum jogo encontrado para este filtro.</p>
-            <p className="text-slate-300 text-sm">Tente mudar a aba ou volte mais tarde.</p>
+            <p className="text-slate-400 font-medium italic">
+              {searchQuery ? "Nenhum jogo encontrado para esta busca." : "Nenhum jogo encontrado para este filtro."}
+            </p>
+            <p className="text-slate-300 text-sm">
+              {searchQuery ? "Tente um termo diferente." : "Tente mudar a aba ou volte mais tarde."}
+            </p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -331,7 +354,7 @@ function Index() {
 
       {/* Footer / Info */}
       <footer className="py-8 text-center text-slate-300 text-xs border-t border-slate-200 mt-auto">
-        &copy; 2026 Plataforma de Futebol. Dados fornecidos por API-Sports.
+        &copy; 2026 GreenSport. Dados fornecidos por API-Sports.
       </footer>
     </div>
   );
