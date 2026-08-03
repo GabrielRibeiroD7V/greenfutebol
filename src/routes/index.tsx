@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { Search, Ticket, Trash2, Calendar, Clock, PlayCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,6 +56,8 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function Index() {
+  const { user, isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,10 +68,8 @@ function Index() {
     return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   };
 
-  // Timezone constants
   const TIMEZONE = "America/Campo_Grande";
 
-  // Date utilities based on requirements
   const getCGRDateString = (dateObj: Date) => {
     const formatter = new Intl.DateTimeFormat("en-CA", {
       timeZone: TIMEZONE,
@@ -83,7 +85,6 @@ function Index() {
   };
 
   const getTomorrowCGRDateString = () => {
-    // 1. Obter ano, mês e dia no fuso America/Campo_Grande
     const formatter = new Intl.DateTimeFormat("en-CA", {
       timeZone: TIMEZONE,
       year: "numeric",
@@ -92,16 +93,12 @@ function Index() {
     });
     const parts = formatter.formatToParts(new Date());
     const year = parseInt(parts.find(p => p.type === 'year')!.value);
-    const month = parseInt(parts.find(p => p.type === 'month')!.value) - 1; // 0-indexed
+    const month = parseInt(parts.find(p => p.type === 'month')!.value) - 1;
     const day = parseInt(parts.find(p => p.type === 'day')!.value);
 
-    // 2. Criar data auxiliar em UTC com esses componentes
     const utcDate = new Date(Date.UTC(year, month, day));
-    
-    // 3. Adicionar um dia
     utcDate.setUTCDate(utcDate.getUTCDate() + 1);
 
-    // 4. Formatar como YYYY-MM-DD
     const y = utcDate.getUTCFullYear();
     const m = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
     const d = String(utcDate.getUTCDate()).padStart(2, '0');
@@ -116,11 +113,9 @@ function Index() {
       
       try {
         let dateToFetch: string;
-        
         if (activeTab === 'tomorrow') {
           dateToFetch = getTomorrowCGRDateString();
         } else {
-          // Hoje ou Ao vivo usam a data atual de Campo Grande
           dateToFetch = getCGRDateString(new Date());
         }
 
@@ -134,14 +129,11 @@ function Index() {
           ? data.fixtures
           : [];
 
-        // Filtro para "Ao vivo" no frontend conforme requisito 8
         if (activeTab === 'live') {
           results = results.filter(f => LIVE_STATUSES.includes(f.status));
         }
 
-        // Ordenação por kickoff_at (Requisito 13)
         results.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
-
         setFixtures(results);
       } catch (err: any) {
         console.error("Erro ao buscar jogos:", err);
@@ -154,11 +146,8 @@ function Index() {
     fetchFixtures();
   }, [activeTab]);
 
-  // Agrupamento por campeonato com filtro de busca (Requisitos 2 e 3)
   const groupedFixtures = useMemo(() => {
     const search = normalizeText(searchQuery);
-    
-    // Filtro aplicado antes do agrupamento (Requisito 3)
     const filtered = search
       ? fixtures.filter(f => 
           normalizeText(f.home_team_name).includes(search) ||
@@ -183,7 +172,6 @@ function Index() {
       groups[key].matches.push(f);
     });
 
-    // Ordenar campeonatos pelo nome (Requisito 12)
     return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
   }, [fixtures, searchQuery]);
 
@@ -207,22 +195,57 @@ function Index() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold tracking-tight text-blue-400">GreenSport</h1>
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Buscar por time, liga ou país..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 w-64 text-white"
-            />
+          <div className="flex items-center gap-2">
+            <Trophy className="text-blue-400 h-8 w-8" />
+            <h1 className="text-xl font-bold tracking-tight text-white">GreenSport</h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input 
+                type="text" 
+                placeholder="Buscar..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 w-48 text-white"
+              />
+            </div>
+
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <div className="hidden flex-col items-end sm:flex">
+                  <span className="text-[10px] font-medium text-white/70 uppercase tracking-widest">{user?.email}</span>
+                  <button 
+                    onClick={() => navigate({ to: "/meus-bilhetes" })}
+                    className="text-[10px] text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    <Ticket size={10} />
+                    Meus Bilhetes
+                  </button>
+                </div>
+                <button 
+                  onClick={() => signOut().then(() => navigate({ to: "/" }))}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-white/5 px-3 text-sm font-medium text-white hover:bg-white/10"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Sair</span>
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => navigate({ to: "/login" })}
+                className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              >
+                <LogIn size={16} />
+                <span>Entrar</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
-        {/* Tabs */}
         <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
           {(['today', 'tomorrow', 'live'] as const).map((tab) => (
             <button
@@ -246,7 +269,6 @@ function Index() {
           ))}
         </div>
 
-        {/* Content States */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
@@ -269,9 +291,6 @@ function Index() {
             <p className="text-slate-400 font-medium italic">
               {searchQuery ? "Nenhum jogo encontrado para esta busca." : "Nenhum jogo encontrado para este filtro."}
             </p>
-            <p className="text-slate-300 text-sm">
-              {searchQuery ? "Tente um termo diferente." : "Tente mudar a aba ou volte mais tarde."}
-            </p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -293,8 +312,6 @@ function Index() {
                   {league.matches.map((match) => (
                     <div key={match.fixture_id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:border-blue-300 transition-colors">
                       <div className="p-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-                        
-                        {/* Time and Info */}
                         <div className="flex flex-col items-center md:items-start space-y-1">
                           <span className="text-sm font-bold text-slate-800">{formatTime(match.kickoff_at)}</span>
                           <span className={cn(
@@ -305,9 +322,7 @@ function Index() {
                           </span>
                         </div>
 
-                        {/* Match Result */}
                         <div className="flex items-center justify-between gap-4 md:col-span-2">
-                          {/* Home Team */}
                           <div className="flex-1 flex items-center justify-end gap-3 text-right">
                             <span className="text-sm font-bold text-slate-800">{match.home_team_name}</span>
                             {match.home_team_logo ? (
@@ -317,14 +332,12 @@ function Index() {
                             )}
                           </div>
 
-                          {/* Score */}
                           <div className="flex items-center gap-2 px-3 py-1 bg-slate-900 text-white rounded-lg font-black text-lg min-w-[70px] justify-center shadow-inner">
                             <span>{match.home_score ?? 0}</span>
                             <span className="text-slate-500 text-xs">x</span>
                             <span>{match.away_score ?? 0}</span>
                           </div>
 
-                          {/* Away Team */}
                           <div className="flex-1 flex items-center gap-3">
                             {match.away_team_logo ? (
                               <img src={match.away_team_logo} alt={match.away_team_name} className="w-8 h-8 object-contain" />
@@ -334,7 +347,6 @@ function Index() {
                             <span className="text-sm font-bold text-slate-800">{match.away_team_name}</span>
                           </div>
                         </div>
-
                       </div>
                       
                       {match.venue && (
@@ -352,7 +364,6 @@ function Index() {
         )}
       </main>
 
-      {/* Footer / Info */}
       <footer className="py-8 text-center text-slate-300 text-xs border-t border-slate-200 mt-auto">
         &copy; 2026 GreenSport. Dados fornecidos por API-Sports.
       </footer>
