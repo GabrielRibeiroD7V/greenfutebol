@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Trophy } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -72,10 +73,13 @@ function Index() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       navigate({ to: "/" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao sair:", err);
-      // Not using toast here to avoid adding dependencies or complex logic, 
-      // but showing error in console as requested.
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível sair da conta. Tente novamente."
+      );
     } finally {
       setIsLoggingOut(false);
     }
