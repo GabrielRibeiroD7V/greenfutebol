@@ -61,8 +61,25 @@ function Index() {
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate({ to: "/" });
+    } catch (err: any) {
+      console.error("Erro ao sair:", err);
+      // Not using toast here to avoid adding dependencies or complex logic, 
+      // but showing error in console as requested.
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const normalizeText = (text: string | null | undefined) => {
     return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -225,10 +242,11 @@ function Index() {
                   </button>
                 </div>
                 <button 
-                  onClick={() => signOut().then(() => navigate({ to: "/" }))}
-                  className="flex h-9 items-center gap-2 rounded-lg bg-white/5 px-3 text-sm font-medium text-white hover:bg-white/10"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-white/5 px-3 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-50"
                 >
-                  <LogOut size={16} />
+                  {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
                   <span className="hidden sm:inline">Sair</span>
                 </button>
               </div>
