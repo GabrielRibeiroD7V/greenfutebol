@@ -76,19 +76,26 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
-    const fixtures = (data.response || []).map((item: any) => ({
+    if (!Array.isArray(data.response)) {
+      return new Response(JSON.stringify({ error: "Invalid response from football provider" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 502,
+      });
+    }
+
+    const fixtures = data.response.map((item: any) => ({
       fixture_id: item.fixture.id,
       league_name: item.league.name,
-      league_logo: item.league.logo || null,
+      league_logo: item.league.logo ?? null,
       country: item.league.country,
       home_team_name: item.teams.home.name,
-      home_team_logo: item.teams.home.logo || null,
+      home_team_logo: item.teams.home.logo ?? null,
       away_team_name: item.teams.away.name,
-      away_team_logo: item.teams.away.logo || null,
+      away_team_logo: item.teams.away.logo ?? null,
       kickoff_at: item.fixture.date, // ISO format preserved
-      venue: item.fixture.venue.name || null,
+      venue: item.fixture.venue?.name ?? null,
       status: item.fixture.status.short,
-      elapsed: item.fixture.status.elapsed || null,
+      elapsed: item.fixture.status.elapsed ?? null,
       home_score: item.goals.home,
       away_score: item.goals.away,
     }));
