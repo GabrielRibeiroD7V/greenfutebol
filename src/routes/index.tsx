@@ -382,7 +382,8 @@ function Index() {
                           <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Estádio:</span>
                           <span className="text-[10px] font-bold text-slate-500">{match.venue}</span>
                         </div>
-                      </div>
+                      )}
+                    </div>
                     </Link>
                   ))}
                 </div>
