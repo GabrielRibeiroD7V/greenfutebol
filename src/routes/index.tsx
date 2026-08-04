@@ -131,10 +131,22 @@ function Index() {
 
   useEffect(() => {
     const fetchFixtures = async () => {
-      if (activeTab === 'custom' && !customDate) {
-        setFixtures([]);
-        setIsLoading(false);
-        return;
+      if (activeTab === 'custom') {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        const year = parseInt(customDate.split('-')[0]);
+        const parsedDate = new Date(customDate);
+        const isValidDate = customDate && 
+                           dateRegex.test(customDate) && 
+                           customDate.length === 10 &&
+                           year >= 2000 && year <= 2100 &&
+                           !isNaN(parsedDate.getTime()) && 
+                           parsedDate.toISOString().slice(0, 10) === customDate;
+
+        if (!isValidDate) {
+          setFixtures([]);
+          setIsLoading(false);
+          return;
+        }
       }
 
       setIsLoading(true);
