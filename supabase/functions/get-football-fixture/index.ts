@@ -15,110 +15,149 @@ Deno.serve(async (req) => {
     });
   }
 
-  let body;
   try {
-    body = await req.json();
-  } catch (_err) {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const { fixture_id } = body;
-
-    if (!Number.isInteger(fixture_id) || fixture_id <= 0) {
-      return new Response(JSON.stringify({ error: "fixture_id inválido" }), {
+    let body;
+    try {
+      body = await req.json();
+    } catch (_err) {
+      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const apiKey = Deno.env.get("API_FOOTBALL_KEY");
-    if (!apiKey) {
-      console.error("API_FOOTBALL_KEY não configurada");
-      return new Response(JSON.stringify({ error: "Erro interno no servidor" }), {
+    const { fixture_id } = body;
+
+    if (!Number.isInteger(fixture_id) || fixture_id <= 0) {
+      return new Response(JSON.stringify({ error: "fixture_id must be a positive integer" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const apiToken = Deno.env.get("FOOTBALL_DATA_API_TOKEN");
+    if (!apiToken) {
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const response = await fetch(
-      `https://v3.football.api-sports.io/fixtures?id=${encodeURIComponent(fixture_id)}`,
+      `https://api.football-data.org/v4/matches/${fixture_id}`,
       {
         headers: {
-          "x-apisports-key": apiKey,
+          "X-Auth-Token": apiToken,
         },
       }
     );
 
+    if (response.status === 401) {
+      return new Response(JSON.stringify({ error: "Invalid API token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (response.status === 403) {
+      return new Response(JSON.stringify({ error: "Access restricted" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (response.status === 429) {
-      return new Response(JSON.stringify({ error: "Limite de requisições atingido" }), {
+      const resetSeconds = response.headers.get("X-RequestCounter-Reset");
+      const errorBody: any = { error: "Rate limit reached" };
+      if (resetSeconds) {
+        errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
+      }
+      return new Response(JSON.stringify(errorBody), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: "Erro interno no servidor" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const data = await response.json();
-
-    if (!data || typeof data !== "object" || !Array.isArray(data.response)) {
-      return new Response(JSON.stringify({ error: "Invalid response from football provider" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (data.response.length === 0) {
-      return new Response(JSON.stringify({ error: "Fixture not found" }), {
+    if (response.status === 404) {
+      return new Response(JSON.stringify({ error: "Match not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const match = data.response[0];
-
-    if (!match.fixture || !match.league || !match.teams?.home || !match.teams?.away) {
-      return new Response(JSON.stringify({ error: "Invalid response from football provider" }), {
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: "Football provider structural error" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const match = await response.json();
+
+    if (!match || typeof match !== "object") {
+      return new Response(JSON.stringify({ error: "Invalid structural response" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const statusMap: Record<string, string> = {
+      "SCHEDULED": "NS",
+      "TIMED": "NS",
+      "IN_PLAY": "LIVE",
+      "PAUSED": "HT",
+      "EXTRA_TIME": "ET",
+      "PENALTY_SHOOTOUT": "P",
+      "FINISHED": "FT",
+      "AWARDED": "FT",
+      "SUSPENDED": "SUSP",
+      "POSTPONED": "PST",
+      "CANCELLED": "CANC",
+    };
+
+    const statusLongMap: Record<string, string> = {
+      "SCHEDULED": "Não iniciado",
+      "TIMED": "Não iniciado",
+      "IN_PLAY": "Ao vivo",
+      "PAUSED": "Intervalo",
+      "EXTRA_TIME": "Prorrogação",
+      "PENALTY_SHOOTOUT": "Pênaltis",
+      "FINISHED": "Encerrado",
+      "AWARDED": "Encerrado",
+      "SUSPENDED": "Suspenso",
+      "POSTPONED": "Adiado",
+      "CANCELLED": "Cancelado",
+    };
+
+    const seasonYear = match.season?.startDate ? new Date(match.season.startDate).getFullYear() : null;
+
     const normalized = {
       fixture: {
-        fixture_id: match.fixture.id,
-        league_id: match.league.id,
-        league_name: match.league.name,
-        league_logo: match.league.logo ?? null,
-        country: match.league.country,
-        season: match.league.season,
-        round: match.league.round ?? null,
-        home_team_id: match.teams.home.id,
-        home_team_name: match.teams.home.name,
-        home_team_logo: match.teams.home.logo ?? null,
-        away_team_id: match.teams.away.id,
-        away_team_name: match.teams.away.name,
-        away_team_logo: match.teams.away.logo ?? null,
-        kickoff_at: match.fixture.date,
-        venue: match.fixture.venue?.name ?? null,
-        city: match.fixture.venue?.city ?? null,
-        status: match.fixture.status.short,
-        status_long: match.fixture.status.long,
-        elapsed: match.fixture.status.elapsed ?? null,
-        home_score: match.goals?.home ?? null,
-        away_score: match.goals?.away ?? null,
-        halftime_home: match.score?.halftime?.home ?? null,
-        halftime_away: match.score?.halftime?.away ?? null,
-        fulltime_home: match.score?.fulltime?.home ?? null,
-        fulltime_away: match.score?.fulltime?.away ?? null,
+        fixture_id: match.id,
+        league_id: match.competition?.id ?? null,
+        league_name: match.competition?.name ?? null,
+        league_logo: match.competition?.emblem ?? null,
+        country: match.area?.name ?? null,
+        season: typeof seasonYear === 'number' ? seasonYear : null,
+        round: match.matchday ? String(match.matchday) : (match.stage ?? null),
+        home_team_id: match.homeTeam?.id ?? null,
+        home_team_name: match.homeTeam?.name ?? null,
+        home_team_logo: match.homeTeam?.crest ?? null,
+        away_team_id: match.awayTeam?.id ?? null,
+        away_team_name: match.awayTeam?.name ?? null,
+        away_team_logo: match.awayTeam?.crest ?? null,
+        kickoff_at: match.utcDate,
+        venue: match.venue ?? null,
+        city: null,
+        status: statusMap[match.status] || match.status,
+        status_long: statusLongMap[match.status] || match.status,
+        elapsed: typeof match.minute === 'number' ? match.minute : null,
+        home_score: match.score?.fullTime?.home ?? null,
+        away_score: match.score?.fullTime?.away ?? null,
+        halftime_home: match.score?.halfTime?.home ?? null,
+        halftime_away: match.score?.halfTime?.away ?? null,
+        fulltime_home: match.score?.fullTime?.home ?? null,
+        fulltime_away: match.score?.fullTime?.away ?? null,
       },
     };
 
@@ -126,8 +165,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Erro na Edge Function:", err);
-    return new Response(JSON.stringify({ error: "Erro interno no servidor" }), {
+    console.error("Internal error:", err);
+    return new Response(JSON.stringify({ error: "Unexpected error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
