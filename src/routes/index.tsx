@@ -61,7 +61,7 @@ function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL'>('BSA');
+  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1'>('BSA');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
