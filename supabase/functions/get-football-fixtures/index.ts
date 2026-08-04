@@ -65,16 +65,12 @@ Deno.serve(async (req) => {
     });
 
     if (!response.ok) {
-      // 7. Leitura segura do corpo externo
       let errorCode: number | null = null;
       try {
         const errorData = await response.json();
         errorCode = errorData.errorCode || null;
-      } catch (_e) {
-        // Ignore JSON parse error for error bodies
-      }
+      } catch (_e) {}
 
-      // 6. Regra de mapeamento 400/404
       if (response.status === 400 && errorCode === 404) {
         return new Response(JSON.stringify({ error: "Matches not found" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -82,7 +78,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 5. Preservar códigos externos 400, 401, 403, 404, 429
       if ([400, 401, 403, 404, 429].includes(response.status)) {
         const errorBody: any = { error: `Football provider error: ${response.status}` };
         if (response.status === 429) {
@@ -126,37 +121,46 @@ Deno.serve(async (req) => {
       "CANCELLED": "CANC",
     };
 
-    const fixtures = data.matches
-      .map((match: any) => {
-        if (!match.id || !match.homeTeam?.name || !match.awayTeam?.name || !match.utcDate) {
-          return null;
-        }
+    // 2. Validação estrutural rigorosa antes do mapeamento
+    for (const match of data.matches) {
+      const isValid = 
+        match &&
+        Number.isInteger(match.id) && match.id > 0 &&
+        match.competition?.name &&
+        match.area?.name &&
+        match.homeTeam?.name &&
+        match.awayTeam?.name &&
+        match.utcDate && !isNaN(new Date(match.utcDate).getTime()) &&
+        typeof match.status === "string" &&
+        match.score && typeof match.score === "object";
 
-        return {
-          fixture_id: match.id,
-          league_name: match.competition?.name || "Campeonato Brasileiro Série A",
-          league_logo: match.competition?.emblem ?? null,
-          country: match.area?.name || "Brazil",
-          home_team_name: match.homeTeam?.name ?? "Unknown",
-          home_team_logo: match.homeTeam?.crest ?? null,
-          away_team_name: match.awayTeam?.name ?? "Unknown",
-          away_team_logo: match.awayTeam?.crest ?? null,
-          kickoff_at: match.utcDate,
-          venue: match.venue ?? null,
-          status: statusMap[match.status] || match.status,
-          elapsed: typeof match.minute === 'number' ? match.minute : null,
-          home_score: match.score?.fullTime?.home ?? null,
-          away_score: match.score?.fullTime?.away ?? null,
-        };
-      })
-      .filter((f: any) => f !== null);
-
-    if (data.matches.length > 0 && fixtures.length === 0) {
-      return new Response(JSON.stringify({ error: "Failed to parse matches safely" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 502,
-      });
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: "Football provider structural error" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 502,
+        });
+      }
     }
+
+    const fixtures = data.matches.map((match: any) => {
+      // 3. Remover fallbacks artificiais
+      return {
+        fixture_id: match.id,
+        league_name: match.competition.name,
+        league_logo: match.competition.emblem ?? null,
+        country: match.area.name,
+        home_team_name: match.homeTeam.name,
+        home_team_logo: match.homeTeam.crest ?? null,
+        away_team_name: match.awayTeam.name,
+        away_team_logo: match.awayTeam.crest ?? null,
+        kickoff_at: match.utcDate,
+        venue: match.venue ?? null,
+        status: statusMap[match.status] || match.status,
+        elapsed: typeof match.minute === 'number' ? match.minute : null,
+        home_score: match.score.fullTime?.home ?? null,
+        away_score: match.score.fullTime?.away ?? null,
+      };
+    });
 
     fixtures.sort((a: any, b: any) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
 
