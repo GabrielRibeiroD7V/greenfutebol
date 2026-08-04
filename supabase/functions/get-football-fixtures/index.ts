@@ -27,7 +27,6 @@ Deno.serve(async (req) => {
     }
 
     const { date } = body;
-
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!date || !dateRegex.test(date)) {
       return new Response(JSON.stringify({ error: "Invalid or missing date format (YYYY-MM-DD)" }), {
@@ -59,9 +58,7 @@ Deno.serve(async (req) => {
     url.searchParams.set("season", year);
 
     const response = await fetch(url.toString(), {
-      headers: {
-        "X-Auth-Token": apiToken,
-      },
+      headers: { "X-Auth-Token": apiToken },
     });
 
     if (!response.ok) {
@@ -82,16 +79,13 @@ Deno.serve(async (req) => {
         const errorBody: any = { error: `Football provider error: ${response.status}` };
         if (response.status === 429) {
           const resetSeconds = response.headers.get("X-RequestCounter-Reset");
-          if (resetSeconds) {
-            errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
-          }
+          if (resetSeconds) errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
         }
         return new Response(JSON.stringify(errorBody), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: response.status,
         });
       }
-
       return new Response(JSON.stringify({ error: "Football provider error" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 502,
@@ -99,7 +93,6 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json();
-
     if (!data || !Array.isArray(data.matches)) {
       return new Response(JSON.stringify({ error: "Invalid structural response" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,20 +101,12 @@ Deno.serve(async (req) => {
     }
 
     const statusMap: Record<string, string> = {
-      "SCHEDULED": "NS",
-      "TIMED": "NS",
-      "IN_PLAY": "LIVE",
-      "PAUSED": "HT",
-      "EXTRA_TIME": "ET",
-      "PENALTY_SHOOTOUT": "P",
-      "FINISHED": "FT",
-      "AWARDED": "FT",
-      "SUSPENDED": "SUSP",
-      "POSTPONED": "PST",
-      "CANCELLED": "CANC",
+      "SCHEDULED": "NS", "TIMED": "NS", "IN_PLAY": "LIVE", "PAUSED": "HT",
+      "EXTRA_TIME": "ET", "PENALTY_SHOOTOUT": "P", "FINISHED": "FT",
+      "AWARDED": "FT", "SUSPENDED": "SUSP", "POSTPONED": "PST", "CANCELLED": "CANC",
     };
 
-    // 2. Validação estrutural rigorosa antes do mapeamento
+    // 3. Validação estrutural rigorosa (não remover silenciosamente)
     for (const match of data.matches) {
       const isValid = 
         match &&
@@ -142,25 +127,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    const fixtures = data.matches.map((match: any) => {
-      // 3. Remover fallbacks artificiais
-      return {
-        fixture_id: match.id,
-        league_name: match.competition.name,
-        league_logo: match.competition.emblem ?? null,
-        country: match.area.name,
-        home_team_name: match.homeTeam.name,
-        home_team_logo: match.homeTeam.crest ?? null,
-        away_team_name: match.awayTeam.name,
-        away_team_logo: match.awayTeam.crest ?? null,
-        kickoff_at: match.utcDate,
-        venue: match.venue ?? null,
-        status: statusMap[match.status] || match.status,
-        elapsed: typeof match.minute === 'number' ? match.minute : null,
-        home_score: match.score.fullTime?.home ?? null,
-        away_score: match.score.fullTime?.away ?? null,
-      };
-    });
+    const fixtures = data.matches.map((match: any) => ({
+      fixture_id: match.id,
+      league_name: match.competition.name,
+      league_logo: match.competition.emblem ?? null,
+      country: match.area.name,
+      home_team_name: match.homeTeam.name,
+      home_team_logo: match.homeTeam.crest ?? null,
+      away_team_name: match.awayTeam.name,
+      away_team_logo: match.awayTeam.crest ?? null,
+      kickoff_at: match.utcDate,
+      venue: match.venue ?? null,
+      status: statusMap[match.status] || match.status,
+      elapsed: typeof match.minute === 'number' ? match.minute : null,
+      home_score: match.score.fullTime?.home ?? null,
+      away_score: match.score.fullTime?.away ?? null,
+    }));
 
     fixtures.sort((a: any, b: any) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
 
