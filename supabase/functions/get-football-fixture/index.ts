@@ -4,12 +4,10 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // 10. Confirm e corrija: método OPTIONS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // 10. Confirm e corrija: método POST
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -22,7 +20,6 @@ Deno.serve(async (req) => {
     try {
       body = await req.json();
     } catch (_err) {
-      // 10. Confirm e corrija: JSON inválido
       return new Response(JSON.stringify({ error: "Invalid JSON" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -31,7 +28,6 @@ Deno.serve(async (req) => {
 
     const { fixture_id } = body;
 
-    // 10. Confirm e corrija: fixture_id inteiro positivo
     if (!Number.isInteger(fixture_id) || fixture_id <= 0) {
       return new Response(JSON.stringify({ error: "fixture_id must be a positive integer" }), {
         status: 400,
@@ -39,7 +35,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 10. Confirm e corrija: secret ausente (sem non-null assertion)
     const apiToken = Deno.env.get("FOOTBALL_DATA_API_TOKEN");
     if (!apiToken) {
       return new Response(JSON.stringify({ error: "Server configuration error" }), {
@@ -57,22 +52,39 @@ Deno.serve(async (req) => {
       }
     );
 
-    // 10. Confirm e corrija: status 400, 401, 403, 404, 429
-    if (response.status === 400 || response.status === 401 || response.status === 403 || response.status === 404 || response.status === 429) {
-      const errorBody: any = { error: `Football provider error: ${response.status}` };
-      if (response.status === 429) {
-        const resetSeconds = response.headers.get("X-RequestCounter-Reset");
-        if (resetSeconds) {
-          errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
-        }
-      }
-      return new Response(JSON.stringify(errorBody), {
-        status: response.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     if (!response.ok) {
+      // 7. Leitura segura do corpo externo
+      let errorCode: number | null = null;
+      try {
+        const errorData = await response.json();
+        errorCode = errorData.errorCode || null;
+      } catch (_e) {
+        // Ignore JSON parse error for error bodies
+      }
+
+      // 6. Regra de mapeamento 400/404
+      if (response.status === 400 && errorCode === 404) {
+        return new Response(JSON.stringify({ error: "Match not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // 5. Preservar códigos externos 400, 401, 403, 404, 429
+      if ([400, 401, 403, 404, 429].includes(response.status)) {
+        const errorBody: any = { error: `Football provider error: ${response.status}` };
+        if (response.status === 429) {
+          const resetSeconds = response.headers.get("X-RequestCounter-Reset");
+          if (resetSeconds) {
+            errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
+          }
+        }
+        return new Response(JSON.stringify(errorBody), {
+          status: response.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ error: "Football provider error" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,7 +93,6 @@ Deno.serve(async (req) => {
 
     const match = await response.json();
 
-    // 10. Confirm e corrija: data individual estruturalmente válida
     if (!match || typeof match !== "object" || !match.id || !match.homeTeam || !match.awayTeam) {
       return new Response(JSON.stringify({ error: "Invalid structural response" }), {
         status: 502,
@@ -117,7 +128,6 @@ Deno.serve(async (req) => {
       "CANCELLED": "Cancelado",
     };
 
-    // 10. season como number ou null
     const seasonYear = match.season?.startDate ? new Date(match.season.startDate).getFullYear() : null;
 
     const normalized = {
@@ -128,7 +138,6 @@ Deno.serve(async (req) => {
         league_logo: match.competition?.emblem ?? null,
         country: match.area?.name ?? null,
         season: typeof seasonYear === 'number' ? seasonYear : null,
-        // 10. round como string ou null
         round: match.matchday ? String(match.matchday) : (match.stage ?? null),
         home_team_id: match.homeTeam?.id ?? null,
         home_team_name: match.homeTeam?.name ?? null,
@@ -138,13 +147,10 @@ Deno.serve(async (req) => {
         away_team_logo: match.awayTeam?.crest ?? null,
         kickoff_at: match.utcDate,
         venue: match.venue ?? null,
-        // 10. city como null
         city: null,
         status: statusMap[match.status] || match.status,
         status_long: statusLongMap[match.status] || match.status,
-        // 10. elapsed como number ou null
         elapsed: typeof match.minute === 'number' ? match.minute : null,
-        // 10. placares preservando null
         home_score: match.score?.fullTime?.home ?? null,
         away_score: match.score?.fullTime?.away ?? null,
         halftime_home: match.score?.halfTime?.home ?? null,
