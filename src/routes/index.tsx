@@ -61,7 +61,7 @@ function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'ALL'>('ALL');
+  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -301,6 +301,7 @@ function Index() {
               { label: 'Brasileirão', value: 'BSA' },
               { label: 'Premier League', value: 'PL' },
               { label: 'Champions League', value: 'CL' },
+              { label: 'Bundesliga', value: 'BL1' },
               
             ].map((comp) => (
               <button
@@ -396,8 +397,8 @@ function Index() {
                 : searchQuery 
                   ? "Nenhum jogo encontrado para esta busca." 
                   : activeTab === 'custom'
-                    ? (competitionCode === 'ALL' ? "Nenhum jogo encontrado para esta data." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado nesta data." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado nesta data." : "Nenhum jogo da Champions League encontrado nesta data.")
-                    : (competitionCode === 'ALL' ? "Nenhum jogo encontrado para este filtro." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado para este filtro." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado para este filtro." : "Nenhum jogo da Champions League encontrado para este filtro.")}
+                    ? (competitionCode === 'ALL' ? "Nenhum jogo encontrado para esta data." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado nesta data." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado nesta data." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado nesta data." : "Nenhum jogo da Bundesliga encontrado nesta data.")
+                    : (competitionCode === 'ALL' ? "Nenhum jogo encontrado para este filtro." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado para este filtro." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado para este filtro." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado para este filtro." : "Nenhum jogo da Bundesliga encontrado para este filtro.")}
             </p>
           </div>
         ) : (
