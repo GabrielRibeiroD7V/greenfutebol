@@ -133,8 +133,9 @@ function Index() {
     const fetchFixtures = async () => {
       if (activeTab === 'custom') {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        const year = parseInt((customDate || "").split('-')[0]);
-        const parsedDate = new Date(customDate);
+        const yearStr = customDate?.split('-')[0];
+        const year = yearStr ? parseInt(yearStr) : NaN;
+        const parsedDate = new Date(customDate || "");
         const isValidDate = customDate && 
                            dateRegex.test(customDate) && 
                            customDate.length === 10 &&
