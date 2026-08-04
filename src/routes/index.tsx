@@ -61,7 +61,7 @@ function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL'>('BSA');
+  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL'>('BSA');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,14 +282,15 @@ function Index() {
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 bg-white rounded-lg p-1 shadow-sm border border-slate-200 gap-1">
+          <div className="grid grid-cols-3 bg-white rounded-lg p-1 shadow-sm border border-slate-200 gap-1">
             {[
               { label: 'Brasileirão', value: 'BSA' },
-              { label: 'Premier League', value: 'PL' }
+              { label: 'Premier League', value: 'PL' },
+              { label: 'Champions League', value: 'CL' }
             ].map((comp) => (
               <button
                 key={comp.value}
-                onClick={() => setCompetitionCode(comp.value as 'BSA' | 'PL')}
+                onClick={() => setCompetitionCode(comp.value as 'BSA' | 'PL' | 'CL')}
                 disabled={isLoading}
                 className={cn(
                   "py-2 px-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 border",
