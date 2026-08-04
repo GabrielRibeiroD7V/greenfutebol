@@ -88,7 +88,6 @@ Deno.serve(async (req) => {
 
     const match = await response.json();
 
-    // Validação estrutural individual
     const isValid = 
       match &&
       Number.isInteger(match.id) && match.id > 0 &&
@@ -129,7 +128,7 @@ Deno.serve(async (req) => {
         league_name: match.competition.name,
         league_logo: match.competition.emblem ?? null,
         country: match.area.name,
-        // 1. Season Number.isInteger
+        // 2. Validar season com Number.isInteger
         season: Number.isInteger(seasonYear) ? seasonYear : null,
         round: match.matchday ? String(match.matchday) : (match.stage ?? null),
         home_team_id: match.homeTeam.id ?? null,
@@ -145,7 +144,7 @@ Deno.serve(async (req) => {
         status_long: statusLongMap[match.status] || match.status,
         elapsed: typeof match.minute === 'number' ? match.minute : null,
         home_score: match.score.fullTime?.home ?? null,
-        // Correção funcional: fullTime.away
+        // 1. Correção funcional: fullTime.away
         away_score: match.score.fullTime?.away ?? null,
         halftime_home: match.score.halfTime?.home ?? null,
         halftime_away: match.score.halfTime?.away ?? null,
