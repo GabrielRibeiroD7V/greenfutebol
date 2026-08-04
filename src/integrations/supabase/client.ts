@@ -26,8 +26,8 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-const supabaseUrl = import.meta.env['VITE_SUPABASE_URL'];
-const supabasePublishableKey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error(
@@ -35,13 +35,16 @@ if (!supabaseUrl || !supabasePublishableKey) {
   );
 }
 
+const isBrowser = typeof window !== 'undefined';
+
 export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   global: {
     fetch: createSupabaseFetch(supabasePublishableKey),
   },
   auth: {
-    storage: typeof window !== 'undefined' ? localStorage : undefined,
-    persistSession: true,
-    autoRefreshToken: true,
+    storage: isBrowser ? window.localStorage : undefined,
+    persistSession: isBrowser,
+    autoRefreshToken: isBrowser,
+    detectSessionInUrl: isBrowser,
   }
 });
