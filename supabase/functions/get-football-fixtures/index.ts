@@ -1,7 +1,34 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Determina a data YYYY-MM-DD em America/Campo_Grande
+function getTodayCampoGrande(): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Campo_Grande",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(now);
+}
+
+function getTomorrowCampoGrande(): string {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Campo_Grande",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(tomorrow);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -43,6 +70,56 @@ Deno.serve(async (req) => {
       });
     }
 
+    const competitionCode = "BSA";
+    const cacheKey = `${competitionCode}:${date}`;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    let supabaseAdmin: any = null;
+    if (supabaseUrl && supabaseServiceKey) {
+      supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    } else {
+      console.log(JSON.stringify({ event: "cache_read_error", competition_code: competitionCode, fixture_date: date }));
+    }
+
+    // 1. Tentar leitura do cache
+    if (supabaseAdmin) {
+      try {
+        const { data: cacheData, error: cacheError } = await supabaseAdmin
+          .from("football_fixtures_cache")
+          .select("payload, expires_at, fetched_at")
+          .eq("cache_key", cacheKey)
+          .maybeSingle();
+
+        if (cacheError) {
+          console.log(JSON.stringify({ event: "cache_read_error", competition_code: competitionCode, fixture_date: date }));
+        } else if (cacheData) {
+          const expiresAt = new Date(cacheData.expires_at);
+          if (expiresAt > new Date()) {
+            // Cache hit
+            const payload = cacheData.payload;
+            if (payload && typeof payload === "object" && Array.isArray(payload.fixtures)) {
+              console.log(JSON.stringify({ event: "cache_hit", competition_code: competitionCode, fixture_date: date }));
+              return new Response(JSON.stringify(payload), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+                status: 200,
+              });
+            } else {
+              // Corrompido
+              console.log(JSON.stringify({ event: "cache_expired", competition_code: competitionCode, fixture_date: date }));
+            }
+          } else {
+            console.log(JSON.stringify({ event: "cache_expired", competition_code: competitionCode, fixture_date: date }));
+          }
+        } else {
+          console.log(JSON.stringify({ event: "cache_miss", competition_code: competitionCode, fixture_date: date }));
+        }
+      } catch (err) {
+        console.log(JSON.stringify({ event: "cache_read_error", competition_code: competitionCode, fixture_date: date }));
+      }
+    }
+
+    // 2. Fetch do provedor
     const apiToken = Deno.env.get("FOOTBALL_DATA_API_TOKEN");
     if (!apiToken) {
       return new Response(JSON.stringify({ error: "Server configuration error" }), {
@@ -51,39 +128,40 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log(JSON.stringify({ event: "provider_fetch", competition_code: competitionCode, fixture_date: date }));
     const year = date.split('-')[0];
     const url = new URL("https://api.football-data.org/v4/competitions/BSA/matches");
     url.searchParams.set("dateFrom", date);
     url.searchParams.set("dateTo", date);
     url.searchParams.set("season", year);
 
-    const response = await fetch(url.toString(), {
+    const providerResponse = await fetch(url.toString(), {
       headers: { "X-Auth-Token": apiToken },
     });
 
-    if (!response.ok) {
+    if (!providerResponse.ok) {
       let errorCode: number | null = null;
       try {
-        const errorData = await response.json();
+        const errorData = await providerResponse.json();
         errorCode = errorData.errorCode || null;
       } catch (_e) {}
 
-      if (response.status === 400 && errorCode === 404) {
+      if (providerResponse.status === 400 && errorCode === 404) {
         return new Response(JSON.stringify({ error: "Matches not found" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 404,
         });
       }
 
-      if ([400, 401, 403, 404, 429].includes(response.status)) {
-        const errorBody: any = { error: `Football provider error: ${response.status}` };
-        if (response.status === 429) {
-          const resetSeconds = response.headers.get("X-RequestCounter-Reset");
+      if ([400, 401, 403, 404, 429].includes(providerResponse.status)) {
+        const errorBody: any = { error: `Football provider error: ${providerResponse.status}` };
+        if (providerResponse.status === 429) {
+          const resetSeconds = providerResponse.headers.get("X-RequestCounter-Reset");
           if (resetSeconds) errorBody.retry_after_seconds = parseInt(resetSeconds, 10);
         }
         return new Response(JSON.stringify(errorBody), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: response.status,
+          status: providerResponse.status,
         });
       }
       return new Response(JSON.stringify({ error: "Football provider error" }), {
@@ -92,7 +170,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const data = await response.json();
+    const data = await providerResponse.json();
     if (!data || !Array.isArray(data.matches)) {
       return new Response(JSON.stringify({ error: "Invalid structural response" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -106,7 +184,6 @@ Deno.serve(async (req) => {
       "AWARDED": "FT", "SUSPENDED": "SUSP", "POSTPONED": "PST", "CANCELLED": "CANC",
     };
 
-    // 3. Validação estrutural rigorosa (não remover silenciosamente)
     for (const match of data.matches) {
       const isValid = 
         match &&
@@ -145,8 +222,65 @@ Deno.serve(async (req) => {
     }));
 
     fixtures.sort((a: any, b: any) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+    const payload = { fixtures };
 
-    return new Response(JSON.stringify({ fixtures }), {
+    // 3. TTL Logic
+    const todayStr = getTodayCampoGrande();
+    const tomorrowStr = getTomorrowCampoGrande();
+    let ttlSeconds = 900; // Default 15 min
+
+    const isToday = date === todayStr;
+    const isTomorrow = date === tomorrowStr;
+    const isPast = date < todayStr;
+    const isFuture = date > tomorrowStr;
+
+    if (fixtures.length === 0) {
+      if (isPast) ttlSeconds = 7 * 24 * 60 * 60;
+      else if (isToday) ttlSeconds = 15 * 60;
+      else if (isTomorrow) ttlSeconds = 6 * 60 * 60;
+      else ttlSeconds = 12 * 60 * 60;
+    } else if (isToday) {
+      const hasLive = fixtures.some((f: any) => ["LIVE", "HT", "ET", "P"].includes(f.status));
+      const allFinished = fixtures.every((f: any) => f.status === "FT");
+      if (hasLive) ttlSeconds = 60;
+      else if (allFinished) ttlSeconds = 24 * 60 * 60;
+      else ttlSeconds = 15 * 60;
+    } else if (isTomorrow) {
+      ttlSeconds = 6 * 60 * 60;
+    } else if (isFuture) {
+      ttlSeconds = 12 * 60 * 60;
+    } else if (isPast) {
+      const allFinished = fixtures.every((f: any) => f.status === "FT");
+      if (allFinished) ttlSeconds = 7 * 24 * 60 * 60;
+      else ttlSeconds = 15 * 60;
+    }
+
+    // 4. Upsert
+    if (supabaseAdmin) {
+      try {
+        const nowIso = new Date().toISOString();
+        const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+        const { error: upsertError } = await supabaseAdmin
+          .from("football_fixtures_cache")
+          .upsert({
+            cache_key: cacheKey,
+            competition_code: competitionCode,
+            fixture_date: date,
+            payload,
+            fetched_at: nowIso,
+            expires_at: expiresAt,
+            updated_at: nowIso,
+          }, { onConflict: "cache_key" });
+
+        if (upsertError) {
+          console.log(JSON.stringify({ event: "cache_write_error", competition_code: competitionCode, fixture_date: date }));
+        }
+      } catch (err) {
+        console.log(JSON.stringify({ event: "cache_write_error", competition_code: competitionCode, fixture_date: date }));
+      }
+    }
+
+    return new Response(JSON.stringify(payload), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
