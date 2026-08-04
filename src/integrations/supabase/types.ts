@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      football_fixtures_cache: {
+        Row: {
+          cache_key: string
+          competition_code: string
+          created_at: string
+          expires_at: string
+          fetched_at: string
+          fixture_date: string
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          cache_key: string
+          competition_code: string
+          created_at?: string
+          expires_at: string
+          fetched_at?: string
+          fixture_date: string
+          payload: Json
+          updated_at?: string
+        }
+        Update: {
+          cache_key?: string
+          competition_code?: string
+          created_at?: string
+          expires_at?: string
+          fetched_at?: string
+          fixture_date?: string
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
