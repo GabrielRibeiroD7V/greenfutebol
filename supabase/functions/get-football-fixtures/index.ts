@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!["BSA", "PL", "CL"].includes(competitionCode)) {
+    if (!["BSA", "PL", "CL", "BL1"].includes(competitionCode)) {
       return new Response(JSON.stringify({ error: "Invalid competition code" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
