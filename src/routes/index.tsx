@@ -59,12 +59,13 @@ const STATUS_MAP: Record<string, string> = {
 function Index() {
   const { user, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [customDate, setCustomDate] = useState("");
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -129,6 +130,12 @@ function Index() {
 
   useEffect(() => {
     const fetchFixtures = async () => {
+      if (activeTab === 'custom' && !customDate) {
+        setFixtures([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       
@@ -136,6 +143,8 @@ function Index() {
         let dateToFetch: string;
         if (activeTab === 'tomorrow') {
           dateToFetch = getTomorrowCGRDateString();
+        } else if (activeTab === 'custom') {
+          dateToFetch = customDate;
         } else {
           dateToFetch = getCGRDateString(new Date());
         }
@@ -165,7 +174,7 @@ function Index() {
     };
 
     fetchFixtures();
-  }, [activeTab]);
+  }, [activeTab, customDate]);
 
   const groupedFixtures = useMemo(() => {
     const search = normalizeText(searchQuery);
@@ -268,27 +277,42 @@ function Index() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
-        <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
-          {(['today', 'tomorrow', 'live'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              disabled={isLoading}
-              className={cn(
-                "flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
-                activeTab === tab 
-                  ? "bg-blue-600 text-white shadow-sm" 
-                  : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-              )}
-            >
-              {tab === 'today' && <Calendar className="w-4 h-4" />}
-              {tab === 'tomorrow' && <Clock className="w-4 h-4" />}
-              {tab === 'live' && <PlayCircle className="w-4 h-4" />}
-              {tab === 'today' && "Hoje"}
-              {tab === 'tomorrow' && "Amanhã"}
-              {tab === 'live' && "Ao vivo"}
-            </button>
-          ))}
+        <div className="flex flex-col gap-4">
+          <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
+            {(['today', 'tomorrow', 'live', 'custom'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                disabled={isLoading && tab !== 'custom'}
+                className={cn(
+                  "flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
+                  activeTab === tab 
+                    ? "bg-blue-600 text-white shadow-sm" 
+                    : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                )}
+              >
+                {tab === 'today' && <Calendar className="w-4 h-4" />}
+                {tab === 'tomorrow' && <Clock className="w-4 h-4" />}
+                {tab === 'live' && <PlayCircle className="w-4 h-4" />}
+                {tab === 'custom' && <Calendar className="w-4 h-4" />}
+                {tab === 'today' && "Hoje"}
+                {tab === 'tomorrow' && "Amanhã"}
+                {tab === 'live' && "Ao vivo"}
+                {tab === 'custom' && "Escolher data"}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === 'custom' && (
+            <div className="flex justify-center">
+              <input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-auto"
+              />
+            </div>
+          )}
         </div>
 
         {isLoading ? (
@@ -311,7 +335,13 @@ function Index() {
         ) : groupedFixtures.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-2">
             <p className="text-slate-400 font-medium italic">
-              {searchQuery ? "Nenhum jogo encontrado para esta busca." : "Nenhum jogo encontrado para este filtro."}
+              {activeTab === 'custom' && !customDate 
+                ? "Selecione uma data para ver os jogos." 
+                : searchQuery 
+                  ? "Nenhum jogo encontrado para esta busca." 
+                  : activeTab === 'custom'
+                    ? "Nenhum jogo encontrado nesta data."
+                    : "Nenhum jogo encontrado para este filtro."}
             </p>
           </div>
         ) : (
