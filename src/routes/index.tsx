@@ -343,13 +343,28 @@ function Index() {
           </div>
 
           {activeTab === 'custom' && (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-2">
               <input
                 type="date"
                 value={customDate}
                 onChange={(e) => setCustomDate(e.target.value)}
                 className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-auto"
               />
+              {customDate && (() => {
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                const yearStr = customDate.split('-')[0];
+                const year = yearStr ? parseInt(yearStr) : NaN;
+                const parsedDate = new Date(customDate);
+                const isValidDate = dateRegex.test(customDate) && 
+                                   customDate.length === 10 &&
+                                   year >= 2000 && year <= 2100 &&
+                                   !isNaN(parsedDate.getTime()) && 
+                                   parsedDate.toISOString().slice(0, 10) === customDate;
+                
+                return !isValidDate && (
+                  <span className="text-xs text-red-500 font-medium">Selecione uma data válida.</span>
+                );
+              })()}
             </div>
           )}
         </div>
