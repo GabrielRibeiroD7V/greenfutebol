@@ -53,10 +53,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { date } = body;
+    const { date, competition_code } = body;
+    const competitionCode = competition_code || "BSA";
+    
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!date || !dateRegex.test(date)) {
       return new Response(JSON.stringify({ error: "Invalid or missing date format (YYYY-MM-DD)" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    if (!["BSA", "PL"].includes(competitionCode)) {
+      return new Response(JSON.stringify({ error: "Invalid competition code" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
@@ -70,7 +79,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const competitionCode = "BSA";
     const cacheKey = `${competitionCode}:${date}`;
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -130,7 +138,7 @@ Deno.serve(async (req) => {
 
     console.log(JSON.stringify({ event: "provider_fetch", competition_code: competitionCode, fixture_date: date }));
     const year = date.split('-')[0];
-    const url = new URL("https://api.football-data.org/v4/competitions/BSA/matches");
+    const url = new URL(`https://api.football-data.org/v4/competitions/${competitionCode}/matches`);
     url.searchParams.set("dateFrom", date);
     url.searchParams.set("dateTo", date);
     url.searchParams.set("season", year);
