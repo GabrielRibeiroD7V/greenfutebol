@@ -395,8 +395,8 @@ function Index() {
                 : searchQuery 
                   ? "Nenhum jogo encontrado para esta busca." 
                   : activeTab === 'custom'
-                    ? (competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado nesta data." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado nesta data." : "Nenhum jogo da Champions League encontrado nesta data.")
-                    : (competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado para este filtro." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado para este filtro." : "Nenhum jogo da Champions League encontrado para este filtro.")}
+                    ? (competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado nesta data." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado nesta data." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado nesta data." : "Nenhum jogo da Bundesliga encontrado nesta data.")
+                    : (competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado para este filtro." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado para este filtro." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado para este filtro." : "Nenhum jogo da Bundesliga encontrado para este filtro.")}
             </p>
           </div>
         ) : (
