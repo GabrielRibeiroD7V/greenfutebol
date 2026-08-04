@@ -324,7 +324,7 @@ function Index() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                disabled={isLoading && tab !== 'custom'}
+                disabled={isLoading && tab !== 'live' && tab !== 'custom'}
                 className={cn(
                   "flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
                   activeTab === tab 
