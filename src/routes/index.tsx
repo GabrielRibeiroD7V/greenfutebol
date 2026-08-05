@@ -720,12 +720,6 @@ function Index() {
                 </div>
               </div>
             )}
-            {isPartial && (
-              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
-                <AlertCircle size={16} />
-                <span>Algumas competições não puderam ser atualizadas.</span>
-              </div>
-            )}
             {groupedFixtures.map((dateGroup) => (
               <div key={dateGroup.date} className="space-y-6">
                 <div className="sticky top-16 sm:top-20 z-10 py-3 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-emerald-500/5 px-2 sm:px-0">
