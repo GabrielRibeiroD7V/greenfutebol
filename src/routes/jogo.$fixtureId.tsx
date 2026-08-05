@@ -495,6 +495,7 @@ function MatchDetails() {
                                       key={opt.id}
                                       onClick={() => addSelection({
                                         fixture_market_option_id: opt.id,
+                                        fixture_market_id: market.id,
                                         odd: opt.odd,
                                         label: opt.market_option.label,
                                         market_name: market.market_type.name,
