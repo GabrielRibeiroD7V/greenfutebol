@@ -134,6 +134,24 @@ function Index() {
     return `${y}-${m}-${d}`;
   };
 
+  const getNextCGRDateString = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    date.setUTCDate(date.getUTCDate() + 1);
+    
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
+    
+    return `${y}-${m}-${d}`;
+  };
+
+  const formatDateBR = (dateStr: string) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   useEffect(() => {
     const fetchFixtures = async () => {
       if (activeTab === 'custom') {
