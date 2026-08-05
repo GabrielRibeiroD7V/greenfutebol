@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
-import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Trophy } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Trophy, Info } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,12 +62,16 @@ function Index() {
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
+  const [displayedDate, setDisplayedDate] = useState<string | null>(null);
+  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
   const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'PD' | 'SA' | 'FL1' | 'DED' | 'ELC' | 'PPL' | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customDate, setCustomDate] = useState("");
+  const requestIdRef = useRef(0);
+  const [reachedLimit, setReachedLimit] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -130,7 +134,33 @@ function Index() {
     return `${y}-${m}-${d}`;
   };
 
+  const getNextCGRDateString = (dateStr: string) => {
+    const parts = dateStr.split('-').map(Number);
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0]!;
+    const month = parts[1]!;
+    const day = parts[2]!;
+    
+    const date = new Date(Date.UTC(year, month - 1, day));
+    date.setUTCDate(date.getUTCDate() + 1);
+    
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
+    
+    return `${y}-${m}-${d}`;
+  };
+
+  const formatDateBR = (dateStr: string) => {
+    if (!dateStr) return "";
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  };
+
   useEffect(() => {
+    const currentRequestId = ++requestIdRef.current;
+    
     const fetchFixtures = async () => {
       if (activeTab === 'custom') {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -145,8 +175,13 @@ function Index() {
                            parsedDate.toISOString().slice(0, 10) === customDate;
 
         if (!isValidDate) {
-          setFixtures([]);
-          setIsLoading(false);
+          if (currentRequestId === requestIdRef.current) {
+            setFixtures([]);
+            setDisplayedDate(null);
+            setIsShowingNextAvailable(false);
+            setReachedLimit(false);
+            setIsLoading(false);
+          }
           return;
         }
       }
@@ -154,42 +189,88 @@ function Index() {
       setIsLoading(true);
       setError(null);
       setIsPartial(false);
+      setReachedLimit(false);
       
       try {
-        let dateToFetch: string;
+        let requestedDate: string;
         if (activeTab === 'tomorrow') {
-          dateToFetch = getTomorrowCGRDateString();
+          requestedDate = getTomorrowCGRDateString();
         } else if (activeTab === 'custom') {
-          dateToFetch = customDate;
+          requestedDate = customDate;
         } else {
-          dateToFetch = getCGRDateString(new Date());
+          requestedDate = getCGRDateString(new Date());
         }
 
-        const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-          body: { 
-            date: dateToFetch,
-            competition_code: competitionCode
+        let currentDate = requestedDate;
+        let foundFixtures: Fixture[] = [];
+        let searchCount = 0;
+        const maxSearchDays = 14;
+        let finalPartial = false;
+
+        // Sequence search loop
+        while (searchCount < maxSearchDays) {
+          // If live or custom, we only search once
+          if (activeTab === 'live' || activeTab === 'custom') {
+             const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
+              body: { 
+                date: currentDate,
+                competition_code: competitionCode
+              }
+            });
+            if (invokeError) throw invokeError;
+            
+            let results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
+            if (activeTab === 'live') {
+              results = results.filter(f => LIVE_STATUSES.includes(f.status));
+            }
+            foundFixtures = results;
+            finalPartial = !!data?.partial;
+            break; // Stop after first try for live/custom
           }
-        });
 
-        if (invokeError) throw invokeError;
-        
-        let results: Fixture[] = Array.isArray(data?.fixtures)
-          ? data.fixtures
-          : [];
+          // Search for today/tomorrow
+          const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
+            body: { 
+              date: currentDate,
+              competition_code: competitionCode
+            }
+          });
 
-        if (activeTab === 'live') {
-          results = results.filter(f => LIVE_STATUSES.includes(f.status));
+          if (invokeError) throw invokeError;
+
+          const results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
+          finalPartial = finalPartial || !!data?.partial;
+
+          if (results.length > 0) {
+            foundFixtures = results;
+            break;
+          }
+
+          // If no results, try next day
+          currentDate = getNextCGRDateString(currentDate);
+          searchCount++;
+          
+          if (searchCount >= maxSearchDays) {
+            setReachedLimit(true);
+          }
         }
 
-        results.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
-        setFixtures(results);
-        setIsPartial(!!data?.partial);
+        if (currentRequestId !== requestIdRef.current) return;
+
+        foundFixtures.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+        
+        setFixtures(foundFixtures);
+        setDisplayedDate(currentDate);
+        setIsShowingNextAvailable(currentDate !== requestedDate);
+        setIsPartial(finalPartial);
       } catch (err: any) {
+        if (currentRequestId !== requestIdRef.current) return;
         console.error("Erro ao buscar jogos:", err);
         setError("Não foi possível carregar os jogos. Tente novamente mais tarde.");
       } finally {
-        setIsLoading(false);
+        if (currentRequestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -404,21 +485,25 @@ function Index() {
             <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-4">
               <div className="space-y-2">
                 <p className="text-slate-600 font-bold text-lg">
-                  {activeTab === 'custom' && !customDate 
-                    ? "Selecione uma data" 
-                    : searchQuery 
-                      ? "Nenhum resultado" 
-                      : "Não há jogos destas competições nesta data."}
+                  {reachedLimit 
+                    ? "Não encontramos jogos nos próximos 14 dias para este filtro."
+                    : activeTab === 'custom' && !customDate 
+                      ? "Selecione uma data" 
+                      : searchQuery 
+                        ? "Nenhum resultado" 
+                        : "Não há jogos destas competições nesta data."}
                 </p>
                 <p className="text-slate-400 font-medium text-sm">
-                  {activeTab === 'custom' && !customDate 
-                    ? "Escolha um dia no calendário para ver os jogos disponíveis." 
-                    : searchQuery 
-                      ? "Tente ajustar sua busca para encontrar o que procura." 
-                      : "Escolha outra data para consultar as próximas partidas."}
+                  {reachedLimit
+                    ? "Escolha outra competição ou consulte uma data específica."
+                    : activeTab === 'custom' && !customDate 
+                      ? "Escolha um dia no calendário para ver os jogos disponíveis." 
+                      : searchQuery 
+                        ? "Tente ajustar sua busca para encontrar o que procura." 
+                        : "Escolha outra data para consultar as próximas partidas."}
                 </p>
               </div>
-              {!customDate && activeTab !== 'custom' && (
+              {(!customDate || reachedLimit) && activeTab !== 'custom' && (
                 <button
                   onClick={() => setActiveTab('custom')}
                   className="inline-flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors text-sm"
@@ -437,6 +522,15 @@ function Index() {
           </div>
         ) : (
           <div className="space-y-8">
+            {isShowingNextAvailable && displayedDate && (
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-3 text-blue-700">
+                <Info size={20} className="shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-sm">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
+                  <p className="text-blue-600 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
+                </div>
+              </div>
+            )}
             {isPartial && (
               <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
                 <AlertCircle size={16} />
