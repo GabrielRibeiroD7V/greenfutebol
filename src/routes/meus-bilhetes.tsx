@@ -37,7 +37,7 @@ function MeusBilhetesComponent() {
   const loadTickets = async () => {
     setLoading(true);
     try {
-      const { tickets: data } = await getMyTickets({ status });
+      const { tickets: data } = await getMyTickets({ data: { status } });
       setTickets(data || []);
     } catch (error) {
       console.error(error);
