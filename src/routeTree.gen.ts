@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteRouteImport } from './routes/admin.route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
@@ -18,6 +19,11 @@ import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -43,6 +49,7 @@ const JogoFixtureIdRoute = JogoFixtureIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -66,12 +75,24 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/cadastro' | '/login' | '/meus-bilhetes' | '/jogo/$fixtureId'
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/login'
+    | '/meus-bilhetes'
+    | '/jogo/$fixtureId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/login' | '/meus-bilhetes' | '/jogo/$fixtureId'
+  to:
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/login'
+    | '/meus-bilhetes'
+    | '/jogo/$fixtureId'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
@@ -80,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRoute
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   MeusBilhetesRoute: typeof MeusBilhetesRoute
@@ -93,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -128,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRoute,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   MeusBilhetesRoute: MeusBilhetesRoute,
