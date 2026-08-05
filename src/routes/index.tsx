@@ -708,13 +708,13 @@ function Index() {
             )}
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {isShowingNextAvailable && displayedDate && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
-                <Info size={20} className="shrink-0" />
+              <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 sm:p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)] mx-2 sm:mx-0">
+                <Info size={18} className="shrink-0 sm:w-5 sm:h-5" />
                 <div className="space-y-0.5">
-                  <p className="font-bold text-sm">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
-                  <p className="text-emerald-300 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
+                  <p className="font-bold text-[12px] sm:text-sm leading-tight">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
+                  <p className="text-emerald-300 font-medium text-[10px] sm:text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
                 </div>
               </div>
             )}
