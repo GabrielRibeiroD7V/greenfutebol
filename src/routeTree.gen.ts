@@ -10,14 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteRouteImport } from './routes/admin.route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
+import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
+import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
 import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -35,6 +43,16 @@ const MeusBilhetesRoute = MeusBilhetesRouteImport.update({
   path: '/meus-bilhetes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBilhetesRoute = AdminBilhetesRouteImport.update({
+  id: '/bilhetes',
+  path: '/bilhetes',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminMercadosRoute = AdminMercadosRouteImport.update({
+  id: '/mercados',
+  path: '/mercados',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const JogoFixtureIdRoute = JogoFixtureIdRouteImport.update({
   id: '/jogo/$fixtureId',
   path: '/jogo/$fixtureId',
@@ -43,43 +61,71 @@ const JogoFixtureIdRoute = JogoFixtureIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/admin/bilhetes': typeof AdminBilhetesRoute
+  '/admin/mercados': typeof AdminMercadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/admin/bilhetes': typeof AdminBilhetesRoute
+  '/admin/mercados': typeof AdminMercadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/admin/bilhetes': typeof AdminBilhetesRoute
+  '/admin/mercados': typeof AdminMercadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/cadastro' | '/login' | '/meus-bilhetes' | '/jogo/$fixtureId'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/login' | '/meus-bilhetes' | '/jogo/$fixtureId'
-  id:
-    | '__root__'
     | '/'
+    | '/admin'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
+    | '/admin/bilhetes'
+    | '/admin/mercados'
+    | '/jogo/$fixtureId'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/login'
+    | '/meus-bilhetes'
+    | '/admin/bilhetes'
+    | '/admin/mercados'
+    | '/jogo/$fixtureId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/cadastro'
+    | '/login'
+    | '/meus-bilhetes'
+    | '/admin/bilhetes'
+    | '/admin/mercados'
     | '/jogo/$fixtureId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   MeusBilhetesRoute: typeof MeusBilhetesRoute
@@ -93,6 +139,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -116,6 +169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeusBilhetesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/bilhetes': {
+      id: '/admin/bilhetes'
+      path: '/bilhetes'
+      fullPath: '/admin/bilhetes'
+      preLoaderRoute: typeof AdminBilhetesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/mercados': {
+      id: '/admin/mercados'
+      path: '/mercados'
+      fullPath: '/admin/mercados'
+      preLoaderRoute: typeof AdminMercadosRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/jogo/$fixtureId': {
       id: '/jogo/$fixtureId'
       path: '/jogo/$fixtureId'
@@ -126,8 +193,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminBilhetesRoute: typeof AdminBilhetesRoute
+  AdminMercadosRoute: typeof AdminMercadosRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminBilhetesRoute: AdminBilhetesRoute,
+  AdminMercadosRoute: AdminMercadosRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   MeusBilhetesRoute: MeusBilhetesRoute,
