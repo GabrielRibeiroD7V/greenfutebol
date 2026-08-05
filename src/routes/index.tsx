@@ -350,6 +350,15 @@ function Index() {
     return `${capitalizedWeekDay}, ${dateStr} • ${timeStr}`;
   };
 
+  const formatTime = (isoString: string) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(isoString));
+  };
+
+
   const formatGroupHeader = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
     const today = getCGRDateString(new Date());
@@ -511,7 +520,7 @@ function Index() {
                 type="date"
                 value={customDate}
                 onChange={(e) => setCustomDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-auto"
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none w-full md:w-auto text-white"
               />
               {customDate && (() => {
                 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -525,17 +534,18 @@ function Index() {
                                    parsedDate.toISOString().slice(0, 10) === customDate;
                 
                 return !isValidDate && (
-                  <span className="text-xs text-red-500 font-medium">Selecione uma data válida.</span>
+                  <span className="text-xs text-red-400 font-medium">Selecione uma data válida.</span>
                 );
               })()}
             </div>
           )}
         </div>
 
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <p className="text-slate-500 font-medium">Buscando jogos reais...</p>
+            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+            <p className="text-slate-400 font-medium">Buscando jogos reais...</p>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center space-y-3">
@@ -551,7 +561,7 @@ function Index() {
           </div>
         ) : groupedFixtures.length === 0 ? (
           <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-4">
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
               <div className="space-y-2">
                 <p className="text-slate-600 font-bold text-lg">
                   {reachedLimit 
@@ -592,11 +602,11 @@ function Index() {
         ) : (
           <div className="space-y-8">
             {isShowingNextAvailable && displayedDate && (
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-3 text-blue-700">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
                 <Info size={20} className="shrink-0" />
                 <div className="space-y-0.5">
                   <p className="font-bold text-sm">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
-                  <p className="text-blue-600 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
+                  <p className="text-emerald-300 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
                 </div>
               </div>
             )}
@@ -683,8 +693,8 @@ function Index() {
         )}
       </main>
 
-      <footer className="py-8 text-center text-slate-300 text-xs border-t border-slate-200 mt-auto">
-        &copy; 2026 GreenSport. Dados fornecidos por API-Sports.
+      <footer className="py-8 text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40">
+        &copy; 2026 GREENFUTEBOL. DADOS POR FOOTBALL-DATA.ORG.
       </footer>
     </div>
   );
