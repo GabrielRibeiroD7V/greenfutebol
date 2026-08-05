@@ -13,6 +13,20 @@ const createTicketInput = z.object({
   selections: z.array(selectionSchema).min(1).max(20),
 });
 
+interface RPCResult {
+  success: boolean;
+  ticket_id?: string;
+  ticket_code?: string;
+  error_code?: string;
+  is_duplicate?: boolean;
+  changed_selections?: Array<{
+    option_id: string;
+    old_odd: number;
+    current_odd: number;
+    label: string;
+  }>;
+}
+
 export const createTicket = createServerFn({ method: "POST" })
   .inputValidator((data) => createTicketInput.parse(data))
   .handler(async ({ data }) => {
@@ -24,7 +38,7 @@ export const createTicket = createServerFn({ method: "POST" })
     const { stake, idempotency_key, selections } = data;
 
     // Call the atomic RPC
-    const { data: result, error: rpcError } = await supabase.rpc('create_ticket_atomic', {
+    const { data, error: rpcError } = await supabase.rpc('create_ticket_atomic', {
       p_stake: stake,
       p_idempotency_key: idempotency_key,
       p_selections: selections.map(s => ({
@@ -36,7 +50,6 @@ export const createTicket = createServerFn({ method: "POST" })
     if (rpcError) {
       console.error("RPC Error:", rpcError);
       
-      // Map common PG errors to user-friendly messages
       if (rpcError.code === 'P0001') {
         throw new Error(rpcError.message.replace('Market or option is suspended: ', 'O mercado ou opção não está mais disponível: '));
       }
@@ -44,18 +57,16 @@ export const createTicket = createServerFn({ method: "POST" })
         throw new Error(rpcError.message.replace('Match already started: ', 'A partida já começou: '));
       }
       if (rpcError.code === '23505') {
-        // Unique violation (idempotency)
-        // Although the RPC handles it by returning success: true, 
-        // if for some reason it hits the constraint directly:
         return { success: true, is_duplicate: true };
       }
 
       throw new Error("Erro ao processar bilhete. Tente novamente.");
     }
 
-    // result will be { success: boolean, ticket_id?: string, ticket_code?: string, error_code?: string, changed_selections?: any[] }
-    if (!result.success) {
-      if (result.error_code === 'ODDS_CHANGED') {
+    const result = data as unknown as RPCResult;
+
+    if (!result || !result.success) {
+      if (result?.error_code === 'ODDS_CHANGED') {
         return {
           success: false,
           error_code: 'ODDS_CHANGED',
@@ -72,3 +83,4 @@ export const createTicket = createServerFn({ method: "POST" })
       is_duplicate: result.is_duplicate || false
     };
   });
+
