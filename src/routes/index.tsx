@@ -73,6 +73,7 @@ function Index() {
   const [customDate, setCustomDate] = useState("");
   const requestIdRef = useRef(0);
   const [reachedLimit, setReachedLimit] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
