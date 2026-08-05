@@ -757,9 +757,10 @@ function Index() {
                             className="block group"
                           >
                             <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden group-hover:border-emerald-500/50 group-hover:bg-white/[0.08] transition-all duration-300">
-                              <div className="p-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                              <div className="p-4 flex flex-col gap-6 md:grid md:grid-cols-3 md:items-center md:gap-4">
+                                {/* Cabeçalho do Card (Mobile: Centrado / Desktop: Esquerda) */}
                                 <div className="flex flex-col items-center md:items-start space-y-1">
-                                  <span className="text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
+                                  <span className="text-[12px] sm:text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
                                   <span className={cn(
                                     "text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider",
                                     LIVE_STATUSES.includes(match.status) ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse" : "bg-white/5 text-slate-400"
@@ -768,29 +769,41 @@ function Index() {
                                   </span>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-4 md:col-span-2">
-                                  <div className="flex-1 flex items-center justify-end gap-3 text-right">
-                                    <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{match.home_team_name}</span>
-                                    {match.home_team_logo ? (
-                                      <img src={match.home_team_logo} alt={match.home_team_name} className="w-8 h-8 object-contain brightness-110" />
-                                    ) : (
-                                      <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                    )}
+                                {/* Área da Partida */}
+                                <div className="md:col-span-2 grid grid-cols-[1fr_auto_1fr] items-start sm:items-center gap-3 sm:gap-4 px-2 sm:px-0">
+                                  {/* Time da Casa */}
+                                  <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-2 sm:gap-3 text-center sm:text-right min-w-0">
+                                    <div className="shrink-0 order-first sm:order-last">
+                                      {match.home_team_logo ? (
+                                        <img src={match.home_team_logo} alt={match.home_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
+                                      ) : (
+                                        <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                      )}
+                                    </div>
+                                    <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
+                                      {match.home_team_name}
+                                    </span>
                                   </div>
 
-                                  <div className="flex items-center gap-2 px-4 py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-xl min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all">
+                                  {/* Placar */}
+                                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-lg sm:text-xl min-w-[70px] sm:min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all self-center">
                                     <span>{match.home_score ?? 0}</span>
                                     <span className="text-white/20 text-xs">x</span>
                                     <span>{match.away_score ?? 0}</span>
                                   </div>
 
-                                  <div className="flex-1 flex items-center gap-3">
-                                    {match.away_team_logo ? (
-                                      <img src={match.away_team_logo} alt={match.away_team_name} className="w-8 h-8 object-contain brightness-110" />
-                                    ) : (
-                                      <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                    )}
-                                    <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{match.away_team_name}</span>
+                                  {/* Time Visitante */}
+                                  <div className="flex flex-col items-center sm:flex-row gap-2 sm:gap-3 text-center sm:text-left min-w-0">
+                                    <div className="shrink-0">
+                                      {match.away_team_logo ? (
+                                        <img src={match.away_team_logo} alt={match.away_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
+                                      ) : (
+                                        <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                      )}
+                                    </div>
+                                    <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
+                                      {match.away_team_name}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
