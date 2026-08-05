@@ -140,9 +140,9 @@ function MeusBilhetesComponent() {
                         <span className="text-emerald-400 font-black text-lg tracking-widest">{t.code}</span>
                         <span className={cn(
                           "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                          t.status === 'CONFIRMED' || t.status === 'PENDING' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                          t.status === 'CONFIRMED' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
                         )}>
-                          {t.status === 'PENDING' ? 'CONFIRMADO' : t.status}
+                          {t.status === 'CONFIRMED' ? 'Confirmado' : t.status === 'CANCELLED' ? 'Cancelado' : t.status}
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
