@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Trophy, Info } from "lucide-react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info } from "lucide-react";
+import logoAsset from "@/assets/logo.png.asset.json";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,8 +11,8 @@ import { useNavigate, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GreenSport - Futebol Real" },
-      { name: "description", content: "Acompanhe jogos de futebol em tempo real na GreenSport." },
+      { title: "GreenFutebol - Plataforma Premium de Futebol" },
+      { name: "description", content: "Acompanhe jogos de futebol em tempo real na GreenFutebol com tecnologia de ponta." },
     ],
   }),
   component: Index,
@@ -349,6 +350,15 @@ function Index() {
     return `${capitalizedWeekDay}, ${dateStr} • ${timeStr}`;
   };
 
+  const formatTime = (isoString: string) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(isoString));
+  };
+
+
   const formatGroupHeader = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
     const today = getCGRDateString(new Date());
@@ -385,12 +395,18 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-10">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200">
+      <header className="bg-black/80 backdrop-blur-md border-b border-white/10 text-white p-4 shadow-2xl sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Trophy className="text-blue-400 h-8 w-8" />
-            <h1 className="text-xl font-bold tracking-tight text-white">GreenSport</h1>
+          <div className="flex items-center gap-2 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/30 transition-colors" />
+              <img 
+                src={logoAsset.url} 
+                alt="GreenFutebol" 
+                className="h-10 w-auto relative z-10 brightness-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]" 
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -401,7 +417,7 @@ function Index() {
                 placeholder="Buscar..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 w-48 text-white"
+                className="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/50 w-48 text-white placeholder:text-white/30 transition-all focus:bg-white/10 outline-none"
               />
             </div>
 
@@ -411,7 +427,7 @@ function Index() {
                   <span className="text-[10px] font-medium text-white/70 uppercase tracking-widest">{user?.email}</span>
                   <button 
                     onClick={() => navigate({ to: "/meus-bilhetes" })}
-                    className="text-[10px] text-blue-400 hover:underline flex items-center gap-1"
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors"
                   >
                     <Ticket size={10} />
                     Meus Bilhetes
@@ -429,7 +445,7 @@ function Index() {
             ) : (
               <button 
                 onClick={() => navigate({ to: "/login" })}
-                className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                className="flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(5,150,105,0.4)] hover:shadow-[0_0_20px_rgba(5,150,105,0.6)]"
               >
                 <LogIn size={16} />
                 <span>Entrar</span>
@@ -441,7 +457,7 @@ function Index() {
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 bg-white rounded-lg p-1 shadow-sm border border-slate-200 gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 bg-white/5 rounded-xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm">
             {[
               { label: 'Todos', value: 'ALL' },
               { label: 'Brasileirão', value: 'BSA' },
@@ -464,8 +480,8 @@ function Index() {
                 className={cn(
                   "py-2 px-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 border",
                   competitionCode === comp.value
-                    ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                    : "text-slate-600 border-transparent hover:bg-slate-50 disabled:opacity-50"
+                    ? "bg-emerald-600 text-white border-emerald-500 shadow-[0_0_10px_rgba(5,150,105,0.3)] scale-[1.02]"
+                    : "text-slate-400 border-transparent hover:bg-white/5 hover:text-white disabled:opacity-50"
                 )}
               >
                 {comp.label}
@@ -473,7 +489,7 @@ function Index() {
             ))}
           </div>
 
-          <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
+          <div className="flex bg-white/5 rounded-xl p-1 shadow-2xl border border-white/5 backdrop-blur-sm">
             {(['today', 'tomorrow', 'live', 'custom'] as const).map((tab) => (
               <button
                 key={tab}
@@ -504,7 +520,7 @@ function Index() {
                 type="date"
                 value={customDate}
                 onChange={(e) => setCustomDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-auto"
+                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none w-full md:w-auto text-white"
               />
               {customDate && (() => {
                 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -518,17 +534,18 @@ function Index() {
                                    parsedDate.toISOString().slice(0, 10) === customDate;
                 
                 return !isValidDate && (
-                  <span className="text-xs text-red-500 font-medium">Selecione uma data válida.</span>
+                  <span className="text-xs text-red-400 font-medium">Selecione uma data válida.</span>
                 );
               })()}
             </div>
           )}
         </div>
 
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <p className="text-slate-500 font-medium">Buscando jogos reais...</p>
+            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+            <p className="text-slate-400 font-medium">Buscando jogos reais...</p>
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center space-y-3">
@@ -544,7 +561,7 @@ function Index() {
           </div>
         ) : groupedFixtures.length === 0 ? (
           <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-4">
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
               <div className="space-y-2">
                 <p className="text-slate-600 font-bold text-lg">
                   {reachedLimit 
@@ -585,11 +602,11 @@ function Index() {
         ) : (
           <div className="space-y-8">
             {isShowingNextAvailable && displayedDate && (
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-3 text-blue-700">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
                 <Info size={20} className="shrink-0" />
                 <div className="space-y-0.5">
                   <p className="font-bold text-sm">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
-                  <p className="text-blue-600 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
+                  <p className="text-emerald-300 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
                 </div>
               </div>
             )}
@@ -676,8 +693,8 @@ function Index() {
         )}
       </main>
 
-      <footer className="py-8 text-center text-slate-300 text-xs border-t border-slate-200 mt-auto">
-        &copy; 2026 GreenSport. Dados fornecidos por API-Sports.
+      <footer className="py-8 text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40">
+        &copy; 2026 GREENFUTEBOL. DADOS POR FOOTBALL-DATA.ORG.
       </footer>
     </div>
   );
