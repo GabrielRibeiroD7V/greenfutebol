@@ -1,15 +1,22 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { Ticket, Search, AlertCircle, Loader2, ChevronRight, Filter } from "lucide-react";
+import { Ticket, Search, AlertCircle, Loader2, ChevronRight, Filter, Clock, CheckCircle2, XCircle, ArrowLeft, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getMyTickets } from "@/lib/tickets.functions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { requireAuthenticatedUser } from "@/lib/auth-guard";
 
 export const Route = createFileRoute("/meus-bilhetes")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    // Auth check happens in AuthProvider via isAuthenticated
+    const user = await requireAuthenticatedUser();
+    if (!user) {
+      throw redirect({
+        to: "/login",
+        search: { redirect: location.href }
+      });
+    }
   },
   component: MeusBilhetesComponent,
 });
