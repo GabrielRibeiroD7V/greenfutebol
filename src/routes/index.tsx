@@ -734,8 +734,8 @@ function Index() {
             )}
             {groupedFixtures.map((dateGroup) => (
               <div key={dateGroup.date} className="space-y-6">
-                <div className="sticky top-[160px] z-10 py-2 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
-                  <h3 className="text-lg font-black text-white flex items-center gap-2 px-2">
+                <div className="sticky top-16 sm:top-20 z-10 py-3 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-emerald-500/5 px-2 sm:px-0">
+                  <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2 px-2">
                     <Calendar size={18} className="text-emerald-500" />
                     {formatGroupHeader(dateGroup.date)}
                   </h3>
