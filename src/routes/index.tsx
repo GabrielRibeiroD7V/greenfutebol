@@ -425,7 +425,7 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]" data-testid="main-container">
       <header className="bg-black/80 backdrop-blur-md border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-30 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
