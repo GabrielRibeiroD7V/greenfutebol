@@ -616,75 +616,88 @@ function Index() {
                 <span>Algumas competições não puderam ser atualizadas.</span>
               </div>
             )}
-            {groupedFixtures.map((league) => (
-              <div key={`${league.country}-${league.name}`} className="space-y-3">
-                <div className="flex items-center gap-3 px-2">
-                  {league.logo ? (
-                    <img src={league.logo} alt={league.name} className="w-6 h-6 object-contain" />
-                  ) : (
-                    <div className="w-6 h-6 bg-slate-200 rounded-md flex items-center justify-center text-[10px]">⚽</div>
-                  )}
-                  <div>
-                    <h2 className="font-bold text-slate-800 leading-none">{league.name}</h2>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{league.country}</span>
-                  </div>
+            {groupedFixtures.map((dateGroup) => (
+              <div key={dateGroup.date} className="space-y-6">
+                <div className="sticky top-[160px] z-10 py-2 bg-[#0a0a0a]/80 backdrop-blur-sm">
+                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <Calendar size={18} className="text-emerald-500" />
+                    {formatGroupHeader(dateGroup.date)}
+                  </h3>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
-                  {league.matches.map((match) => (
-                    <Link
-                      key={match.fixture_id}
-                      to="/jogo/$fixtureId"
-                      params={{ fixtureId: String(match.fixture_id) }}
-                      className="block group"
-                    >
-                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group-hover:border-blue-300 transition-colors">
-                      <div className="p-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-                        <div className="flex flex-col items-center md:items-start space-y-1">
-                          <span className="text-sm font-bold text-slate-800">{formatTime(match.kickoff_at)}</span>
-                          <span className={cn(
-                            "text-[10px] px-2 py-0.5 rounded-full font-bold uppercase",
-                            LIVE_STATUSES.includes(match.status) ? "bg-red-100 text-red-600 animate-pulse" : "bg-slate-100 text-slate-500"
-                          )}>
-                            {getStatusDisplay(match.status, match.elapsed)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-4 md:col-span-2">
-                          <div className="flex-1 flex items-center justify-end gap-3 text-right">
-                            <span className="text-sm font-bold text-slate-800">{match.home_team_name}</span>
-                            {match.home_team_logo ? (
-                              <img src={match.home_team_logo} alt={match.home_team_name} className="w-8 h-8 object-contain" />
-                            ) : (
-                              <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] text-slate-400">🛡️</div>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2 px-3 py-1 bg-slate-900 text-white rounded-lg font-black text-lg min-w-[70px] justify-center shadow-inner">
-                            <span>{match.home_score ?? 0}</span>
-                            <span className="text-slate-500 text-xs">x</span>
-                            <span>{match.away_score ?? 0}</span>
-                          </div>
-
-                          <div className="flex-1 flex items-center gap-3">
-                            {match.away_team_logo ? (
-                              <img src={match.away_team_logo} alt={match.away_team_name} className="w-8 h-8 object-contain" />
-                            ) : (
-                              <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-[10px] text-slate-400">🛡️</div>
-                            )}
-                            <span className="text-sm font-bold text-slate-800">{match.away_team_name}</span>
-                          </div>
+                <div className="space-y-6 pl-4 border-l-2 border-white/5 ml-2">
+                  {dateGroup.leagues.map((league) => (
+                    <div key={`${dateGroup.date}-${league.country}-${league.name}`} className="space-y-3">
+                      <div className="flex items-center gap-3 px-2">
+                        {league.logo ? (
+                          <img src={league.logo} alt={league.name} className="w-6 h-6 object-contain brightness-125" />
+                        ) : (
+                          <div className="w-6 h-6 bg-white/10 rounded-md flex items-center justify-center text-[10px]">⚽</div>
+                        )}
+                        <div>
+                          <h2 className="font-bold text-slate-100 leading-none">{league.name}</h2>
+                          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{league.country}</span>
                         </div>
                       </div>
-                      
-                      {match.venue && (
-                        <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center gap-2">
-                          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Estádio:</span>
-                          <span className="text-[10px] font-bold text-slate-500">{match.venue}</span>
-                        </div>
-                      )}
+
+                      <div className="grid grid-cols-1 gap-3">
+                        {league.matches.map((match) => (
+                          <Link
+                            key={match.fixture_id}
+                            to="/jogo/$fixtureId"
+                            params={{ fixtureId: String(match.fixture_id) }}
+                            className="block group"
+                          >
+                            <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden group-hover:border-emerald-500/50 group-hover:bg-white/[0.08] transition-all duration-300">
+                              <div className="p-4 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                                <div className="flex flex-col items-center md:items-start space-y-1">
+                                  <span className="text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
+                                  <span className={cn(
+                                    "text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider",
+                                    LIVE_STATUSES.includes(match.status) ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse" : "bg-white/5 text-slate-400"
+                                  )}>
+                                    {getStatusDisplay(match.status, match.elapsed)}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-4 md:col-span-2">
+                                  <div className="flex-1 flex items-center justify-end gap-3 text-right">
+                                    <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{match.home_team_name}</span>
+                                    {match.home_team_logo ? (
+                                      <img src={match.home_team_logo} alt={match.home_team_name} className="w-8 h-8 object-contain brightness-110" />
+                                    ) : (
+                                      <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-2 px-4 py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-xl min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all">
+                                    <span>{match.home_score ?? 0}</span>
+                                    <span className="text-white/20 text-xs">x</span>
+                                    <span>{match.away_score ?? 0}</span>
+                                  </div>
+
+                                  <div className="flex-1 flex items-center gap-3">
+                                    {match.away_team_logo ? (
+                                      <img src={match.away_team_logo} alt={match.away_team_name} className="w-8 h-8 object-contain brightness-110" />
+                                    ) : (
+                                      <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                    )}
+                                    <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">{match.away_team_name}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {match.venue && (
+                                <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">ESTÁDIO</span>
+                                  <span className="text-[10px] font-bold text-slate-400">{match.venue}</span>
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                    </Link>
                   ))}
                 </div>
               </div>
