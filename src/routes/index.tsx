@@ -320,29 +320,60 @@ function Index() {
       }));
   }, [fixtures, searchQuery]);
 
-  const formatTime = (isoString: string) => {
+  const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
+    const now = new Date();
+    
     const timeStr = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       hour: "2-digit",
       minute: "2-digit"
     }).format(date);
 
-    if (isShowingNextAvailable) {
-      const currentYear = new Date().getFullYear();
-      const matchYear = date.getFullYear();
-      
-      const dateStr = new Intl.DateTimeFormat("pt-BR", {
-        timeZone: TIMEZONE,
-        day: "2-digit",
-        month: "2-digit",
-        ...(matchYear !== currentYear ? { year: "numeric" } : {})
-      }).format(date);
+    const weekDay = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      weekday: "short"
+    }).format(date).replace(".", "");
+    
+    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
 
-      return `${dateStr} • ${timeStr}`;
-    }
+    const isDifferentYear = date.getFullYear() !== now.getFullYear();
+    
+    const dateStr = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      day: "2-digit",
+      month: "2-digit",
+      ...(isDifferentYear ? { year: "numeric" } : {})
+    }).format(date);
 
-    return timeStr;
+    return `${capitalizedWeekDay}, ${dateStr} • ${timeStr}`;
+  };
+
+  const formatGroupHeader = (dateStr: string) => {
+    const date = new Date(dateStr + "T00:00:00");
+    const today = getCGRDateString(new Date());
+    const tomorrow = getTomorrowCGRDateString();
+
+    const formattedDate = formatDateBR(dateStr);
+    
+    if (dateStr === today) return `Hoje — ${formattedDate}`;
+    if (dateStr === tomorrow) return `Amanhã — ${formattedDate}`;
+
+    const weekDay = new Intl.DateTimeFormat("pt-BR", {
+      weekday: "long"
+    }).format(date);
+    
+    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    
+    return `${capitalizedWeekDay} — ${formattedDate}`;
+  };
+
+  const formatTimeOnly = (isoString: string) => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(isoString));
   };
 
   const getStatusDisplay = (status: string, elapsed: number | null) => {
