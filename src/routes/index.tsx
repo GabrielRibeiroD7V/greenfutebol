@@ -708,12 +708,6 @@ function Index() {
                 </button>
               )}
             </div>
-            {isPartial && (
-              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
-                <AlertCircle size={16} />
-                <span>Algumas competições não puderam ser atualizadas.</span>
-              </div>
-            )}
           </div>
         ) : (
           <div className="space-y-6 sm:space-y-8">
