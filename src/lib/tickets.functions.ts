@@ -29,20 +29,19 @@ interface RPCResult {
 
 export const createTicket = createServerFn({ method: "POST" })
   .inputValidator((data) => createTicketInput.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data: input }) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error("Usuário não autenticado");
     }
 
-    const { stake, idempotency_key, selections } = inputData;
+    const { stake, idempotency_key, selections } = input;
 
     // Call the atomic RPC
     const { data: rpcResponse, error: rpcError } = await supabase.rpc('create_ticket_atomic', {
       p_stake: stake,
       p_idempotency_key: idempotency_key,
-
-      p_selections: selections.map(s => ({
+      p_selections: selections.map((s: { fixture_market_option_id: string; expected_odd: number }) => ({
         option_id: s.fixture_market_option_id,
         expected_odd: s.expected_odd
       }))
@@ -64,7 +63,7 @@ export const createTicket = createServerFn({ method: "POST" })
       throw new Error("Erro ao processar bilhete. Tente novamente.");
     }
 
-    const result = data as unknown as RPCResult;
+    const result = rpcResponse as unknown as RPCResult;
 
     if (!result || !result.success) {
       if (result?.error_code === 'ODDS_CHANGED') {
@@ -84,4 +83,3 @@ export const createTicket = createServerFn({ method: "POST" })
       is_duplicate: result.is_duplicate || false
     };
   });
-
