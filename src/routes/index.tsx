@@ -288,22 +288,36 @@ function Index() {
         )
       : fixtures;
 
-    const groups: Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }> = {};
+    // First, group by Date (YYYY-MM-DD)
+    const dateGroups: Record<string, Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }>> = {};
     
     filtered.forEach(f => {
-      const key = `${f.country}-${f.league_name}`;
-      if (!groups[key]) {
-        groups[key] = {
+      // Get the date in the local timezone for grouping
+      const dateKey = getCGRDateString(new Date(f.kickoff_at));
+      
+      if (!dateGroups[dateKey]) {
+        dateGroups[dateKey] = {};
+      }
+
+      const leagueKey = `${f.country}-${f.league_name}`;
+      if (!dateGroups[dateKey][leagueKey]) {
+        dateGroups[dateKey][leagueKey] = {
           name: f.league_name,
           country: f.country,
           logo: f.league_logo,
           matches: []
         };
       }
-      groups[key].matches.push(f);
+      dateGroups[dateKey][leagueKey].matches.push(f);
     });
 
-    return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
+    // Convert to sorted array structure
+    return Object.entries(dateGroups)
+      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+      .map(([date, leagues]) => ({
+        date,
+        leagues: Object.values(leagues).sort((a, b) => a.name.localeCompare(b.name))
+      }));
   }, [fixtures, searchQuery]);
 
   const formatTime = (isoString: string) => {
