@@ -1,14 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { getAdminTickets } from "@/lib/admin.functions";
-import { Loader2, Search, Ticket } from "lucide-react";
+import { Loader2, Search, Ticket, User, Phone, Calendar, Clock, ChevronRight, Filter, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { maskPhone } from "@/lib/phone-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/bilhetes")({
   ssr: false,
   component: AdminTicketsPage,
 });
+
 
 function AdminTicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
