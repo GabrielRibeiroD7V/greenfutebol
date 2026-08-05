@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X } from "lucide-react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight } from "lucide-react";
 import logoAsset from "@/assets/logo.png.asset.json";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useBetSlip } from "@/hooks/use-bet-slip";
+import { BetSlip } from "@/components/BetSlip";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -60,6 +61,7 @@ const STATUS_MAP: Record<string, string> = {
 function Index() {
   const { user, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
+  const { selections } = useBetSlip();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
@@ -71,9 +73,11 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customDate, setCustomDate] = useState("");
-  const requestIdRef = useRef(0);
   const [reachedLimit, setReachedLimit] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
+  
+  const requestIdRef = useRef(0);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -563,7 +567,8 @@ function Index() {
         )}
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl mx-auto w-full p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[1fr_350px] lg:gap-8 items-start overflow-x-hidden">
+        <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-6 bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm mx-1 sm:mx-0 overflow-x-auto sm:overflow-x-visible no-scrollbar scroll-smooth touch-pan-x px-2 sm:px-1">
             {[
@@ -744,72 +749,70 @@ function Index() {
 
                       <div className="grid grid-cols-1 gap-3">
                         {league.matches.map((match) => (
-                          <Link
-                            key={match.fixture_id}
-                            to="/jogo/$fixtureId"
-                            params={{ fixtureId: String(match.fixture_id) }}
-                            className="block group"
-                          >
-                            <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden group-hover:border-emerald-500/50 group-hover:bg-white/[0.08] transition-all duration-300">
-                              <div className="p-4 flex flex-col gap-6 md:grid md:grid-cols-3 md:items-center md:gap-4">
-                                {/* Cabeçalho do Card (Mobile: Centrado / Desktop: Esquerda) */}
-                                <div className="flex flex-col items-center md:items-start space-y-1">
-                                  <span className="text-[12px] sm:text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
-                                  <span className={cn(
-                                    "text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider",
-                                    LIVE_STATUSES.includes(match.status) ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse" : "bg-white/5 text-slate-400"
-                                  )}>
-                                    {getStatusDisplay(match.status, match.elapsed)}
-                                  </span>
-                                </div>
-
-                                {/* Área da Partida */}
-                                <div className="md:col-span-2 grid grid-cols-[1fr_auto_1fr] items-start sm:items-center gap-3 sm:gap-4 px-2 sm:px-0">
-                                  {/* Time da Casa */}
-                                  <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-2 sm:gap-3 text-center sm:text-right min-w-0">
-                                    <div className="shrink-0 order-first sm:order-last">
-                                      {match.home_team_logo ? (
-                                        <img src={match.home_team_logo} alt={match.home_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
-                                      ) : (
-                                        <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                      )}
-                                    </div>
-                                    <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
-                                      {match.home_team_name}
+                          <div key={match.fixture_id} className="relative group">
+                            <Link
+                              to="/jogo/$fixtureId"
+                              params={{ fixtureId: String(match.fixture_id) }}
+                              className="block"
+                            >
+                              <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden group-hover:border-emerald-500/50 group-hover:bg-white/[0.08] transition-all duration-300">
+                                <div className="p-4 flex flex-col gap-6 md:grid md:grid-cols-[1fr_2fr_120px] md:items-center md:gap-4">
+                                  {/* Cabeçalho do Card */}
+                                  <div className="flex flex-col items-center md:items-start space-y-1">
+                                    <span className="text-[12px] sm:text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
+                                    <span className={cn(
+                                      "text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider",
+                                      LIVE_STATUSES.includes(match.status) ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse" : "bg-white/5 text-slate-400"
+                                    )}>
+                                      {getStatusDisplay(match.status, match.elapsed)}
                                     </span>
                                   </div>
 
-                                  {/* Placar */}
-                                  <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-lg sm:text-xl min-w-[70px] sm:min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all self-center">
-                                    <span>{match.home_score ?? 0}</span>
-                                    <span className="text-white/20 text-xs">x</span>
-                                    <span>{match.away_score ?? 0}</span>
+                                  {/* Área da Partida */}
+                                  <div className="grid grid-cols-[1fr_auto_1fr] items-start sm:items-center gap-3 sm:gap-4 px-2 sm:px-0">
+                                    <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-2 sm:gap-3 text-center sm:text-right min-w-0">
+                                      <div className="shrink-0 order-first sm:order-last">
+                                        {match.home_team_logo ? (
+                                          <img src={match.home_team_logo} alt={match.home_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
+                                        ) : (
+                                          <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                        )}
+                                      </div>
+                                      <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
+                                        {match.home_team_name}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-lg sm:text-xl min-w-[70px] sm:min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all self-center">
+                                      <span>{match.home_score ?? 0}</span>
+                                      <span className="text-white/20 text-xs">x</span>
+                                      <span>{match.away_score ?? 0}</span>
+                                    </div>
+
+                                    <div className="flex flex-col items-center sm:flex-row gap-2 sm:gap-3 text-center sm:text-left min-w-0">
+                                      <div className="shrink-0">
+                                        {match.away_team_logo ? (
+                                          <img src={match.away_team_logo} alt={match.away_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
+                                        ) : (
+                                          <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
+                                        )}
+                                      </div>
+                                      <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
+                                        {match.away_team_name}
+                                      </span>
+                                    </div>
                                   </div>
 
-                                  {/* Time Visitante */}
-                                  <div className="flex flex-col items-center sm:flex-row gap-2 sm:gap-3 text-center sm:text-left min-w-0">
-                                    <div className="shrink-0">
-                                      {match.away_team_logo ? (
-                                        <img src={match.away_team_logo} alt={match.away_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
-                                      ) : (
-                                        <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                      )}
+                                  {/* Link p/ Detalhes */}
+                                  <div className="hidden md:flex justify-end pr-4">
+                                    <div className="p-2 bg-white/5 rounded-full text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                      <ChevronRight size={20} />
                                     </div>
-                                    <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
-                                      {match.away_team_name}
-                                    </span>
                                   </div>
                                 </div>
                               </div>
-
-                              {match.venue && (
-                                <div className="px-3 sm:px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-2">
-                                  <span className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase tracking-widest shrink-0">ESTÁDIO</span>
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 truncate">{match.venue}</span>
-                                </div>
-                              )}
-                            </div>
-                          </Link>
+                            </Link>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -819,7 +822,97 @@ function Index() {
             ))}
           </div>
         )}
+      </div>
+
+        {/* Desktop Sidebar Bet Slip */}
+        <aside className="hidden lg:block sticky top-28 space-y-6">
+          <BetSlip />
+        </aside>
       </main>
+
+      {/* Mobile Bet Slip Floating Button */}
+      {!isBetSlipOpen && selections && selections.length > 0 && (
+        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-40 animate-in slide-in-from-bottom-10 duration-500">
+          <button 
+            onClick={() => setIsBetSlipOpen(true)}
+            className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-[0_0_40px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 border border-emerald-400/30 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <Ticket size={24} className="brightness-125" />
+              <span>Ver Bilhete</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="bg-black/20 px-3 py-1 rounded-full text-sm font-black">{selections.length}</span>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Bet Slip Drawer */}
+      {isBetSlipOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="absolute bottom-0 left-0 w-full max-h-[90vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-bottom duration-500">
+            <div className="flex items-center justify-between p-4 border-b border-white/5 relative">
+              <div className="w-12 h-1.5 bg-white/10 rounded-full absolute top-2 left-1/2 -translate-x-1/2" />
+              <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                <Ticket className="text-emerald-500" />
+                Seu Bilhete
+              </h3>
+              <button 
+                onClick={() => setIsBetSlipOpen(false)}
+                className="p-2 bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+              <BetSlip isMobile />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bet Slip Floating Button */}
+      {!isBetSlipOpen && selections.length > 0 && (
+        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-40 animate-in slide-in-from-bottom-10 duration-500">
+          <button 
+            onClick={() => setIsBetSlipOpen(true)}
+            className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-[0_0_40px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 border border-emerald-400/30 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <Ticket size={24} className="brightness-125" />
+              <span>Ver Bilhete</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="bg-black/20 px-3 py-1 rounded-full text-sm font-black">{selections.length}</span>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Bet Slip Drawer */}
+      {isBetSlipOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="absolute bottom-0 left-0 w-full max-h-[90vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-bottom duration-500">
+            <div className="flex items-center justify-between p-4 border-b border-white/5">
+              <div className="w-12 h-1.5 bg-white/10 rounded-full absolute top-2 left-1/2 -translate-x-1/2" />
+              <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                <Ticket className="text-emerald-500" />
+                Seu Bilhete
+              </h3>
+              <button 
+                onClick={() => setIsBetSlipOpen(false)}
+                className="p-2 bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+              <BetSlip isMobile />
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="py-10 px-4 text-center text-slate-600 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40 w-full overflow-hidden">
         <div className="max-w-5xl mx-auto flex flex-col gap-2">
