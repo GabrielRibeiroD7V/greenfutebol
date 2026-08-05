@@ -75,8 +75,9 @@ function MeusBilhetesComponent() {
 
   const getSelectionStatusColor = (status: string) => {
     switch (status) {
-      case 'WIN': return 'text-emerald-500';
-      case 'LOSS': return 'text-red-500';
+      case 'WON': return 'text-emerald-500';
+      case 'LOST': return 'text-red-500';
+      case 'VOID': return 'text-slate-400';
       case 'CANCELLED': return 'text-slate-500';
       default: return 'text-amber-500';
     }
@@ -140,9 +141,16 @@ function MeusBilhetesComponent() {
                         <span className="text-emerald-400 font-black text-lg tracking-widest">{t.code}</span>
                         <span className={cn(
                           "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                          t.status === 'CONFIRMED' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                          t.status === 'WON' ? "bg-emerald-500/10 text-emerald-500" : 
+                          t.status === 'LOST' ? "bg-red-500/10 text-red-500" :
+                          t.status === 'VOID' ? "bg-slate-500/10 text-slate-500" :
+                          "bg-amber-500/10 text-amber-500"
                         )}>
-                          {t.status === 'CONFIRMED' ? 'Confirmado' : t.status === 'CANCELLED' ? 'Cancelado' : t.status}
+                          {t.status === 'CONFIRMED' ? 'Confirmado' : 
+                           t.status === 'WON' ? 'Ganho' :
+                           t.status === 'LOST' ? 'Perdido' :
+                           t.status === 'VOID' ? 'Anulado' :
+                           t.status === 'CANCELLED' ? 'Cancelado' : t.status}
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
@@ -204,7 +212,10 @@ function MeusBilhetesComponent() {
                               <div className="flex flex-col sm:items-end">
                                 <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
                                 <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(sel.status))}>
-                                  {sel.status === 'PENDING' ? 'Pendente' : sel.status}
+                                  {sel.status === 'PENDING' ? 'Pendente' : 
+                                   sel.status === 'WON' ? 'Vencedora' :
+                                   sel.status === 'LOST' ? 'Perdida' :
+                                   sel.status === 'VOID' ? 'Anulada' : sel.status}
                                 </span>
                               </div>
                             </div>

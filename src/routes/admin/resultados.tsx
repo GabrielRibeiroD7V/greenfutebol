@@ -100,8 +100,8 @@ function AdminResultsPage() {
     if (!selectedFixture) return;
     setIsSettling(true);
     try {
-      const result = await settleFixture({ data: { fixture_id: selectedFixture.fixture_id } });
-      if (result.success) {
+      const result = await settleFixture({ data: { fixture_id: selectedFixture.fixture_id } }) as any;
+      if (result && result.success) {
         toast.success(`Liquidação concluída! ${result.settled_selections} seleções afetadas.`);
         setPreviewData(null);
         setSelectedFixture(null);
