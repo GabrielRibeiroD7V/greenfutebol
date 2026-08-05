@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight } from "lucide-react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, ShieldCheck } from "lucide-react";
 import logoAsset from "@/assets/logo.png.asset.json";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -458,13 +458,24 @@ function Index() {
                   <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">
                     {profile?.name || user?.phone || user?.email}
                   </span>
-                  <button 
-                    onClick={() => navigate({ to: "/meus-bilhetes" })}
-                    className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
-                  >
-                    <Ticket size={12} />
-                    Meus Bilhetes
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {profile?.role === 'admin' && (
+                      <button 
+                        onClick={() => navigate({ to: "/admin/bilhetes" })}
+                        className="text-[11px] text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 transition-colors font-bold"
+                      >
+                        <ShieldCheck size={12} />
+                        Admin
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => navigate({ to: "/meus-bilhetes" })}
+                      className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
+                    >
+                      <Ticket size={12} />
+                      Bilhetes
+                    </button>
+                  </div>
                 </div>
                 <button 
                   onClick={handleLogout}
@@ -540,13 +551,24 @@ function Index() {
                         <span className="text-sm font-bold text-white truncate">
                           {profile?.name || (user?.phone ? maskPhone(user.phone) : user?.email)}
                         </span>
-                        <button 
-                          onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
-                          className="text-xs text-emerald-400 font-bold flex items-center gap-1"
-                        >
-                          <Ticket size={12} />
-                          Meus Bilhetes
-                        </button>
+                        <div className="flex items-center gap-3">
+                          {profile?.role === 'admin' && (
+                            <button 
+                              onClick={() => { navigate({ to: "/admin/bilhetes" }); setIsMenuOpen(false); }}
+                              className="text-xs text-amber-400 font-bold flex items-center gap-1"
+                            >
+                              <ShieldCheck size={12} />
+                              Admin
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
+                            className="text-xs text-emerald-400 font-bold flex items-center gap-1"
+                          >
+                            <Ticket size={12} />
+                            Meus Bilhetes
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <button 
