@@ -420,22 +420,23 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200">
-      <header className="bg-black/80 backdrop-blur-md border-b border-white/10 text-white p-4 shadow-2xl sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 group">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]">
+      <header className="bg-black/80 backdrop-blur-md border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-30 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
             <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/30 transition-colors" />
+              <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/20 transition-colors" />
               <img 
                 src={logoAsset.url} 
                 alt="GreenFutebol" 
-                className="h-10 w-auto relative z-10 brightness-110 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]" 
+                className="h-8 sm:h-12 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
@@ -447,37 +448,119 @@ function Index() {
             </div>
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden flex-col items-end sm:flex">
-                  <span className="text-[10px] font-medium text-white/70 uppercase tracking-widest">{user?.email}</span>
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">{user?.email}</span>
                   <button 
                     onClick={() => navigate({ to: "/meus-bilhetes" })}
-                    className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors"
+                    className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
                   >
-                    <Ticket size={10} />
+                    <Ticket size={12} />
                     Meus Bilhetes
                   </button>
                 </div>
                 <button 
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="flex h-9 items-center gap-2 rounded-lg bg-white/5 px-3 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-50"
+                  className="flex h-10 items-center gap-2 rounded-xl bg-white/5 px-4 text-sm font-bold text-white hover:bg-white/10 transition-all disabled:opacity-50 border border-white/5"
                 >
                   {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
-                  <span className="hidden sm:inline">Sair</span>
+                  <span>Sair</span>
                 </button>
               </div>
             ) : (
               <button 
                 onClick={() => navigate({ to: "/login" })}
-                className="flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(5,150,105,0.4)] hover:shadow-[0_0_20px_rgba(5,150,105,0.6)]"
+                className="flex h-10 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] active:scale-95"
               >
-                <LogIn size={16} />
+                <LogIn size={18} />
                 <span>Entrar</span>
               </button>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </div>
+
+        {/* Mobile Menu Panel */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-t border-emerald-500/10 shadow-2xl animate-in slide-in-from-top duration-300 z-50 overflow-y-auto max-h-[calc(100vh-64px)]">
+            <div className="p-4 space-y-6">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar times ou ligas..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base w-full text-white placeholder:text-white/30 focus:ring-2 focus:ring-emerald-500/50 outline-none"
+                />
+              </div>
+
+              <nav className="grid grid-cols-1 gap-2">
+                {[
+                  { label: 'Início', icon: PlayCircle, onClick: () => { navigate({ to: "/" }); setIsMenuOpen(false); } },
+                  { label: 'Hoje', icon: Clock, onClick: () => { setActiveTab('today'); setIsMenuOpen(false); } },
+                  { label: 'Amanhã', icon: Calendar, onClick: () => { setActiveTab('tomorrow'); setIsMenuOpen(false); } },
+                  { label: 'Ao vivo', icon: Info, onClick: () => { setActiveTab('live'); setIsMenuOpen(false); } },
+                  { label: 'Escolher data', icon: Calendar, onClick: () => { setActiveTab('custom'); setIsMenuOpen(false); } },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={item.onClick}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all font-bold text-lg active:scale-[0.98]"
+                  >
+                    <item.icon size={22} />
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+
+              <div className="pt-4 border-t border-white/5">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+                        {user?.email?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white truncate max-w-[200px]">{user?.email}</span>
+                        <button 
+                          onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
+                          className="text-xs text-emerald-400 font-bold flex items-center gap-1"
+                        >
+                          <Ticket size={12} />
+                          Meus Bilhetes
+                        </button>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                      className="w-full py-4 rounded-2xl bg-white/5 text-red-400 font-bold flex items-center justify-center gap-2 active:scale-[0.98]"
+                    >
+                      <LogOut size={20} />
+                      Sair da Conta
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => { navigate({ to: "/login" }); setIsMenuOpen(false); }}
+                    className="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg shadow-[0_0_20px_rgba(5,150,105,0.3)] active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    <LogIn size={22} />
+                    ENTRAR AGORA
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
