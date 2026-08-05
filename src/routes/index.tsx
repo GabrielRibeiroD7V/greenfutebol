@@ -563,9 +563,9 @@ function Index() {
         )}
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 space-y-6">
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 bg-white/5 rounded-xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm">
+      <main className="flex-1 max-w-5xl mx-auto w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 overflow-x-hidden">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm mx-1 sm:mx-0">
             {[
               { label: 'Todos', value: 'ALL' },
               { label: 'Brasileirão', value: 'BSA' },
