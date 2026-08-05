@@ -835,8 +835,11 @@ function Index() {
         )}
       </main>
 
-      <footer className="py-8 text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40">
-        &copy; 2026 GREENFUTEBOL. DADOS POR FOOTBALL-DATA.ORG.
+      <footer className="py-10 px-4 text-center text-slate-600 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40 w-full overflow-hidden">
+        <div className="max-w-5xl mx-auto flex flex-col gap-2">
+          <span>&copy; 2026 GREENFUTEBOL.</span>
+          <span className="opacity-50">DADOS POR FOOTBALL-DATA.ORG.</span>
+        </div>
       </footer>
     </div>
   );
