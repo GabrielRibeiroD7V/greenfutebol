@@ -708,6 +708,12 @@ function Index() {
                 </button>
               )}
             </div>
+            {isPartial && (
+              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
+                <AlertCircle size={16} />
+                <span>Algumas competições não puderam ser atualizadas.</span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-6 sm:space-y-8">
@@ -718,6 +724,12 @@ function Index() {
                   <p className="font-bold text-[12px] sm:text-sm leading-tight">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
                   <p className="text-emerald-300 font-medium text-[10px] sm:text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
                 </div>
+              </div>
+            )}
+            {isPartial && (
+              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
+                <AlertCircle size={16} />
+                <span>Algumas competições não puderam ser atualizadas.</span>
               </div>
             )}
             {groupedFixtures.map((dateGroup) => (
