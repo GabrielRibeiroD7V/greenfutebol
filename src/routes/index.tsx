@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
+import { maskPhone } from "@/lib/phone-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -533,10 +534,12 @@ function Index() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl">
                       <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
-                        {user?.email?.charAt(0).toUpperCase()}
+                        {(profile?.name || user?.phone || user?.email || "U").charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white truncate max-w-[200px]">{user?.email}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-white truncate">
+                          {profile?.name || (user?.phone ? maskPhone(user.phone) : user?.email)}
+                        </span>
                         <button 
                           onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
                           className="text-xs text-emerald-400 font-bold flex items-center gap-1"
