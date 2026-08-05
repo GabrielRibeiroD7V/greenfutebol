@@ -6,6 +6,8 @@ import { getMyTickets } from "@/lib/tickets.functions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { requireAuthenticatedUser } from "@/lib/auth-guard";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/meus-bilhetes")({
   ssr: false,
