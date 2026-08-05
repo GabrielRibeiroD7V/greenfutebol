@@ -37,6 +37,8 @@ if (!supabaseUrl || !supabasePublishableKey) {
 
 const isBrowser = typeof window !== 'undefined';
 
+// @ts-ignore
+if (typeof window !== 'undefined') { (window as any).supabase = supabase; }
 export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   global: {
     fetch: createSupabaseFetch(supabasePublishableKey),
