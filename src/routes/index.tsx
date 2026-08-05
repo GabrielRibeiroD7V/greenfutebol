@@ -59,7 +59,7 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function Index() {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const { selections } = useBetSlip();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
@@ -454,7 +454,9 @@ function Index() {
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">{user?.email}</span>
+                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">
+                    {profile?.name || user?.phone || user?.email}
+                  </span>
                   <button 
                     onClick={() => navigate({ to: "/meus-bilhetes" })}
                     className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
