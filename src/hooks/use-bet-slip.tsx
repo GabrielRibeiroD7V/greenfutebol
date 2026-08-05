@@ -16,6 +16,7 @@ export function useBetSlip() {
   const [stake, setStake] = useState<number>(10);
   const [isValidating, setIsValidating] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState<string>(crypto.randomUUID());
+  const [returnToConfirm, setReturnToConfirm] = useState(false);
   
   const isFirstMount = useRef(true);
 
@@ -102,8 +103,12 @@ export function useBetSlip() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setSelections(parsed);
-        revalidateSelections(parsed);
+        setSelections(parsed.selections || []);
+        setStake(parsed.stake || 10);
+        setReturnToConfirm(parsed.returnToConfirm || false);
+        if (parsed.selections?.length > 0) {
+          revalidateSelections(parsed.selections);
+        }
       } catch (e) {
         console.error("Error loading bet slip from localStorage", e);
       }
@@ -112,8 +117,12 @@ export function useBetSlip() {
 
   // Save to localStorage on change
   useEffect(() => {
-    localStorage.setItem("gf_bet_slip", JSON.stringify(selections));
-  }, [selections]);
+    localStorage.setItem("gf_bet_slip", JSON.stringify({
+      selections,
+      stake,
+      returnToConfirm
+    }));
+  }, [selections, stake, returnToConfirm]);
 
   const addSelection = useCallback((newSelection: Selection) => {
     setSelections(prev => {
@@ -155,6 +164,8 @@ export function useBetSlip() {
     potentialReturn,
     isValidating,
     idempotencyKey,
-    refreshIdempotency
+    refreshIdempotency,
+    returnToConfirm,
+    setReturnToConfirm
   };
 }

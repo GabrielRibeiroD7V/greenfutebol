@@ -23,7 +23,9 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
     potentialReturn,
     isValidating,
     idempotencyKey,
-    refreshIdempotency
+    refreshIdempotency,
+    returnToConfirm,
+    setReturnToConfirm
   } = useBetSlip();
   
   const { isAuthenticated } = useAuth();
@@ -35,8 +37,9 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
 
   const handleConfirm = async () => {
     if (!isAuthenticated) {
-      toast.error("Você precisa estar logado para confirmar um bilhete.");
-      navigate({ to: "/login" });
+      setReturnToConfirm(true);
+      toast.info("Entre ou crie sua conta para confirmar este bilhete.");
+      navigate({ to: "/login", search: { redirect: window.location.pathname } });
       return;
     }
 
@@ -69,6 +72,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
 
         setShowConfirmation(true);
         clearSlip();
+        setReturnToConfirm(false);
         toast.success("Bilhete confirmado com sucesso!");
       } else if (result.error_code === 'ODDS_CHANGED') {
         setOddsChangedError(true);
@@ -153,6 +157,18 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                 <p className="text-[10px] text-amber-200 font-bold leading-relaxed">
                   As odds do seu bilhete foram atualizadas. Revise os novos valores antes de confirmar.
                 </p>
+              </div>
+            )}
+
+            {returnToConfirm && isAuthenticated && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <CheckCircle2 className="text-emerald-500 shrink-0" size={16} />
+                <p className="text-[10px] text-emerald-100 font-bold leading-relaxed">
+                  Bem-vindo de volta! Revise seu bilhete e clique em confirmar para finalizar.
+                </p>
+                <button onClick={() => setReturnToConfirm(false)} className="text-white/30 hover:text-white">
+                  <X size={14} />
+                </button>
               </div>
             )}
             

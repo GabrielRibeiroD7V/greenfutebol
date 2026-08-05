@@ -482,6 +482,26 @@ function Index() {
                   disabled={isLoggingOut}
                   className="flex h-10 items-center gap-2 rounded-xl bg-white/5 px-4 text-sm font-bold text-white hover:bg-white/10 transition-all disabled:opacity-50 border border-white/5"
                 >
+                  <LogOut size={16} className="text-emerald-500" />
+                  <span className="hidden sm:inline">Sair</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => navigate({ to: "/login" })}
+                  className="h-10 px-6 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Entrar
+                </button>
+                <button 
+                  onClick={() => navigate({ to: "/cadastro" })}
+                  className="h-10 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                >
+                  Criar Conta
+                </button>
+              </div>
+            )}
                   {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
                   <span>Sair</span>
                 </button>
