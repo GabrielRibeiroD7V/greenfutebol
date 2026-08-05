@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, ShieldCheck } from "lucide-react";
+import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, ShieldCheck, RefreshCw } from "lucide-react";
+
 import logoAsset from "@/assets/logo.png.asset.json";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
