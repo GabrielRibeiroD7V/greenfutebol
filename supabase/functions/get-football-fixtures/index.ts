@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const validCompetitions = ["BSA", "PL", "CL", "BL1"];
+    const validCompetitions = ["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL"];
     if (competitionCode !== "ALL" && !validCompetitions.includes(competitionCode)) {
       return new Response(JSON.stringify({ error: "Invalid competition code" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
