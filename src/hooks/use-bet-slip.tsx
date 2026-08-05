@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Selection {
   fixture_market_option_id: string;
+  fixture_market_id: string; // New structural key
   odd: number;
   label: string;
   market_name: string;
@@ -126,9 +127,8 @@ export function useBetSlip() {
 
   const addSelection = useCallback((newSelection: Selection) => {
     setSelections(prev => {
-      // Incompatibility Rule: Only one selection per fixture_id + market_name
-      // Using market_name as a proxy for fixture_market_id which is safer than label/code
-      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.market_name === newSelection.market_name));
+      // Incompatibility Rule: Only one selection per fixture_id + fixture_market_id
+      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.fixture_market_id === newSelection.fixture_market_id));
       const isAlreadySelected = prev.find(s => s.fixture_market_option_id === newSelection.fixture_market_option_id);
       
       if (isAlreadySelected) {
