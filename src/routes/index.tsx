@@ -597,27 +597,35 @@ function Index() {
             ))}
           </div>
 
-          <div className="flex bg-white/5 rounded-xl p-1 shadow-2xl border border-white/5 backdrop-blur-sm">
+          <div className="flex bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 backdrop-blur-sm mx-1 sm:mx-0">
             {(['today', 'tomorrow', 'live', 'custom'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 disabled={isLoading && tab !== 'live' && tab !== 'custom'}
                 className={cn(
-                  "flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
+                  "flex-1 py-3 sm:py-3.5 px-2 sm:px-4 text-[11px] sm:text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 border",
                   activeTab === tab 
-                    ? "bg-blue-600 text-white shadow-sm" 
-                    : "text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    ? "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                    : "text-slate-500 hover:bg-white/5 disabled:opacity-50 border-transparent"
                 )}
               >
-                {tab === 'today' && <Calendar className="w-4 h-4" />}
-                {tab === 'tomorrow' && <Clock className="w-4 h-4" />}
-                {tab === 'live' && <PlayCircle className="w-4 h-4" />}
-                {tab === 'custom' && <Calendar className="w-4 h-4" />}
-                {tab === 'today' && "Hoje"}
-                {tab === 'tomorrow' && "Amanhã"}
-                {tab === 'live' && "Ao vivo"}
-                {tab === 'custom' && "Escolher data"}
+                {tab === 'today' && <Clock size={14} className="sm:w-4 sm:h-4" />}
+                {tab === 'tomorrow' && <Calendar size={14} className="sm:w-4 sm:h-4" />}
+                {tab === 'live' && <PlayCircle size={14} className="sm:w-4 sm:h-4" />}
+                {tab === 'custom' && <Search size={14} className="sm:w-4 sm:h-4" />}
+                <span className={cn(activeTab === tab ? "block" : "hidden sm:block")}>
+                  {tab === 'today' && "Hoje"}
+                  {tab === 'tomorrow' && "Amanhã"}
+                  {tab === 'live' && "Ao vivo"}
+                  {tab === 'custom' && "Data"}
+                </span>
+                {activeTab !== tab && <span className="sm:hidden text-[9px]">
+                  {tab === 'today' && "HJ"}
+                  {tab === 'tomorrow' && "AM"}
+                  {tab === 'live' && "LIVE"}
+                  {tab === 'custom' && "DATA"}
+                </span>}
               </button>
             ))}
           </div>
