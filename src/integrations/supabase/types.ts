@@ -312,6 +312,7 @@ export type Database = {
           code: string
           created_at: string
           id: string
+          idempotency_key: string
           payment_status: string
           potential_return: number
           selection_count: number
@@ -325,6 +326,7 @@ export type Database = {
           code: string
           created_at?: string
           id?: string
+          idempotency_key?: string
           payment_status?: string
           potential_return: number
           selection_count: number
@@ -338,6 +340,7 @@ export type Database = {
           code?: string
           created_at?: string
           id?: string
+          idempotency_key?: string
           payment_status?: string
           potential_return?: number
           selection_count?: number
@@ -372,6 +375,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_ticket_atomic: {
+        Args: { p_idempotency_key: string; p_selections: Json; p_stake: number }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
