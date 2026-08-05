@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Ticket, X, Trash2, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Ticket, X, Trash2, Loader2, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { createTicket } from "@/lib/tickets.functions";
@@ -13,12 +13,25 @@ interface BetSlipProps {
 }
 
 export function BetSlip({ className, isMobile }: BetSlipProps) {
-  const { selections, stake, setStake, removeSelection, clearSlip, totalOdd, potentialReturn } = useBetSlip();
+  const { 
+    selections, 
+    stake, 
+    setStake, 
+    removeSelection, 
+    clearSlip, 
+    totalOdd, 
+    potentialReturn,
+    isValidating,
+    idempotencyKey,
+    refreshIdempotency
+  } = useBetSlip();
+  
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isConfirming, setIsConfirming] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmedTicket, setConfirmedTicket] = useState<{ code: string; id: string } | null>(null);
+  const [oddsChangedError, setOddsChangedError] = useState<boolean>(false);
 
   const handleConfirm = async () => {
     if (!isAuthenticated) {
@@ -34,25 +47,43 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
     }
 
     setIsConfirming(true);
+    setOddsChangedError(false);
+
     try {
       const result = await createTicket({
         data: {
           stake,
+          idempotency_key: idempotencyKey,
           selections: selections.map(s => ({
-            fixture_market_option_id: s.fixture_market_option_id
+            fixture_market_option_id: s.fixture_market_option_id,
+            expected_odd: s.odd
           }))
         }
       });
 
-      if (result.success) {
-        setConfirmedTicket({ code: result.ticketCode, id: result.ticketId });
+      if (result.success && result.ticketCode && result.ticketId) {
+        setConfirmedTicket({ 
+          code: result.ticketCode, 
+          id: result.ticketId 
+        });
+
         setShowConfirmation(true);
         clearSlip();
         toast.success("Bilhete confirmado com sucesso!");
+      } else if (result.error_code === 'ODDS_CHANGED') {
+        setOddsChangedError(true);
+        refreshIdempotency(); // New attempt, new key
+        toast.warning("As odds do seu bilhete foram atualizadas. Revise antes de confirmar.");
+        
+        // Update local odds based on result
+        // We'll trigger a re-render by manually updating selections if the hook allowed it,
+        // but here we just show the error and the user sees the new odds (which they should fetch again or the RPC should return).
+        // For Phase 1A, the user must click again.
       }
     } catch (err: any) {
       console.error("Error confirming ticket:", err);
       toast.error(err.message || "Erro ao confirmar bilhete.");
+      refreshIdempotency(); // Reset key on error to allow retry
     } finally {
       setIsConfirming(false);
     }
@@ -97,9 +128,12 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           <Ticket size={20} className="brightness-125" />
           <h3 className="font-black uppercase tracking-tight">Bilhete de Aposta</h3>
         </div>
-        <span className="bg-black/20 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
-          {selections.length} {selections.length === 1 ? 'SELEÇÃO' : 'SELEÇÕES'}
-        </span>
+        <div className="flex items-center gap-2">
+          {isValidating && <Loader2 size={12} className="animate-spin text-white/70" />}
+          <span className="bg-black/20 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+            {selections.length} {selections.length === 1 ? 'SELEÇÃO' : 'SELEÇÕES'}
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
@@ -112,31 +146,42 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
             </div>
           </div>
         ) : (
-          selections.map((s) => (
-            <div key={s.fixture_market_option_id} className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2 relative group animate-in slide-in-from-right-4 duration-300">
-              <button 
-                onClick={() => removeSelection(s.fixture_market_option_id)}
-                className="absolute top-2 right-2 p-1 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <X size={14} />
-              </button>
-              
-              <div className="flex flex-col">
-                <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{s.market_name}</span>
-                <span className="text-sm font-black text-white leading-tight">{s.label}</span>
+          <>
+            {oddsChangedError && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <AlertTriangle className="text-amber-500 shrink-0" size={16} />
+                <p className="text-[10px] text-amber-200 font-bold leading-relaxed">
+                  As odds do seu bilhete foram atualizadas. Revise os novos valores antes de confirmar.
+                </p>
               </div>
+            )}
+            
+            {selections.map((s) => (
+              <div key={s.fixture_market_option_id} className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2 relative group animate-in slide-in-from-right-4 duration-300">
+                <button 
+                  onClick={() => removeSelection(s.fixture_market_option_id)}
+                  className="absolute top-2 right-2 p-1 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <X size={14} />
+                </button>
+                
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{s.market_name}</span>
+                  <span className="text-sm font-black text-white leading-tight">{s.label}</span>
+                </div>
 
-              <div className="flex flex-col border-t border-white/5 pt-2">
-                <span className="text-[10px] text-slate-500 font-bold truncate">
-                  {s.home_team} x {s.away_team}
-                </span>
-                <div className="flex justify-between items-end mt-1">
-                  <span className="text-[9px] text-slate-600 font-bold uppercase">Odd</span>
-                  <span className="text-base font-black text-emerald-400">{s.odd.toFixed(2)}</span>
+                <div className="flex flex-col border-t border-white/5 pt-2">
+                  <span className="text-[10px] text-slate-500 font-bold truncate">
+                    {s.home_team} x {s.away_team}
+                  </span>
+                  <div className="flex justify-between items-end mt-1">
+                    <span className="text-[9px] text-slate-600 font-bold uppercase">Odd</span>
+                    <span className="text-base font-black text-emerald-400">{s.odd.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </>
         )}
       </div>
 
@@ -172,16 +217,21 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           <div className="flex flex-col gap-2">
             <button 
               onClick={handleConfirm}
-              disabled={isConfirming || selections.length === 0}
+              disabled={isConfirming || selections.length === 0 || isValidating}
               className={cn(
                 "w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] active:scale-95 flex items-center justify-center gap-2",
-                isConfirming ? "bg-emerald-800 text-white/50" : "bg-emerald-600 text-white hover:bg-emerald-500"
+                isConfirming || isValidating ? "bg-emerald-800 text-white/50" : "bg-emerald-600 text-white hover:bg-emerald-500"
               )}
             >
               {isConfirming ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
                   Confirmando...
+                </>
+              ) : isValidating ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin" />
+                  Validando...
                 </>
               ) : (
                 "Confirmar Bilhete"
