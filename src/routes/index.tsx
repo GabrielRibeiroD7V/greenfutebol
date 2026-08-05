@@ -485,21 +485,25 @@ function Index() {
             <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-4">
               <div className="space-y-2">
                 <p className="text-slate-600 font-bold text-lg">
-                  {activeTab === 'custom' && !customDate 
-                    ? "Selecione uma data" 
-                    : searchQuery 
-                      ? "Nenhum resultado" 
-                      : "Não há jogos destas competições nesta data."}
+                  {reachedLimit 
+                    ? "Não encontramos jogos nos próximos 14 dias para este filtro."
+                    : activeTab === 'custom' && !customDate 
+                      ? "Selecione uma data" 
+                      : searchQuery 
+                        ? "Nenhum resultado" 
+                        : "Não há jogos destas competições nesta data."}
                 </p>
                 <p className="text-slate-400 font-medium text-sm">
-                  {activeTab === 'custom' && !customDate 
-                    ? "Escolha um dia no calendário para ver os jogos disponíveis." 
-                    : searchQuery 
-                      ? "Tente ajustar sua busca para encontrar o que procura." 
-                      : "Escolha outra data para consultar as próximas partidas."}
+                  {reachedLimit
+                    ? "Escolha outra competição ou consulte uma data específica."
+                    : activeTab === 'custom' && !customDate 
+                      ? "Escolha um dia no calendário para ver os jogos disponíveis." 
+                      : searchQuery 
+                        ? "Tente ajustar sua busca para encontrar o que procura." 
+                        : "Escolha outra data para consultar as próximas partidas."}
                 </p>
               </div>
-              {!customDate && activeTab !== 'custom' && (
+              {(!customDate || reachedLimit) && activeTab !== 'custom' && (
                 <button
                   onClick={() => setActiveTab('custom')}
                   className="inline-flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors text-sm"
@@ -518,6 +522,15 @@ function Index() {
           </div>
         ) : (
           <div className="space-y-8">
+            {isShowingNextAvailable && displayedDate && (
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-3 text-blue-700">
+                <Info size={20} className="shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-sm">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
+                  <p className="text-blue-600 font-medium text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
+                </div>
+              </div>
+            )}
             {isPartial && (
               <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
                 <AlertCircle size={16} />
