@@ -325,29 +325,45 @@ function Index() {
     const date = new Date(isoString);
     const now = new Date();
     
-    const timeStr = new Intl.DateTimeFormat("pt-BR", {
+    // Configurar o formatador para America/Campo_Grande
+    const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       hour: "2-digit",
-      minute: "2-digit"
-    }).format(date);
+      minute: "2-digit",
+      hour12: false
+    });
 
-    const weekDay = new Intl.DateTimeFormat("pt-BR", {
+    const dayFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       weekday: "short"
-    }).format(date).replace(".", "");
-    
-    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    });
 
-    const isDifferentYear = date.getFullYear() !== now.getFullYear();
-    
-    const dateStr = new Intl.DateTimeFormat("pt-BR", {
+    const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       day: "2-digit",
-      month: "2-digit",
-      ...(isDifferentYear ? { year: "numeric" } : {})
-    }).format(date);
+      month: "2-digit"
+    });
 
-    return `${capitalizedWeekDay}, ${dateStr} • ${timeStr}`;
+    const yearFormatter = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      year: "numeric"
+    });
+
+    const timeStr = timeFormatter.format(date);
+    let weekDay = dayFormatter.format(date).replace(".", "");
+    weekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    
+    const datePart = dateFormatter.format(date);
+    const yearPart = yearFormatter.format(date);
+    const currentYear = yearFormatter.format(now);
+
+    const isDifferentYear = yearPart !== currentYear;
+    
+    if (isDifferentYear) {
+      return `${weekDay}, ${datePart}/${yearPart} • ${timeStr}`;
+    }
+    
+    return `${weekDay}, ${datePart} • ${timeStr}`;
   };
 
   const formatTime = (isoString: string) => {
@@ -360,22 +376,30 @@ function Index() {
 
 
   const formatGroupHeader = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
+    // Adicionar T12:00:00 para evitar problemas de timezone ao criar o objeto Date apenas da data
+    const date = new Date(dateStr + "T12:00:00");
     const today = getCGRDateString(new Date());
     const tomorrow = getTomorrowCGRDateString();
 
-    const formattedDate = formatDateBR(dateStr);
+    const parts = dateStr.split('-');
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const formattedDate = `${day}/${month}/${year}`;
     
-    if (dateStr === today) return `Hoje — ${formattedDate}`;
-    if (dateStr === tomorrow) return `Amanhã — ${formattedDate}`;
+    let prefix = "";
+    if (dateStr === today) {
+      prefix = "Hoje";
+    } else if (dateStr === tomorrow) {
+      prefix = "Amanhã";
+    } else {
+      const weekDay = new Intl.DateTimeFormat("pt-BR", {
+        weekday: "long"
+      }).format(date);
+      prefix = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    }
 
-    const weekDay = new Intl.DateTimeFormat("pt-BR", {
-      weekday: "long"
-    }).format(date);
-    
-    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
-    
-    return `${capitalizedWeekDay} — ${formattedDate}`;
+    return `${prefix} — ${formattedDate}`;
   };
 
   const formatTimeOnly = (isoString: string) => {
@@ -618,8 +642,8 @@ function Index() {
             )}
             {groupedFixtures.map((dateGroup) => (
               <div key={dateGroup.date} className="space-y-6">
-                <div className="sticky top-[160px] z-10 py-2 bg-[#0a0a0a]/80 backdrop-blur-sm">
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                <div className="sticky top-[160px] z-10 py-2 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
+                  <h3 className="text-lg font-black text-white flex items-center gap-2 px-2">
                     <Calendar size={18} className="text-emerald-500" />
                     {formatGroupHeader(dateGroup.date)}
                   </h3>
