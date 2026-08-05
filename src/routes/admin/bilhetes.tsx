@@ -170,9 +170,9 @@ function AdminTicketsPage() {
                     <div className="flex flex-col items-end gap-1">
                       <span className={cn(
                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                        t.status === 'CONFIRMED' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                        t.status === 'CONFIRMED' || t.status === 'PENDING' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
                       )}>
-                        {t.status}
+                        {t.status === 'PENDING' ? 'CONFIRMADO' : t.status}
                       </span>
                       <span className="text-[9px] text-slate-600 font-bold uppercase">{t.ticket_selections?.length || 0} SELEÇÕES</span>
                     </div>
