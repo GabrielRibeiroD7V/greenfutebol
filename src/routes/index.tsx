@@ -135,7 +135,12 @@ function Index() {
   };
 
   const getNextCGRDateString = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-').map(Number);
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0]!;
+    const month = parts[1]!;
+    const day = parts[2]!;
+    
     const date = new Date(Date.UTC(year, month - 1, day));
     date.setUTCDate(date.getUTCDate() + 1);
     
@@ -148,11 +153,14 @@ function Index() {
 
   const formatDateBR = (dateStr: string) => {
     if (!dateStr) return "";
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   useEffect(() => {
+    const currentRequestId = ++requestIdRef.current;
+    
     const fetchFixtures = async () => {
       if (activeTab === 'custom') {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -167,8 +175,13 @@ function Index() {
                            parsedDate.toISOString().slice(0, 10) === customDate;
 
         if (!isValidDate) {
-          setFixtures([]);
-          setIsLoading(false);
+          if (currentRequestId === requestIdRef.current) {
+            setFixtures([]);
+            setDisplayedDate(null);
+            setIsShowingNextAvailable(false);
+            setReachedLimit(false);
+            setIsLoading(false);
+          }
           return;
         }
       }
@@ -176,42 +189,88 @@ function Index() {
       setIsLoading(true);
       setError(null);
       setIsPartial(false);
+      setReachedLimit(false);
       
       try {
-        let dateToFetch: string;
+        let requestedDate: string;
         if (activeTab === 'tomorrow') {
-          dateToFetch = getTomorrowCGRDateString();
+          requestedDate = getTomorrowCGRDateString();
         } else if (activeTab === 'custom') {
-          dateToFetch = customDate;
+          requestedDate = customDate;
         } else {
-          dateToFetch = getCGRDateString(new Date());
+          requestedDate = getCGRDateString(new Date());
         }
 
-        const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-          body: { 
-            date: dateToFetch,
-            competition_code: competitionCode
+        let currentDate = requestedDate;
+        let foundFixtures: Fixture[] = [];
+        let searchCount = 0;
+        const maxSearchDays = 14;
+        let finalPartial = false;
+
+        // Sequence search loop
+        while (searchCount < maxSearchDays) {
+          // If live or custom, we only search once
+          if (activeTab === 'live' || activeTab === 'custom') {
+             const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
+              body: { 
+                date: currentDate,
+                competition_code: competitionCode
+              }
+            });
+            if (invokeError) throw invokeError;
+            
+            let results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
+            if (activeTab === 'live') {
+              results = results.filter(f => LIVE_STATUSES.includes(f.status));
+            }
+            foundFixtures = results;
+            finalPartial = !!data?.partial;
+            break; // Stop after first try for live/custom
           }
-        });
 
-        if (invokeError) throw invokeError;
-        
-        let results: Fixture[] = Array.isArray(data?.fixtures)
-          ? data.fixtures
-          : [];
+          // Search for today/tomorrow
+          const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
+            body: { 
+              date: currentDate,
+              competition_code: competitionCode
+            }
+          });
 
-        if (activeTab === 'live') {
-          results = results.filter(f => LIVE_STATUSES.includes(f.status));
+          if (invokeError) throw invokeError;
+
+          const results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
+          finalPartial = finalPartial || !!data?.partial;
+
+          if (results.length > 0) {
+            foundFixtures = results;
+            break;
+          }
+
+          // If no results, try next day
+          currentDate = getNextCGRDateString(currentDate);
+          searchCount++;
+          
+          if (searchCount >= maxSearchDays) {
+            setReachedLimit(true);
+          }
         }
 
-        results.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
-        setFixtures(results);
-        setIsPartial(!!data?.partial);
+        if (currentRequestId !== requestIdRef.current) return;
+
+        foundFixtures.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+        
+        setFixtures(foundFixtures);
+        setDisplayedDate(currentDate);
+        setIsShowingNextAvailable(currentDate !== requestedDate);
+        setIsPartial(finalPartial);
       } catch (err: any) {
+        if (currentRequestId !== requestIdRef.current) return;
         console.error("Erro ao buscar jogos:", err);
         setError("Não foi possível carregar os jogos. Tente novamente mais tarde.");
       } finally {
-        setIsLoading(false);
+        if (currentRequestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
