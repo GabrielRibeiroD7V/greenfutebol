@@ -61,11 +61,12 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
         }
       });
 
-      if (result.success) {
+      if (result.success && result.ticketCode && result.ticketId) {
         setConfirmedTicket({ 
-          code: result.ticketCode || "---", 
-          id: result.ticketId || "" 
+          code: result.ticketCode, 
+          id: result.ticketId 
         });
+
         setShowConfirmation(true);
         clearSlip();
         toast.success("Bilhete confirmado com sucesso!");
