@@ -1,3 +1,174 @@
+HOMOLOGAÇÃO DO NOVO FLUXO — LOGIN SOMENTE AO CONFIRMAR O BILHETE
+
+Valide o fluxo recém-implementado sem alterar nenhum arquivo.
+
+NÃO faça correções automáticas.
+NÃO publique.
+NÃO realize deploy.
+Apenas execute os testes no Preview e apresente os resultados.
+
+TESTES OBRIGATÓRIOS
+
+1. NAVEGAÇÃO ANÔNIMA
+
+Como visitante deslogado:
+
+- acessar a home;
+- filtrar competições;
+- abrir uma partida;
+- visualizar mercados;
+- adicionar uma seleção;
+- adicionar várias seleções;
+- remover seleções;
+- informar stake.
+
+Confirmar que nenhuma dessas ações exige login.
+
+2. CONFIRMAÇÃO SEM LOGIN
+
+Com seleções e stake preenchidos:
+
+- clicar em “Confirmar Bilhete”;
+- confirmar que nenhum ticket foi criado;
+- confirmar redirecionamento para `/login`;
+- confirmar que seleções e stake continuam preservados;
+- confirmar que a rota de retorno foi registrada.
+
+3. CADASTRO DURANTE O FLUXO
+
+A partir da exigência de autenticação:
+
+- acessar “Criar Conta”;
+- concluir cadastro por telefone e senha;
+- retornar ao fluxo anterior;
+- confirmar que o BetSlip foi restaurado;
+- confirmar que as odds foram revalidadas;
+- confirmar que o ticket não foi criado automaticamente.
+
+4. LOGIN DURANTE O FLUXO
+
+Repetir o cenário usando uma conta existente:
+
+- montar bilhete deslogado;
+- clicar em confirmar;
+- fazer login;
+- retornar à página anterior;
+- restaurar seleções e stake;
+- exigir novo clique em “Confirmar Bilhete”.
+
+5. ALTERAÇÃO DE ODD DURANTE O LOGIN
+
+Executar:
+
+1. visitante adiciona odd 1.80;
+2. inicia login;
+3. administrador altera para 1.65;
+4. usuário conclui login;
+5. BetSlip é restaurado;
+6. odd é atualizada para 1.65;
+7. aviso de mudança é exibido;
+8. nova confirmação é exigida.
+
+Confirmar que nenhuma aposta foi criada com a odd antiga.
+
+6. MERCADO INDISPONÍVEL DURANTE O LOGIN
+
+Executar:
+
+1. visitante adiciona uma seleção;
+2. inicia login;
+3. mercado é suspenso;
+4. usuário conclui login;
+5. seleção é removida ou marcada como indisponível;
+6. confirmação é bloqueada.
+
+7. SEGURANÇA
+
+Confirmar:
+
+- RPC `create_ticket_atomic` continua bloqueando usuário anônimo;
+- RLS continua ativa;
+- `/meus-bilhetes` não depende somente do `beforeLoad`;
+- usuário A não acessa bilhete de B;
+- nenhum `user_id` vindo do frontend é usado como autorização;
+- odds e retorno do localStorage não são usados como fonte autoritativa;
+- a confirmação final usa valores retornados pelo servidor.
+
+8. LOCALSTORAGE
+
+Inspecionar exatamente o que está salvo.
+
+Pode conter:
+
+- IDs de opções;
+- stake temporário;
+- rota de retorno;
+- intenção de confirmar.
+
+Não deve ser fonte autoritativa para:
+
+- odd final;
+- total_odd;
+- potential_return;
+- status do mercado;
+- status da partida;
+- usuário;
+- ticket confirmado.
+
+Confirmar também que:
+
+- logout limpa contexto privado;
+- troca de conta não mistura bilhetes;
+- BetSlip é revalidado ao mudar de usuário.
+
+9. MEUS BILHETES
+
+Testar:
+
+- visitante acessando `/meus-bilhetes`;
+- redirecionamento para login;
+- login concluído;
+- retorno à rota;
+- carregamento somente dos bilhetes do usuário autenticado.
+
+10. MOBILE E DESKTOP
+
+Testar:
+
+- 320px;
+- 375px;
+- 390px;
+- 430px;
+- desktop.
+
+Confirmar:
+
+- BetSlip não perde conteúdo;
+- modal ou página de login funciona;
+- teclado não cobre campos;
+- botão de confirmação permanece acessível;
+- não existe overflow horizontal;
+- retorno após login funciona.
+
+RELATÓRIO
+
+Apresentar uma tabela com:
+
+- cenário;
+- status: APROVADO, PARCIAL ou REPROVADO;
+- resultado observado;
+- evidência;
+- problema encontrado;
+- severidade.
+
+Concluir somente como:
+
+A. Fluxo aprovado
+B. Fluxo aprovado com ressalvas
+C. Fluxo reprovado
+
+Não alterar nada sem autorização.
+
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, ShieldCheck } from "lucide-react";
