@@ -126,6 +126,8 @@ export function useBetSlip() {
 
   const addSelection = useCallback((newSelection: Selection) => {
     setSelections(prev => {
+      // Incompatibility Rule: Only one selection per fixture_id + market_name
+      // Using market_name as a proxy for fixture_market_id which is safer than label/code
       const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.market_name === newSelection.market_name));
       const isAlreadySelected = prev.find(s => s.fixture_market_option_id === newSelection.fixture_market_option_id);
       
