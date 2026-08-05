@@ -817,9 +817,9 @@ function Index() {
                               </div>
 
                               {match.venue && (
-                                <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-2">
-                                  <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">ESTÁDIO</span>
-                                  <span className="text-[10px] font-bold text-slate-400">{match.venue}</span>
+                                <div className="px-3 sm:px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-2">
+                                  <span className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase tracking-widest shrink-0">ESTÁDIO</span>
+                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 truncate">{match.venue}</span>
                                 </div>
                               )}
                             </div>
