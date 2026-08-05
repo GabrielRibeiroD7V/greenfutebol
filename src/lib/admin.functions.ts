@@ -9,9 +9,26 @@ const generateMockOddsInput = z.object({
 export const generateMockOdds = createServerFn({ method: "POST" })
   .inputValidator((data) => generateMockOddsInput.parse(data))
   .handler(async ({ data }) => {
+    // 1. Server-side Authentication and Authorization check
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check if user has 'admin' role using the security function
+    const { data: hasRole, error: roleError } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    if (roleError || !hasRole) {
+      console.error("Auth error or non-admin attempt:", roleError);
+      throw new Error("Unauthorized: Admin access required");
+    }
+
     const { fixture_id } = data;
 
-    // 1. Get all market types and their options
+    // 2. Get all market types and their options
     const { data: marketTypes, error: mtError } = await supabase
       .from('market_types')
       .select('*, market_options(*)');
@@ -20,7 +37,7 @@ export const generateMockOdds = createServerFn({ method: "POST" })
       throw new Error("Erro ao buscar tipos de mercado.");
     }
 
-    // 2. For each market type, create a fixture_market
+    // 3. For each market type, create a fixture_market
     for (const mt of marketTypes) {
       const { data: fm, error: fmError } = await supabase
         .from('fixture_markets')
@@ -37,7 +54,7 @@ export const generateMockOdds = createServerFn({ method: "POST" })
         continue;
       }
 
-      // 3. For each option in the market, create a fixture_market_option with mock odds
+      // 4. For each option in the market, create a fixture_market_option with mock odds
       const options = mt.market_options as any[];
       const fixtureMarketOptions = options.map(opt => {
         // Generate a random odd between 1.10 and 5.00
