@@ -603,6 +603,90 @@ function Index() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[1fr_350px] lg:gap-8 items-start overflow-x-hidden">
         <div className="space-y-4 sm:space-y-6">
+          <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 sm:p-8 space-y-8 backdrop-blur-sm shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-50" />
+            
+            <div className="relative space-y-6">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight uppercase">
+                  HOMOLOGAÇÃO DO NOVO FLUXO — LOGIN SOMENTE AO CONFIRMAR O BILHETE
+                </h2>
+                <div className="h-1 w-20 bg-emerald-500 rounded-full" />
+              </div>
+
+              <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed font-medium">
+                <p>Valide o fluxo recém-implementado sem alterar nenhum arquivo.</p>
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">NÃO fazer correções automáticas</span>
+                  <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">NÃO publique</span>
+                  <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">NÃO realize deploy</span>
+                </div>
+                <p className="text-emerald-400 font-bold">Apenas execute os testes no Preview e apresente os resultados.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="space-y-4">
+                  <h3 className="text-emerald-500 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    TESTES OBRIGATÓRIOS
+                  </h3>
+                  <ul className="space-y-3 text-[13px] text-slate-400 font-medium">
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">1.</span>
+                      <span>NAVEGAÇÃO ANÔNIMA: Ações básicas sem exigência de login.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">2.</span>
+                      <span>CONFIRMAÇÃO SEM LOGIN: Redirecionamento e preservação de estado.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">3.</span>
+                      <span>CADASTRO DURANTE O FLUXO: Restauração de BetSlip e revalidação.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">4.</span>
+                      <span>LOGIN DURANTE O FLUXO: Login manual e exigência de nova confirmação.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-emerald-500 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    SEGURANÇA E PERSISTÊNCIA
+                  </h3>
+                  <ul className="space-y-3 text-[13px] text-slate-400 font-medium">
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">5.</span>
+                      <span>ALTERAÇÃO DE ODD: Detecção de mudanças durante o login.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">6.</span>
+                      <span>MERCADO INDISPONÍVEL: Bloqueio de apostas inválidas.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">7.</span>
+                      <span>SEGURANÇA: RPC atômico e proteção RLS.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-emerald-500 font-bold">8.</span>
+                      <span>LOCALSTORAGE: Verificação de dados autoritativos.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/5">
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5 space-y-3">
+                  <h4 className="text-white font-bold text-sm uppercase tracking-wider">RESULTADO ESPERADO</h4>
+                  <p className="text-[12px] text-slate-500 leading-relaxed italic">
+                    Apresentar uma tabela com cenário, status (APROVADO, PARCIAL, REPROVADO), evidência e severidade. 
+                    Concluir somente como A, B ou C. Não alterar nada sem autorização.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-6 bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm mx-1 sm:mx-0 overflow-x-auto sm:overflow-x-visible no-scrollbar scroll-smooth touch-pan-x px-2 sm:px-1">
             {[
