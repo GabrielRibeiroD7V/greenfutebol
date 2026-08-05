@@ -307,11 +307,28 @@ function Index() {
   }, [fixtures, searchQuery]);
 
   const formatTime = (isoString: string) => {
-    return new Intl.DateTimeFormat("pt-BR", {
+    const date = new Date(isoString);
+    const timeStr = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       hour: "2-digit",
       minute: "2-digit"
-    }).format(new Date(isoString));
+    }).format(date);
+
+    if (isShowingNextAvailable) {
+      const currentYear = new Date().getFullYear();
+      const matchYear = date.getFullYear();
+      
+      const dateStr = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: TIMEZONE,
+        day: "2-digit",
+        month: "2-digit",
+        ...(matchYear !== currentYear ? { year: "numeric" } : {})
+      }).format(date);
+
+      return `${dateStr} • ${timeStr}`;
+    }
+
+    return timeStr;
   };
 
   const getStatusDisplay = (status: string, elapsed: number | null) => {
