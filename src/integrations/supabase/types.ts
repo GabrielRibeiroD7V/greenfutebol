@@ -139,6 +139,50 @@ export type Database = {
         }
         Relationships: []
       }
+      market_option_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string
+          fixture_market_option_id: string | null
+          id: string
+          new_active: boolean | null
+          new_odd: number | null
+          old_active: boolean | null
+          old_odd: number | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string
+          fixture_market_option_id?: string | null
+          id?: string
+          new_active?: boolean | null
+          new_odd?: number | null
+          old_active?: boolean | null
+          old_odd?: number | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string
+          fixture_market_option_id?: string | null
+          id?: string
+          new_active?: boolean | null
+          new_odd?: number | null
+          old_active?: boolean | null
+          old_odd?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_option_audit_logs_fixture_market_option_id_fkey"
+            columns: ["fixture_market_option_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_market_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_options: {
         Row: {
           active: boolean
