@@ -62,12 +62,16 @@ function Index() {
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
+  const [displayedDate, setDisplayedDate] = useState<string | null>(null);
+  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
   const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'PD' | 'SA' | 'FL1' | 'DED' | 'ELC' | 'PPL' | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [customDate, setCustomDate] = useState("");
+  const requestIdRef = useRef(0);
+  const [reachedLimit, setReachedLimit] = useState(false);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
