@@ -61,6 +61,7 @@ function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [isPartial, setIsPartial] = useState(false);
   const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'ALL'>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -152,6 +153,7 @@ function Index() {
 
       setIsLoading(true);
       setError(null);
+      setIsPartial(false);
       
       try {
         let dateToFetch: string;
@@ -182,6 +184,7 @@ function Index() {
 
         results.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
         setFixtures(results);
+        setIsPartial(!!data?.partial);
       } catch (err: any) {
         console.error("Erro ao buscar jogos:", err);
         setError("Não foi possível carregar os jogos. Tente novamente mais tarde.");
@@ -390,19 +393,49 @@ function Index() {
             </button>
           </div>
         ) : groupedFixtures.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-2">
-            <p className="text-slate-400 font-medium italic">
-              {activeTab === 'custom' && !customDate 
-                ? "Selecione uma data para ver os jogos." 
-                : searchQuery 
-                  ? "Nenhum jogo encontrado para esta busca." 
-                  : activeTab === 'custom'
-                    ? (competitionCode === 'ALL' ? "Nenhum jogo encontrado para esta data." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado nesta data." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado nesta data." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado nesta data." : "Nenhum jogo da Bundesliga encontrado nesta data.")
-                    : (competitionCode === 'ALL' ? "Nenhum jogo encontrado para este filtro." : competitionCode === 'BSA' ? "Nenhum jogo do Brasileirão encontrado para este filtro." : competitionCode === 'PL' ? "Nenhum jogo da Premier League encontrado para este filtro." : competitionCode === 'CL' ? "Nenhum jogo da Champions League encontrado para este filtro." : "Nenhum jogo da Bundesliga encontrado para este filtro.")}
-            </p>
+          <div className="space-y-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-20 text-center space-y-4">
+              <div className="space-y-2">
+                <p className="text-slate-600 font-bold text-lg">
+                  {activeTab === 'custom' && !customDate 
+                    ? "Selecione uma data" 
+                    : searchQuery 
+                      ? "Nenhum resultado" 
+                      : "Não há jogos destas competições nesta data."}
+                </p>
+                <p className="text-slate-400 font-medium text-sm">
+                  {activeTab === 'custom' && !customDate 
+                    ? "Escolha um dia no calendário para ver os jogos disponíveis." 
+                    : searchQuery 
+                      ? "Tente ajustar sua busca para encontrar o que procura." 
+                      : "Escolha outra data para consultar as próximas partidas."}
+                </p>
+              </div>
+              {!customDate && activeTab !== 'custom' && (
+                <button
+                  onClick={() => setActiveTab('custom')}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors text-sm"
+                >
+                  <Calendar size={16} />
+                  Escolher data
+                </button>
+              )}
+            </div>
+            {isPartial && (
+              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
+                <AlertCircle size={16} />
+                <span>Algumas competições não puderam ser atualizadas.</span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
+            {isPartial && (
+              <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-lg text-sm font-medium">
+                <AlertCircle size={16} />
+                <span>Algumas competições não puderam ser atualizadas.</span>
+              </div>
+            )}
             {groupedFixtures.map((league) => (
               <div key={`${league.country}-${league.name}`} className="space-y-3">
                 <div className="flex items-center gap-3 px-2">
