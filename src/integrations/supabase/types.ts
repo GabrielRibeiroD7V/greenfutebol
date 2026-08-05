@@ -106,6 +106,63 @@ export type Database = {
           },
         ]
       }
+      fixture_results: {
+        Row: {
+          away_cards: number | null
+          away_corners: number | null
+          away_score: number | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          first_half_away_score: number | null
+          first_half_home_score: number | null
+          fixture_id: number
+          home_cards: number | null
+          home_corners: number | null
+          home_score: number | null
+          result_source: string | null
+          source_updated_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          away_cards?: number | null
+          away_corners?: number | null
+          away_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          first_half_away_score?: number | null
+          first_half_home_score?: number | null
+          fixture_id: number
+          home_cards?: number | null
+          home_corners?: number | null
+          home_score?: number | null
+          result_source?: string | null
+          source_updated_at?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          away_cards?: number | null
+          away_corners?: number | null
+          away_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          first_half_away_score?: number | null
+          first_half_home_score?: number | null
+          fixture_id?: number
+          home_cards?: number | null
+          home_corners?: number | null
+          home_score?: number | null
+          result_source?: string | null
+          source_updated_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       football_fixtures_cache: {
         Row: {
           cache_key: string
@@ -290,6 +347,70 @@ export type Database = {
         }
         Relationships: []
       }
+      settlement_audit_logs: {
+        Row: {
+          admin_user_id: string | null
+          created_at: string | null
+          fixture_id: number | null
+          id: string
+          new_result: Json | null
+          new_status: string | null
+          previous_result: Json | null
+          previous_status: string | null
+          reason: string | null
+          ticket_id: string | null
+          ticket_selection_id: string | null
+        }
+        Insert: {
+          admin_user_id?: string | null
+          created_at?: string | null
+          fixture_id?: number | null
+          id?: string
+          new_result?: Json | null
+          new_status?: string | null
+          previous_result?: Json | null
+          previous_status?: string | null
+          reason?: string | null
+          ticket_id?: string | null
+          ticket_selection_id?: string | null
+        }
+        Update: {
+          admin_user_id?: string | null
+          created_at?: string | null
+          fixture_id?: number | null
+          id?: string
+          new_result?: Json | null
+          new_status?: string | null
+          previous_result?: Json | null
+          previous_status?: string | null
+          reason?: string | null
+          ticket_id?: string | null
+          ticket_selection_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlement_audit_logs_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_results"
+            referencedColumns: ["fixture_id"]
+          },
+          {
+            foreignKeyName: "settlement_audit_logs_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlement_audit_logs_ticket_selection_id_fkey"
+            columns: ["ticket_selection_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_selections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_selections: {
         Row: {
           away_team_logo_snapshot: string | null
@@ -299,6 +420,7 @@ export type Database = {
           fixture_id: number
           fixture_market_id: string
           fixture_market_option_id: string
+          fixture_result_version: number | null
           home_team_logo_snapshot: string | null
           home_team_snapshot: string
           id: string
@@ -309,7 +431,12 @@ export type Database = {
           option_code_snapshot: string
           option_label_snapshot: string
           parameter_snapshot: number | null
+          settled_at: string | null
+          settled_by: string | null
+          settlement_reason: string | null
+          settlement_rule_version: number | null
           settlement_status: string
+          settlement_value: number | null
           ticket_id: string
         }
         Insert: {
@@ -320,6 +447,7 @@ export type Database = {
           fixture_id: number
           fixture_market_id: string
           fixture_market_option_id: string
+          fixture_result_version?: number | null
           home_team_logo_snapshot?: string | null
           home_team_snapshot: string
           id?: string
@@ -330,7 +458,12 @@ export type Database = {
           option_code_snapshot: string
           option_label_snapshot: string
           parameter_snapshot?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          settlement_reason?: string | null
+          settlement_rule_version?: number | null
           settlement_status?: string
+          settlement_value?: number | null
           ticket_id: string
         }
         Update: {
@@ -341,6 +474,7 @@ export type Database = {
           fixture_id?: number
           fixture_market_id?: string
           fixture_market_option_id?: string
+          fixture_result_version?: number | null
           home_team_logo_snapshot?: string | null
           home_team_snapshot?: string
           id?: string
@@ -351,7 +485,12 @@ export type Database = {
           option_code_snapshot?: string
           option_label_snapshot?: string
           parameter_snapshot?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          settlement_reason?: string | null
+          settlement_rule_version?: number | null
           settlement_status?: string
+          settlement_value?: number | null
           ticket_id?: string
         }
         Relationships: [
@@ -387,6 +526,9 @@ export type Database = {
           payment_status: string
           potential_return: number
           selection_count: number
+          settled_at: string | null
+          settled_return: number | null
+          settled_total_odd: number | null
           stake: number
           status: string
           total_odd: number
@@ -401,6 +543,9 @@ export type Database = {
           payment_status?: string
           potential_return: number
           selection_count: number
+          settled_at?: string | null
+          settled_return?: number | null
+          settled_total_odd?: number | null
           stake: number
           status?: string
           total_odd: number
@@ -415,6 +560,9 @@ export type Database = {
           payment_status?: string
           potential_return?: number
           selection_count?: number
+          settled_at?: string | null
+          settled_return?: number | null
+          settled_total_odd?: number | null
           stake?: number
           status?: string
           total_odd?: number
@@ -457,6 +605,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      preview_fixture_settlement: {
+        Args: { p_fixture_id: number }
+        Returns: Json
+      }
+      settle_fixture_atomic: { Args: { p_fixture_id: number }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"

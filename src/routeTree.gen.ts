@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
 import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
 import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
+import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
 import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const AdminMercadosRoute = AdminMercadosRouteImport.update({
   path: '/mercados',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminResultadosRoute = AdminResultadosRouteImport.update({
+  id: '/resultados',
+  path: '/resultados',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const JogoFixtureIdRoute = JogoFixtureIdRouteImport.update({
   id: '/jogo/$fixtureId',
   path: '/jogo/$fixtureId',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/meus-bilhetes'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/resultados'
     | '/jogo/$fixtureId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/meus-bilhetes'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/resultados'
     | '/jogo/$fixtureId'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/meus-bilhetes'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/resultados'
     | '/jogo/$fixtureId'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMercadosRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/resultados': {
+      id: '/admin/resultados'
+      path: '/resultados'
+      fullPath: '/admin/resultados'
+      preLoaderRoute: typeof AdminResultadosRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/jogo/$fixtureId': {
       id: '/jogo/$fixtureId'
       path: '/jogo/$fixtureId'
@@ -196,11 +215,13 @@ declare module '@tanstack/react-router' {
 interface AdminRouteRouteChildren {
   AdminBilhetesRoute: typeof AdminBilhetesRoute
   AdminMercadosRoute: typeof AdminMercadosRoute
+  AdminResultadosRoute: typeof AdminResultadosRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBilhetesRoute: AdminBilhetesRoute,
   AdminMercadosRoute: AdminMercadosRoute,
+  AdminResultadosRoute: AdminResultadosRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

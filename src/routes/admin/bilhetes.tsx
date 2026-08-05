@@ -56,8 +56,9 @@ function AdminTicketsPage() {
 
   const getSelectionStatusColor = (status: string) => {
     switch (status) {
-      case 'WIN': return 'text-emerald-500';
-      case 'LOSS': return 'text-red-500';
+      case 'WON': return 'text-emerald-500';
+      case 'LOST': return 'text-red-500';
+      case 'VOID': return 'text-slate-400';
       case 'CANCELLED': return 'text-slate-500';
       default: return 'text-amber-500';
     }
@@ -170,9 +171,16 @@ function AdminTicketsPage() {
                     <div className="flex flex-col items-end gap-1">
                       <span className={cn(
                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                        t.status === 'CONFIRMED' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                        t.status === 'WON' ? "bg-emerald-500/10 text-emerald-500" : 
+                        t.status === 'LOST' ? "bg-red-500/10 text-red-500" :
+                        t.status === 'VOID' ? "bg-slate-500/10 text-slate-500" :
+                        "bg-amber-500/10 text-amber-500"
                       )}>
-                        {t.status === 'CONFIRMED' ? 'Confirmado' : t.status === 'CANCELLED' ? 'Cancelado' : t.status}
+                        {t.status === 'CONFIRMED' ? 'Confirmado' : 
+                         t.status === 'WON' ? 'Ganho' :
+                         t.status === 'LOST' ? 'Perdido' :
+                         t.status === 'VOID' ? 'Anulado' :
+                         t.status === 'CANCELLED' ? 'Cancelado' : t.status}
                       </span>
                       <span className="text-[9px] text-slate-600 font-bold uppercase">{t.ticket_selections?.length || 0} SELEÇÕES</span>
                     </div>
@@ -224,7 +232,10 @@ function AdminTicketsPage() {
                               <div className="flex flex-col md:items-end">
                                 <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Resultado</span>
                                 <span className={cn("text-sm font-black uppercase tracking-widest", getSelectionStatusColor(sel.status))}>
-                                  {sel.status === 'PENDING' ? 'Aguardando' : sel.status}
+                                  {sel.status === 'PENDING' ? 'Aguardando' : 
+                                   sel.status === 'WON' ? 'Vencedora' :
+                                   sel.status === 'LOST' ? 'Perdida' :
+                                   sel.status === 'VOID' ? 'Anulada' : sel.status}
                                 </span>
                               </div>
                             </div>
