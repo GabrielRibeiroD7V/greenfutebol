@@ -376,22 +376,30 @@ function Index() {
 
 
   const formatGroupHeader = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
+    // Adicionar T12:00:00 para evitar problemas de timezone ao criar o objeto Date apenas da data
+    const date = new Date(dateStr + "T12:00:00");
     const today = getCGRDateString(new Date());
     const tomorrow = getTomorrowCGRDateString();
 
-    const formattedDate = formatDateBR(dateStr);
+    const parts = dateStr.split('-');
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const formattedDate = `${day}/${month}/${year}`;
     
-    if (dateStr === today) return `Hoje — ${formattedDate}`;
-    if (dateStr === tomorrow) return `Amanhã — ${formattedDate}`;
+    let prefix = "";
+    if (dateStr === today) {
+      prefix = "Hoje";
+    } else if (dateStr === tomorrow) {
+      prefix = "Amanhã";
+    } else {
+      const weekDay = new Intl.DateTimeFormat("pt-BR", {
+        weekday: "long"
+      }).format(date);
+      prefix = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    }
 
-    const weekDay = new Intl.DateTimeFormat("pt-BR", {
-      weekday: "long"
-    }).format(date);
-    
-    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
-    
-    return `${capitalizedWeekDay} — ${formattedDate}`;
+    return `${prefix} — ${formattedDate}`;
   };
 
   const formatTimeOnly = (isoString: string) => {
