@@ -586,10 +586,10 @@ function Index() {
                 onClick={() => setCompetitionCode(comp.value as any)}
                 disabled={isLoading}
                 className={cn(
-                  "py-2 px-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 border",
-                  competitionCode === comp.value
-                    ? "bg-emerald-600 text-white border-emerald-500 shadow-[0_0_10px_rgba(5,150,105,0.3)] scale-[1.02]"
-                    : "text-slate-400 border-transparent hover:bg-white/5 hover:text-white disabled:opacity-50"
+                  "px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95 flex items-center justify-center text-center border",
+                  competitionCode === comp.value 
+                    ? "bg-emerald-600 text-white border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                    : "text-slate-400 border-transparent hover:text-white hover:bg-white/5 disabled:opacity-50"
                 )}
               >
                 {comp.label}
