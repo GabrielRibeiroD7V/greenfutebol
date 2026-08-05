@@ -325,29 +325,45 @@ function Index() {
     const date = new Date(isoString);
     const now = new Date();
     
-    const timeStr = new Intl.DateTimeFormat("pt-BR", {
+    // Configurar o formatador para America/Campo_Grande
+    const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       hour: "2-digit",
-      minute: "2-digit"
-    }).format(date);
+      minute: "2-digit",
+      hour12: false
+    });
 
-    const weekDay = new Intl.DateTimeFormat("pt-BR", {
+    const dayFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       weekday: "short"
-    }).format(date).replace(".", "");
-    
-    const capitalizedWeekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    });
 
-    const isDifferentYear = date.getFullYear() !== now.getFullYear();
-    
-    const dateStr = new Intl.DateTimeFormat("pt-BR", {
+    const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
       day: "2-digit",
-      month: "2-digit",
-      ...(isDifferentYear ? { year: "numeric" } : {})
-    }).format(date);
+      month: "2-digit"
+    });
 
-    return `${capitalizedWeekDay}, ${dateStr} • ${timeStr}`;
+    const yearFormatter = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      year: "numeric"
+    });
+
+    const timeStr = timeFormatter.format(date);
+    let weekDay = dayFormatter.format(date).replace(".", "");
+    weekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
+    
+    const datePart = dateFormatter.format(date);
+    const yearPart = yearFormatter.format(date);
+    const currentYear = yearFormatter.format(now);
+
+    const isDifferentYear = yearPart !== currentYear;
+    
+    if (isDifferentYear) {
+      return `${weekDay}, ${datePart}/${yearPart} • ${timeStr}`;
+    }
+    
+    return `${weekDay}, ${datePart} • ${timeStr}`;
   };
 
   const formatTime = (isoString: string) => {
