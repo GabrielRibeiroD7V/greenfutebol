@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
+import { maskPhone } from "@/lib/phone-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,7 +60,7 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function Index() {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const { selections } = useBetSlip();
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
@@ -454,7 +455,9 @@ function Index() {
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">{user?.email}</span>
+                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">
+                    {profile?.name || user?.phone || user?.email}
+                  </span>
                   <button 
                     onClick={() => navigate({ to: "/meus-bilhetes" })}
                     className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
@@ -531,10 +534,12 @@ function Index() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl">
                       <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
-                        {user?.email?.charAt(0).toUpperCase()}
+                        {(profile?.name || user?.phone || user?.email || "U").charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white truncate max-w-[200px]">{user?.email}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-white truncate">
+                          {profile?.name || (user?.phone ? maskPhone(user.phone) : user?.email)}
+                        </span>
                         <button 
                           onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
                           className="text-xs text-emerald-400 font-bold flex items-center gap-1"
