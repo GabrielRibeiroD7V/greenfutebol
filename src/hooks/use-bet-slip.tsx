@@ -22,77 +22,9 @@ export function useBetSlip() {
   const isFirstMount = useRef(true);
 
   const revalidateSelections = useCallback(async (currentSelections: Selection[]) => {
-    if (currentSelections.length === 0) return;
-    
-    setIsValidating(true);
-    try {
-      const optionIds = currentSelections.map(s => s.fixture_market_option_id);
-      
-      const { data, error } = await supabase
-        .from('fixture_market_options')
-        .select(`
-          id,
-          odd,
-          active,
-          fixture_market:fixture_markets (
-            id,
-            status,
-            fixture_id
-          ),
-          market_option:market_options (
-            label
-          )
-        `)
-        .in('id', optionIds);
-
-      if (error || !data) throw error;
-
-      // 4. Revalidate cache for kickoff
-      const { data: fixturesCache } = await supabase
-        .from('football_fixtures_cache')
-        .select('payload');
-
-      const allFixtures: any[] = fixturesCache?.flatMap(f => (f.payload as any).fixtures || []) || [];
-      const now = new Date();
-
-      const validSelections: Selection[] = [];
-      const removedLabels: string[] = [];
-      const updatedLabels: string[] = [];
-
-      for (const s of currentSelections) {
-        const dbOpt = data.find(d => d.id === s.fixture_market_option_id);
-        const fixture = allFixtures.find(f => f.fixture_id === s.fixture_id);
-        
-        const isStarted = fixture && new Date(fixture.kickoff_at) <= now;
-        const isSuspended = !dbOpt || !dbOpt.active || (dbOpt.fixture_market as any).status !== 'OPEN';
-
-        if (!dbOpt || isSuspended || isStarted) {
-          removedLabels.push(`${s.home_team} x ${s.away_team} (${s.label})`);
-          continue;
-        }
-
-        if (Math.abs(dbOpt.odd - s.odd) > 0.0001) {
-          updatedLabels.push(s.label);
-          validSelections.push({
-            ...s,
-            odd: dbOpt.odd
-          });
-        } else {
-          validSelections.push(s);
-        }
-      }
-
-      setSelections(validSelections);
-      
-      // We could use toast here if we had access to it, 
-      // but usually hooks shouldn't trigger UI side effects directly.
-      // We'll let the component handle the feedback if needed via state.
-      
-    } catch (e) {
-      console.error("Error revalidating bet slip:", e);
-    } finally {
-      setIsValidating(false);
-    }
+    // Phase 3 requirement: "Não realizar nenhuma chamada para API. Tudo em memória."
+    // We disable revalidation during this phase to maintain isolation.
+    return;
   }, []);
 
   // Load from localStorage on mount

@@ -36,56 +36,9 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
   const [oddsChangedError, setOddsChangedError] = useState<boolean>(false);
 
   const handleConfirm = async () => {
-    if (!isAuthenticated) {
-      setReturnToConfirm(true);
-      toast.info("Entre ou crie sua conta para confirmar este bilhete.");
-      navigate({ to: "/login", search: { redirect: window.location.pathname } });
-      return;
-    }
-
-    if (selections.length === 0) return;
-    if (stake < 5) {
-      toast.error("O valor mínimo da aposta é R$ 5,00.");
-      return;
-    }
-
-    setIsConfirming(true);
-    setOddsChangedError(false);
-
-    try {
-      const result = await createTicket({
-        data: {
-          stake,
-          idempotency_key: idempotencyKey,
-          selections: selections.map(s => ({
-            fixture_market_option_id: s.fixture_market_option_id,
-            expected_odd: s.odd
-          }))
-        }
-      });
-
-      if (result.success && result.ticketCode && result.ticketId) {
-        setConfirmedTicket({ 
-          code: result.ticketCode, 
-          id: result.ticketId 
-        });
-
-        setShowConfirmation(true);
-        clearSlip();
-        setReturnToConfirm(false);
-        toast.success("Bilhete confirmado com sucesso!");
-      } else if (result.error_code === 'ODDS_CHANGED') {
-        setOddsChangedError(true);
-        refreshIdempotency();
-        toast.warning("As odds do seu bilhete foram atualizadas. Revise antes de confirmar.");
-      }
-    } catch (err: any) {
-      console.error("Error confirming ticket:", err);
-      toast.error(err.message || "Erro ao confirmar bilhete.");
-      refreshIdempotency();
-    } finally {
-      setIsConfirming(false);
-    }
+    // Phase 3 requirement: "Nesta fase: não navegar; apenas executar: console.log("Próxima fase: autenticação")"
+    console.log("Próxima fase: autenticação");
+    toast.info("Próxima fase: autenticação (Lógica em memória na Fase 3)");
   };
 
   if (showConfirmation && confirmedTicket) {
@@ -252,7 +205,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                   Validando...
                 </>
               ) : (
-                "Confirmar Bilhete Acumulado"
+                "Continuar"
               )}
             </button>
             

@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useBetSlip } from "@/hooks/use-bet-slip";
+import { useBetSlip, Selection } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
 import { generateMockOdds } from "@/lib/admin.functions";
 import { toast } from "sonner";
@@ -106,9 +106,9 @@ function MatchDetails() {
   const { fixtureId } = useParams({ from: "/jogo/$fixtureId" });
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { selections, addSelection } = useBetSlip();
   const [fixture, setFixture] = useState<FixtureDetails | null>(null);
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
+  const { selections, addSelection } = useBetSlip();
   const [localSelections, setLocalSelections] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
@@ -501,10 +501,29 @@ function MatchDetails() {
                                 <button 
                                   key={opt.id}
                                   onClick={() => {
+                                    if (!fixture) return;
+                                    
+                                    const selection: Selection = {
+                                      fixture_market_option_id: opt.id,
+                                      fixture_market_id: market.id,
+                                      odd: opt.odd,
+                                      label: opt.market_option.label,
+                                      market_name: market.market_type.name,
+                                      home_team: fixture.home_team_name,
+                                      away_team: fixture.away_team_name,
+                                      fixture_id: fixture.fixture_id
+                                    };
+
+                                    addSelection(selection);
+                                    
+                                    // Local state highlighting
                                     setLocalSelections(prev => ({
                                       ...prev,
                                       [market.id]: prev[market.id] === opt.id ? "" : opt.id
                                     }));
+                                    
+                                    // Phase 3 requirement: Auto-open betslip
+                                    setIsBetSlipOpen(true);
                                   }}
                                   className={cn(
                                     "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
