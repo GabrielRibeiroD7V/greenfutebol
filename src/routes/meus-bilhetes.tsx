@@ -86,24 +86,28 @@ function MeusBilhetesComponent() {
   if (authLoading || loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-emerald-500" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-slate-200 p-4 md:p-8 font-sans">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-black text-white uppercase tracking-tight">Meus Bilhetes</h1>
-            <p className="text-slate-400">Acompanhe o status das suas apostas.</p>
-          </div>
-          <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-emerald-500/20 hover:bg-emerald-500/10">Ver Jogos</Button>
-        </header>
+    <div className="min-h-screen bg-[#050505] text-slate-200 font-sans">
+      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 flex items-center h-14 sm:h-16 gap-4">
+          <button 
+            onClick={() => navigate({ to: "/" })}
+            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-emerald-500"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-sm sm:text-lg font-black uppercase tracking-tight leading-tight">Meus Bilhetes</h1>
+        </div>
+      </header>
 
+      <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
           {["ALL", "CONFIRMED", "CANCELLED"].map((s) => (
             <button
               key={s}
               onClick={() => setStatus(s)}
               className={cn(
-                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all",
-                status === s ? "bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-white/5 text-slate-500 hover:bg-white/10"
+                "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
+                status === s ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
               )}
             >
               {s === 'ALL' ? 'Todos' : s === 'CONFIRMED' ? 'Confirmados' : 'Cancelados'}
@@ -243,7 +247,7 @@ function MeusBilhetesComponent() {
             ))
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

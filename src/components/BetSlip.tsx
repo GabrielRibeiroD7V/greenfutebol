@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Ticket, X, Trash2, Loader2, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Ticket, X, Trash2, Loader2, CheckCircle2, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { createTicket } from "@/lib/tickets.functions";
@@ -76,18 +76,13 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
         toast.success("Bilhete confirmado com sucesso!");
       } else if (result.error_code === 'ODDS_CHANGED') {
         setOddsChangedError(true);
-        refreshIdempotency(); // New attempt, new key
+        refreshIdempotency();
         toast.warning("As odds do seu bilhete foram atualizadas. Revise antes de confirmar.");
-        
-        // Update local odds based on result
-        // We'll trigger a re-render by manually updating selections if the hook allowed it,
-        // but here we just show the error and the user sees the new odds (which they should fetch again or the RPC should return).
-        // For Phase 1A, the user must click again.
       }
     } catch (err: any) {
       console.error("Error confirming ticket:", err);
       toast.error(err.message || "Erro ao confirmar bilhete.");
-      refreshIdempotency(); // Reset key on error to allow retry
+      refreshIdempotency();
     } finally {
       setIsConfirming(false);
     }
@@ -130,7 +125,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
       <div className="p-4 bg-emerald-600 flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
           <Ticket size={20} className="brightness-125" />
-          <h3 className="font-black uppercase tracking-tight">Bilhete de Aposta</h3>
+          <h3 className="font-black uppercase tracking-tight">Bilhete Acumulado</h3>
         </div>
         <div className="flex items-center gap-2">
           {isValidating && <Loader2 size={12} className="animate-spin text-white/70" />}
@@ -140,7 +135,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar min-h-[300px]">
         {selections.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-10 opacity-40">
             <Ticket size={48} className="text-slate-600" />
@@ -151,6 +146,13 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           </div>
         ) : (
           <>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-3">
+              <Info className="text-amber-500 shrink-0" size={16} />
+              <p className="text-[9px] text-amber-200 font-bold leading-relaxed uppercase tracking-tighter">
+                Você só recebe se TODAS as seleções vencerem. Uma seleção perdida encerra este bilhete. Sem cash out.
+              </p>
+            </div>
+
             {oddsChangedError && (
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                 <AlertTriangle className="text-amber-500 shrink-0" size={16} />
@@ -250,7 +252,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                   Validando...
                 </>
               ) : (
-                "Confirmar Bilhete"
+                "Confirmar Bilhete Acumulado"
               )}
             </button>
             
