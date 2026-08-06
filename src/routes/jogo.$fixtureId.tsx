@@ -194,6 +194,12 @@ function MatchDetails() {
     setIsLoadingMarkets(false);
   };
 
+  useEffect(() => {
+    if (fixture) {
+      generateMockMarkets(fixture);
+    }
+  }, [fixture]);
+
   const fetchMarkets = async () => {
     setIsLoadingMarkets(true);
     try {
