@@ -122,53 +122,88 @@ function MatchDetails() {
 
   const TIMEZONE = "America/Campo_Grande";
 
+  const generateMockMarkets = (fixture: FixtureDetails) => {
+    const mockMarkets: FixtureMarket[] = [
+      {
+        id: "mock-1x2",
+        status: "OPEN",
+        market_type: { code: "1X2", name: "Resultado Final", category: "RESULT" },
+        options: [
+          { id: "opt-1", odd: 1.42, active: true, market_option: { code: "H", label: "Vitória da Casa", parameter: null, side: "HOME", display_order: 1 } },
+          { id: "opt-2", odd: 3.40, active: true, market_option: { code: "D", label: "Empate", parameter: null, side: "DRAW", display_order: 2 } },
+          { id: "opt-3", odd: 5.60, active: true, market_option: { code: "A", label: "Vitória Visitante", parameter: null, side: "AWAY", display_order: 3 } },
+        ]
+      },
+      {
+        id: "mock-over-under",
+        status: "OPEN",
+        market_type: { code: "OU", name: "Total de Gols", category: "GOALS" },
+        options: [
+          { id: "opt-4", odd: 1.12, active: true, market_option: { code: "O05", label: "Over 0.5", parameter: 0.5, side: "OVER", display_order: 1 } },
+          { id: "opt-5", odd: 1.65, active: true, market_option: { code: "O15", label: "Over 1.5", parameter: 1.5, side: "OVER", display_order: 2 } },
+          { id: "opt-6", odd: 2.10, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 3 } },
+          { id: "opt-7", odd: 3.80, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 4 } },
+          { id: "opt-8", odd: 6.50, active: true, market_option: { code: "U05", label: "Under 0.5", parameter: 0.5, side: "UNDER", display_order: 5 } },
+          { id: "opt-9", odd: 2.80, active: true, market_option: { code: "U15", label: "Under 1.5", parameter: 1.5, side: "UNDER", display_order: 6 } },
+          { id: "opt-10", odd: 1.70, active: true, market_option: { code: "U25", label: "Under 2.5", parameter: 2.5, side: "UNDER", display_order: 7 } },
+          { id: "opt-11", odd: 1.25, active: true, market_option: { code: "U35", label: "Under 3.5", parameter: 3.5, side: "UNDER", display_order: 8 } },
+        ]
+      },
+      {
+        id: "mock-btts",
+        status: "OPEN",
+        market_type: { code: "BTTS", name: "Ambas Marcam", category: "GOALS" },
+        options: [
+          { id: "opt-12", odd: 1.85, active: true, market_option: { code: "YES", label: "Sim", parameter: null, side: null, display_order: 1 } },
+          { id: "opt-13", odd: 1.95, active: true, market_option: { code: "NO", label: "Não", parameter: null, side: null, display_order: 2 } },
+        ]
+      },
+      {
+        id: "mock-double-chance",
+        status: "OPEN",
+        market_type: { code: "DC", name: "Dupla Chance", category: "RESULT" },
+        options: [
+          { id: "opt-14", odd: 1.15, active: true, market_option: { code: "HD", label: "Casa ou Empate", parameter: null, side: null, display_order: 1 } },
+          { id: "opt-15", odd: 1.25, active: true, market_option: { code: "HA", label: "Casa ou Visitante", parameter: null, side: null, display_order: 2 } },
+          { id: "opt-16", odd: 2.15, active: true, market_option: { code: "DA", label: "Empate ou Visitante", parameter: null, side: null, display_order: 3 } },
+        ]
+      },
+      {
+        id: "mock-corners",
+        status: "OPEN",
+        market_type: { code: "CORNERS", name: "Escanteios", category: "CORNERS" },
+        options: [
+          { id: "opt-17", odd: 1.55, active: true, market_option: { code: "O75", label: "Over 7.5", parameter: 7.5, side: "OVER", display_order: 1 } },
+          { id: "opt-18", odd: 1.85, active: true, market_option: { code: "O85", label: "Over 8.5", parameter: 8.5, side: "OVER", display_order: 2 } },
+          { id: "opt-19", odd: 2.25, active: true, market_option: { code: "O95", label: "Over 9.5", parameter: 9.5, side: "OVER", display_order: 3 } },
+          { id: "opt-20", odd: 2.85, active: true, market_option: { code: "O105", label: "Over 10.5", parameter: 10.5, side: "OVER", display_order: 4 } },
+        ]
+      },
+      {
+        id: "mock-cards",
+        status: "OPEN",
+        market_type: { code: "CARDS", name: "Cartões", category: "CARDS" },
+        options: [
+          { id: "opt-21", odd: 1.65, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 1 } },
+          { id: "opt-22", odd: 2.10, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 2 } },
+          { id: "opt-23", odd: 3.40, active: true, market_option: { code: "O45", label: "Over 4.5", parameter: 4.5, side: "OVER", display_order: 3 } },
+        ]
+      }
+    ];
+    setMarkets(mockMarkets);
+    setIsLoadingMarkets(false);
+  };
+
   const fetchMarkets = async () => {
     setIsLoadingMarkets(true);
     try {
-      const { data: dbMarkets, error: marketsError } = await supabase
-        .from('fixture_markets')
-        .select(`
-          id,
-          status,
-          market_type:market_types (
-            code,
-            name,
-            category
-          ),
-          fixture_market_options (
-            id,
-            odd,
-            active,
-            market_option:market_options (
-              code,
-              label,
-              parameter,
-              side,
-              display_order
-            )
-          )
-        `)
-        .eq('fixture_id', parseInt(fixtureId))
-        .eq('status', 'OPEN');
-
-      if (marketsError) throw marketsError;
-
-      const formattedMarkets: FixtureMarket[] = (dbMarkets || []).map((m: any) => ({
-        id: m.id,
-        status: m.status,
-        market_type: m.market_type,
-        options: m.fixture_market_options.map((opt: any) => ({
-          id: opt.id,
-          odd: Number(opt.odd),
-          active: opt.active,
-          market_option: opt.market_option
-        })).sort((a: any, b: any) => a.market_option.display_order - b.market_option.display_order)
-      }));
-
-      setMarkets(formattedMarkets);
+      // In Phase 2, we are instructed to use MOCK odds.
+      // We will skip the DB fetch for now to comply with the requirement of MOCK odds and no persistence.
+      if (fixture) {
+        generateMockMarkets(fixture);
+      }
     } catch (err) {
       console.error("Erro ao buscar mercados:", err);
-    } finally {
       setIsLoadingMarkets(false);
     }
   };
