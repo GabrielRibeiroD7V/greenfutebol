@@ -247,7 +247,7 @@ function MeusBilhetesComponent() {
             ))
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
