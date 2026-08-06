@@ -334,20 +334,11 @@ function Index() {
           setIsLoading(false);
         }
       }
-    };
-          const prefetchDate = addCalendarDays(currentDate, 1);
-          void fetchDate(prefetchDate, false).catch(() => undefined);
-        }
-      } catch (err: unknown) {
-        if (currentRequestId !== requestIdRef.current) return;
-        console.error("Erro ao buscar jogos:", err);
-        setError(getFixturesErrorMessage(err));
-      } finally {
-        if (currentRequestId === requestIdRef.current) {
-          setIsLoading(false);
-        }
       }
     };
+
+    fetchFixtures();
+  }, [activeTab, customDate, competitionCode, retryCount]);
 
     fetchFixtures();
   }, [activeTab, customDate, competitionCode, retryCount]);
