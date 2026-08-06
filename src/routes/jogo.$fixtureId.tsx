@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X } from "lucide-react";
+import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
@@ -109,6 +109,7 @@ function MatchDetails() {
   const { selections, addSelection } = useBetSlip();
   const [fixture, setFixture] = useState<FixtureDetails | null>(null);
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
+  const [localSelections, setLocalSelections] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,53 +122,94 @@ function MatchDetails() {
 
   const TIMEZONE = "America/Campo_Grande";
 
+  const generateMockMarkets = (fixture: FixtureDetails) => {
+    const mockMarkets: FixtureMarket[] = [
+      {
+        id: "mock-1x2",
+        status: "OPEN",
+        market_type: { code: "1X2", name: "Resultado Final", category: "RESULT" },
+        options: [
+          { id: "opt-1", odd: 1.42, active: true, market_option: { code: "H", label: "Vitória da Casa", parameter: null, side: "HOME", display_order: 1 } },
+          { id: "opt-2", odd: 3.40, active: true, market_option: { code: "D", label: "Empate", parameter: null, side: "DRAW", display_order: 2 } },
+          { id: "opt-3", odd: 5.60, active: true, market_option: { code: "A", label: "Vitória Visitante", parameter: null, side: "AWAY", display_order: 3 } },
+        ]
+      },
+      {
+        id: "mock-over-under",
+        status: "OPEN",
+        market_type: { code: "OU", name: "Total de Gols", category: "GOALS" },
+        options: [
+          { id: "opt-4", odd: 1.12, active: true, market_option: { code: "O05", label: "Over 0.5", parameter: 0.5, side: "OVER", display_order: 1 } },
+          { id: "opt-5", odd: 1.65, active: true, market_option: { code: "O15", label: "Over 1.5", parameter: 1.5, side: "OVER", display_order: 2 } },
+          { id: "opt-6", odd: 2.10, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 3 } },
+          { id: "opt-7", odd: 3.80, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 4 } },
+          { id: "opt-8", odd: 6.50, active: true, market_option: { code: "U05", label: "Under 0.5", parameter: 0.5, side: "UNDER", display_order: 5 } },
+          { id: "opt-9", odd: 2.80, active: true, market_option: { code: "U15", label: "Under 1.5", parameter: 1.5, side: "UNDER", display_order: 6 } },
+          { id: "opt-10", odd: 1.70, active: true, market_option: { code: "U25", label: "Under 2.5", parameter: 2.5, side: "UNDER", display_order: 7 } },
+          { id: "opt-11", odd: 1.25, active: true, market_option: { code: "U35", label: "Under 3.5", parameter: 3.5, side: "UNDER", display_order: 8 } },
+        ]
+      },
+      {
+        id: "mock-btts",
+        status: "OPEN",
+        market_type: { code: "BTTS", name: "Ambas Marcam", category: "GOALS" },
+        options: [
+          { id: "opt-12", odd: 1.85, active: true, market_option: { code: "YES", label: "Sim", parameter: null, side: null, display_order: 1 } },
+          { id: "opt-13", odd: 1.95, active: true, market_option: { code: "NO", label: "Não", parameter: null, side: null, display_order: 2 } },
+        ]
+      },
+      {
+        id: "mock-double-chance",
+        status: "OPEN",
+        market_type: { code: "DC", name: "Dupla Chance", category: "RESULT" },
+        options: [
+          { id: "opt-14", odd: 1.15, active: true, market_option: { code: "HD", label: "Casa ou Empate", parameter: null, side: null, display_order: 1 } },
+          { id: "opt-15", odd: 1.25, active: true, market_option: { code: "HA", label: "Casa ou Visitante", parameter: null, side: null, display_order: 2 } },
+          { id: "opt-16", odd: 2.15, active: true, market_option: { code: "DA", label: "Empate ou Visitante", parameter: null, side: null, display_order: 3 } },
+        ]
+      },
+      {
+        id: "mock-corners",
+        status: "OPEN",
+        market_type: { code: "CORNERS", name: "Escanteios", category: "CORNERS" },
+        options: [
+          { id: "opt-17", odd: 1.55, active: true, market_option: { code: "O75", label: "Over 7.5", parameter: 7.5, side: "OVER", display_order: 1 } },
+          { id: "opt-18", odd: 1.85, active: true, market_option: { code: "O85", label: "Over 8.5", parameter: 8.5, side: "OVER", display_order: 2 } },
+          { id: "opt-19", odd: 2.25, active: true, market_option: { code: "O95", label: "Over 9.5", parameter: 9.5, side: "OVER", display_order: 3 } },
+          { id: "opt-20", odd: 2.85, active: true, market_option: { code: "O105", label: "Over 10.5", parameter: 10.5, side: "OVER", display_order: 4 } },
+        ]
+      },
+      {
+        id: "mock-cards",
+        status: "OPEN",
+        market_type: { code: "CARDS", name: "Cartões", category: "CARDS" },
+        options: [
+          { id: "opt-21", odd: 1.65, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 1 } },
+          { id: "opt-22", odd: 2.10, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 2 } },
+          { id: "opt-23", odd: 3.40, active: true, market_option: { code: "O45", label: "Over 4.5", parameter: 4.5, side: "OVER", display_order: 3 } },
+        ]
+      }
+    ];
+    setMarkets(mockMarkets);
+    setIsLoadingMarkets(false);
+  };
+
+  useEffect(() => {
+    if (fixture) {
+      generateMockMarkets(fixture);
+    }
+  }, [fixture]);
+
   const fetchMarkets = async () => {
     setIsLoadingMarkets(true);
     try {
-      const { data: dbMarkets, error: marketsError } = await supabase
-        .from('fixture_markets')
-        .select(`
-          id,
-          status,
-          market_type:market_types (
-            code,
-            name,
-            category
-          ),
-          fixture_market_options (
-            id,
-            odd,
-            active,
-            market_option:market_options (
-              code,
-              label,
-              parameter,
-              side,
-              display_order
-            )
-          )
-        `)
-        .eq('fixture_id', parseInt(fixtureId))
-        .eq('status', 'OPEN');
-
-      if (marketsError) throw marketsError;
-
-      const formattedMarkets: FixtureMarket[] = (dbMarkets || []).map((m: any) => ({
-        id: m.id,
-        status: m.status,
-        market_type: m.market_type,
-        options: m.fixture_market_options.map((opt: any) => ({
-          id: opt.id,
-          odd: Number(opt.odd),
-          active: opt.active,
-          market_option: opt.market_option
-        })).sort((a: any, b: any) => a.market_option.display_order - b.market_option.display_order)
-      }));
-
-      setMarkets(formattedMarkets);
+      // In Phase 2, we are instructed to use MOCK odds.
+      // We will skip the DB fetch for now to comply with the requirement of MOCK odds and no persistence.
+      if (fixture) {
+        generateMockMarkets(fixture);
+      }
     } catch (err) {
       console.error("Erro ao buscar mercados:", err);
-    } finally {
       setIsLoadingMarkets(false);
     }
   };
@@ -345,7 +387,15 @@ function MatchDetails() {
                   {fixture.league_logo && (
                     <img src={fixture.league_logo} alt={fixture.league_name} className="w-6 h-6 object-contain brightness-110" />
                   )}
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{fixture.league_name}</span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{fixture.league_name}</span>
+                    <div className="flex items-center gap-2 mt-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                      <Calendar size={10} className="text-emerald-500/50" />
+                      <span>{formatTime(fixture.kickoff_at).split(' • ')[0]}</span>
+                      <Clock size={10} className="text-emerald-500/50 ml-1" />
+                      <span>{formatTime(fixture.kickoff_at).split(' • ')[1]}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -394,6 +444,13 @@ function MatchDetails() {
                   <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.away_team_name}</h2>
                 </div>
               </div>
+
+              {fixture.venue && (
+                <div className="flex items-center justify-center gap-2 text-[9px] text-slate-500 font-bold uppercase tracking-widest pt-2 border-t border-white/5">
+                  <MapPin size={10} className="text-emerald-500/50" />
+                  <span>{fixture.venue}{fixture.city ? `, ${fixture.city}` : ''}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -439,20 +496,16 @@ function MatchDetails() {
                           </div>
                           <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {market.options.map(opt => {
-                              const isSelected = selections.some(s => s.fixture_market_option_id === opt.id);
+                              const isSelected = localSelections[market.id] === opt.id;
                               return (
                                 <button 
                                   key={opt.id}
-                                  onClick={() => addSelection({
-                                    fixture_market_option_id: opt.id,
-                                    fixture_market_id: market.id,
-                                    odd: opt.odd,
-                                    label: opt.market_option.label,
-                                    market_name: market.market_type.name,
-                                    home_team: fixture.home_team_name,
-                                    away_team: fixture.away_team_name,
-                                    fixture_id: fixture.fixture_id
-                                  })}
+                                  onClick={() => {
+                                    setLocalSelections(prev => ({
+                                      ...prev,
+                                      [market.id]: prev[market.id] === opt.id ? "" : opt.id
+                                    }));
+                                  }}
                                   className={cn(
                                     "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
                                     isSelected 
@@ -477,34 +530,30 @@ function MatchDetails() {
         </div>
 
         <aside className="hidden lg:block w-80 shrink-0 sticky top-20">
-          <BetSlip />
+          <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 text-center space-y-4">
+            <Info className="w-8 h-8 text-emerald-500 mx-auto" />
+            <h3 className="text-sm font-black text-white uppercase tracking-tight">Seleções de Teste</h3>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-relaxed">
+              Fase 2: Estrutura de mercados. Selecione as odds para visualizar o destaque.
+            </p>
+            <div className="pt-4 border-t border-white/5">
+              <span className="text-[9px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">
+                GreenFutebol &bull; Phase 2
+              </span>
+            </div>
+          </div>
         </aside>
       </main>
 
       {/* Mobile Bet Slip */}
-      {!isBetSlipOpen && selections.length > 0 && (
+      {/* Mobile Indicator */}
+      {Object.values(localSelections).filter(id => id !== "").length > 0 && (
         <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
-          <button 
-            onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
-          >
-            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Drawer */}
-      {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
-              <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <BetSlip isMobile />
-            </div>
+          <div className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6">
+            <span className="flex items-center gap-2"><Target size={20} /> Seleções</span>
+            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">
+              {Object.values(localSelections).filter(id => id !== "").length}
+            </span>
           </div>
         </div>
       )}
