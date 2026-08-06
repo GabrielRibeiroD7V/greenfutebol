@@ -14,6 +14,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin.route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
 import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
 import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
@@ -44,6 +45,11 @@ const MeusBilhetesRoute = MeusBilhetesRouteImport.update({
   path: '/meus-bilhetes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBilhetesRoute = AdminBilhetesRouteImport.update({
   id: '/bilhetes',
   path: '/bilhetes',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
+  '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
+    | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
     | '/admin/resultados'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
+    | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
     | '/admin/resultados'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
+    | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
     | '/admin/resultados'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   MeusBilhetesRoute: typeof MeusBilhetesRoute
+  PerfilRoute: typeof PerfilRoute
   JogoFixtureIdRoute: typeof JogoFixtureIdRoute
 }
 
@@ -179,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/meus-bilhetes'
       fullPath: '/meus-bilhetes'
       preLoaderRoute: typeof MeusBilhetesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/bilhetes': {
@@ -234,6 +254,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   MeusBilhetesRoute: MeusBilhetesRoute,
+  PerfilRoute: PerfilRoute,
   JogoFixtureIdRoute: JogoFixtureIdRoute,
 }
 export const routeTree = rootRouteImport

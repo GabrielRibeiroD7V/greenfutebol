@@ -17,6 +17,7 @@ import {
   Trophy,
   Target,
   Zap,
+  User,
 } from "lucide-react";
 
 import logoAsset from "@/assets/logo.png.asset.json";
@@ -537,10 +538,10 @@ function Index() {
                   <span className="text-sm font-black text-white">R$ 0,00</span>
                 </div>
                 <div
-                  className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
-                  onClick={() => navigate({ to: "/meus-bilhetes" })}
+                  className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer overflow-hidden"
+                  onClick={() => navigate({ to: "/perfil" })}
                 >
-                  {(profile?.name || "U").charAt(0).toUpperCase()}
+                  <User size={18} />
                 </div>
               </div>
             ) : (
