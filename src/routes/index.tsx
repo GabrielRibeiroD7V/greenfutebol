@@ -454,8 +454,18 @@ function Index() {
           </div>
 
           <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
-            <Link to="/" className="text-emerald-500 border-b-2 border-emerald-500 pb-5 pt-5">Futebol</Link>
-            <button onClick={() => setActiveTab('live')} className="text-slate-400 hover:text-white transition-colors">Ao Vivo</button>
+            <button 
+              onClick={() => { navigate({ to: "/" }); setCompetitionCode('ALL'); }} 
+              className={cn("pb-5 pt-5 transition-all border-b-2", competitionCode === 'ALL' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            >
+              Futebol
+            </button>
+            <button 
+              onClick={() => { setActiveTab('live'); navigate({ to: "/" }); }} 
+              className={cn("pb-5 pt-5 transition-all border-b-2", activeTab === 'live' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            >
+              Ao Vivo
+            </button>
             <button onClick={() => navigate({ to: "/meus-bilhetes" })} className="text-slate-400 hover:text-white transition-colors">Minhas Apostas</button>
           </div>
 
