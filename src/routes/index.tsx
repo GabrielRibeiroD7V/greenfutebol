@@ -674,135 +674,279 @@ function Index() {
                   Atualizar
                 </button>
               </div>
-            ) : groupedFixtures.length === 0 ? (
-              <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
-                <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
-                  {isPartial
-                    ? "Algumas competições não puderam ser atualizadas. Tente novamente."
-                    : reachedLimit
-                      ? "Sem jogos para este filtro nos próximos 14 dias"
-                      : "Nenhum jogo encontrado"}
-                </p>
-              </div>
             ) : (
               <div className="space-y-6">
-                {isPartial && (
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
-                    Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
-                  </div>
-                )}
-                {isShowingNextAvailable && displayedDate && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
-                    <Info size={16} className="shrink-0" />
-                    <p className="font-bold text-[10px] uppercase tracking-widest">
-                      Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.
-                      Data: {formatDateBR(displayedDate)}
+                {/* 1. Estado Principal (Hoje Vazio ou Resultados Atuais) */}
+                {fixtures.length === 0 ? (
+                  <div className="bg-white/5 border border-white/5 rounded-2xl p-12 text-center space-y-4 backdrop-blur-sm">
+                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
+                      {activeTab === "today" 
+                        ? "Nenhum jogo encontrado hoje." 
+                        : "Nenhum jogo encontrado para esta data ou filtro."}
                     </p>
                   </div>
+                ) : (
+                  <>
+                    {isPartial && (
+                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                        Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
+                      </div>
+                    )}
+                    
+                    {groupedFixtures.map((dateGroup) => (
+                      <div key={dateGroup.date} className="space-y-4">
+                        <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
+                          <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                            {formatGroupHeader(dateGroup.date)}
+                          </span>
+                        </div>
+
+                        <div className="space-y-3">
+                          {dateGroup.leagues.map((league) => (
+                            <div
+                              key={`${dateGroup.date}-${league.country}-${league.name}`}
+                              className="space-y-2"
+                            >
+                              <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                {league.logo ? (
+                                  <img
+                                    src={league.logo}
+                                    alt={league.name}
+                                    className="w-4 h-4 object-contain brightness-125"
+                                  />
+                                ) : (
+                                  <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
+                                    ⚽
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                                  <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-2">
+                                {league.matches.map((match) => (
+                                  <div key={match.fixture_id} className="relative group">
+                                    <Link
+                                      to="/jogo/$fixtureId"
+                                      params={{ fixtureId: String(match.fixture_id) }}
+                                    >
+                                      <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                        <div className="flex items-center justify-between gap-4">
+                                          <div className="flex flex-col min-w-[60px]">
+                                            <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                              {formatFixtureDateTime(match.kickoff_at)}
+                                            </span>
+                                            <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
+                                              {getStatusDisplay(match.status, match.elapsed)}
+                                            </span>
+                                            {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
+                                          </div>
+
+                                          <div className="flex-1 flex flex-col gap-2">
+                                            <div className="flex items-center justify-between gap-2">
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                {match.home_team_logo && (
+                                                  <img
+                                                    src={match.home_team_logo}
+                                                    className="w-4 h-4 object-contain"
+                                                  />
+                                                )}
+                                                <span className="text-xs font-bold text-slate-200 truncate">
+                                                  {match.home_team_name}
+                                                </span>
+                                              </div>
+                                              <span className="text-xs font-black text-white">
+                                                {match.home_score ?? 0}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                {match.away_team_logo && (
+                                                  <img
+                                                    src={match.away_team_logo}
+                                                    className="w-4 h-4 object-contain"
+                                                  />
+                                                )}
+                                                <span className="text-xs font-bold text-slate-200 truncate">
+                                                  {match.away_team_name}
+                                                </span>
+                                              </div>
+                                              <span className="text-xs font-black text-white">
+                                                {match.away_score ?? 0}
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          <div className="hidden sm:flex items-center gap-2">
+                                            <ChevronRight size={16} className="text-slate-700" />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 )}
 
-                {groupedFixtures.map((dateGroup) => (
-                  <div key={dateGroup.date} className="space-y-4">
-                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
-                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
-                        {formatGroupHeader(dateGroup.date)}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      {dateGroup.leagues.map((league) => (
-                        <div
-                          key={`${dateGroup.date}-${league.country}-${league.name}`}
-                          className="space-y-2"
-                        >
-                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
-                            {league.logo ? (
-                              <img
-                                src={league.logo}
-                                alt={league.name}
-                                className="w-4 h-4 object-contain brightness-125"
-                              />
-                            ) : (
-                              <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
-                                ⚽
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
-                              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
-                            </div>
+                {/* 2. Seção de Próximos Jogos (Independente) */}
+                {activeTab === "today" && fixtures.length === 0 && (
+                  <div className="pt-8 border-t border-white/5 space-y-6">
+                    {isSearchingUpcoming ? (
+                      <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                        <Zap className="w-8 h-8 text-emerald-500 animate-pulse" />
+                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">
+                          Procurando os próximos jogos...
+                        </p>
+                      </div>
+                    ) : upcomingFixtures.length > 0 && upcomingDate ? (
+                      <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl">
+                          <div className="space-y-1">
+                            <h2 className="text-emerald-500 font-black uppercase tracking-[0.3em] text-xs">
+                              PRÓXIMOS JOGOS
+                            </h2>
+                            <p className="text-white font-black text-lg">
+                              {new Intl.DateTimeFormat("pt-BR", {
+                                weekday: "long",
+                                day: "numeric",
+                                month: "long",
+                              }).format(new Date(upcomingDate + "T12:00:00"))}
+                            </p>
                           </div>
+                          <button
+                            onClick={() => {
+                              setCustomDate(upcomingDate);
+                              setActiveTab("custom");
+                              setUpcomingFixtures([]);
+                              setUpcomingDate(null);
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                          >
+                            Ver jogos desta data
+                          </button>
+                        </div>
 
-                          <div className="grid grid-cols-1 gap-2">
-                            {league.matches.map((match) => (
-                              <div key={match.fixture_id} className="relative group">
-                                <Link
-                                  to="/jogo/$fixtureId"
-                                  params={{ fixtureId: String(match.fixture_id) }}
-                                >
-                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
-                                    <div className="flex items-center justify-between gap-4">
-                                      <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[10px] font-black text-white whitespace-nowrap">
-                                          {formatFixtureDateTime(match.kickoff_at)}
-                                        </span>
-                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
-                                          {getStatusDisplay(match.status, match.elapsed)}
-                                        </span>
-                                        {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
-                                      </div>
-
-                                      <div className="flex-1 flex flex-col gap-2">
-                                        <div className="flex items-center justify-between gap-2">
-                                          <div className="flex items-center gap-2 min-w-0">
-                                            {match.home_team_logo && (
-                                              <img
-                                                src={match.home_team_logo}
-                                                className="w-4 h-4 object-contain"
-                                              />
-                                            )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
-                                              {match.home_team_name}
-                                            </span>
-                                          </div>
-                                          <span className="text-xs font-black text-white">
-                                            {match.home_score ?? 0}
-                                          </span>
+                        <div className="space-y-4">
+                          {groupedUpcoming.map((dateGroup) => (
+                            <div key={dateGroup.date} className="space-y-4">
+                              <div className="space-y-3">
+                                {dateGroup.leagues.map((league) => (
+                                  <div
+                                    key={`upcoming-${dateGroup.date}-${league.country}-${league.name}`}
+                                    className="space-y-2"
+                                  >
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                      {league.logo ? (
+                                        <img
+                                          src={league.logo}
+                                          alt={league.name}
+                                          className="w-4 h-4 object-contain brightness-125"
+                                        />
+                                      ) : (
+                                        <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
+                                          ⚽
                                         </div>
-                                        <div className="flex items-center justify-between gap-2">
-                                          <div className="flex items-center gap-2 min-w-0">
-                                            {match.away_team_logo && (
-                                              <img
-                                                src={match.away_team_logo}
-                                                className="w-4 h-4 object-contain"
-                                              />
-                                            )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
-                                              {match.away_team_name}
-                                            </span>
-                                          </div>
-                                          <span className="text-xs font-black text-white">
-                                            {match.away_score ?? 0}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <div className="hidden sm:flex items-center gap-2">
-                                        <ChevronRight size={16} className="text-slate-700" />
+                                      )}
+                                      <div className="min-w-0">
+                                        <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                                        <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
                                       </div>
                                     </div>
+
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {league.matches.map((match) => (
+                                        <div key={`upcoming-${match.fixture_id}`} className="relative group">
+                                          <Link
+                                            to="/jogo/$fixtureId"
+                                            params={{ fixtureId: String(match.fixture_id) }}
+                                          >
+                                            <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                              <div className="flex items-center justify-between gap-4">
+                                                <div className="flex flex-col min-w-[60px]">
+                                                  <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                                    {formatFixtureDateTime(match.kickoff_at)}
+                                                  </span>
+                                                  <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status))}>
+                                                    {getStatusDisplay(match.status, match.elapsed)}
+                                                  </span>
+                                                </div>
+
+                                                <div className="flex-1 flex flex-col gap-2">
+                                                  <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                      {match.home_team_logo && (
+                                                        <img
+                                                          src={match.home_team_logo}
+                                                          className="w-4 h-4 object-contain"
+                                                        />
+                                                      )}
+                                                      <span className="text-xs font-bold text-slate-200 truncate">
+                                                        {match.home_team_name}
+                                                      </span>
+                                                    </div>
+                                                    <span className="text-xs font-black text-white">
+                                                      {match.home_score ?? 0}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                      {match.away_team_logo && (
+                                                        <img
+                                                          src={match.away_team_logo}
+                                                          className="w-4 h-4 object-contain"
+                                                        />
+                                                      )}
+                                                      <span className="text-xs font-bold text-slate-200 truncate">
+                                                        {match.away_team_name}
+                                                      </span>
+                                                    </div>
+                                                    <span className="text-xs font-black text-white">
+                                                      {match.away_score ?? 0}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                                <div className="hidden sm:flex items-center gap-2">
+                                                  <ChevronRight size={16} className="text-slate-700" />
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </Link>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </Link>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ) : upcomingError ? (
+                      <div className="py-10 text-center">
+                        <p className="text-amber-500/60 font-black uppercase tracking-widest text-[10px]">
+                          {upcomingError}
+                        </p>
+                      </div>
+                    ) : !isSearchingUpcoming ? (
+                      <div className="py-10 text-center">
+                        <p className="text-slate-600 font-black uppercase tracking-widest text-[10px]">
+                          Nenhum próximo jogo encontrado nos próximos 14 dias.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
-                ))}
+                )}
               </div>
             )}
+
           </div>
         </main>
 
