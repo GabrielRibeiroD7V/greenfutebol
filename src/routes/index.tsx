@@ -334,11 +334,7 @@ function Index() {
           setIsLoading(false);
         }
       }
-      }
     };
-
-    fetchFixtures();
-  }, [activeTab, customDate, competitionCode, retryCount]);
 
     fetchFixtures();
   }, [activeTab, customDate, competitionCode, retryCount]);
