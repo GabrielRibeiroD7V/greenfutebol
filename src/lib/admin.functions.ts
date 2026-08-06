@@ -77,50 +77,29 @@ export const getAdminTicketDetail = createServerFn({ method: "GET" })
     return ticket;
   });
 
-// --- ADMIN MARKETS ---
+// --- ADMIN MARKETS (REFACTORED FOR PHASE 2) ---
 
-export const updateMarketOption = createServerFn({ method: "POST" })
+export const updateMarketSelection = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({
-    optionId: z.string().uuid(),
+    selectionId: z.string().uuid(),
     odd: z.number().min(1.01).optional(),
-    active: z.boolean().optional(),
-    action: z.string() // 'UPDATE_ODD', 'TOGGLE_ACTIVE', etc.
+    status: z.string().optional(),
+    action: z.string()
   }).parse(data))
   .handler(async ({ data: input }) => {
     const adminUser = await requireAdmin();
-    const { optionId, odd, active, action } = input;
-
-    const { data: current, error: fetchError } = await supabase
-      .from('fixture_market_options')
-      .select('*')
-      .eq('id', optionId)
-      .single();
-    
-    if (fetchError || !current) throw new Error("Opção não encontrada");
+    const { selectionId, odd, status } = input;
 
     const updates: any = { updated_at: new Date().toISOString() };
-    if (odd !== undefined) {
-      updates.odd = odd;
-      updates.version = (current.version || 0) + 1;
-    }
-    if (active !== undefined) updates.active = active;
+    if (odd !== undefined) updates.odd = odd;
+    if (status !== undefined) updates.status = status;
 
     const { error: updateError } = await supabase
-      .from('fixture_market_options')
+      .from('fixture_market_selections')
       .update(updates)
-      .eq('id', optionId);
+      .eq('id', selectionId);
 
     if (updateError) throw updateError;
-
-    await supabase.from('market_option_audit_logs').insert({
-      fixture_market_option_id: optionId,
-      admin_user_id: adminUser.id,
-      old_odd: current.odd,
-      new_odd: odd !== undefined ? odd : current.odd,
-      old_active: current.active,
-      new_active: active !== undefined ? active : current.active,
-      action: action
-    });
 
     return { success: true };
   });
@@ -128,7 +107,7 @@ export const updateMarketOption = createServerFn({ method: "POST" })
 export const updateMarketStatus = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({
     marketId: z.string().uuid(),
-    status: z.enum(['OPEN', 'SUSPENDED', 'CLOSED', 'SETTLED', 'CANCELLED'])
+    status: z.string()
   }).parse(data))
   .handler(async ({ data: input }) => {
     await requireAdmin();
@@ -152,48 +131,64 @@ export const generateMockOdds = createServerFn({ method: "POST" })
     await requireAdmin();
     const { fixture_id } = data;
 
-    const { data: marketTypes, error: mtError } = await supabase
-      .from('market_types')
-      .select('*, market_options(*)');
+    // Phase 2: Use hardcoded templates since market_types was dropped
+    const templates = [
+      {
+        market_type: '1X2',
+        market_name: 'Resultado Final',
+        market_group: 'RESULT',
+        selections: [
+          { key: 'H', name: 'Casa', odd: 1.85 },
+          { key: 'D', name: 'Empate', odd: 3.40 },
+          { key: 'A', name: 'Fora', odd: 4.20 },
+        ]
+      },
+      {
+        market_type: 'OU25',
+        market_name: 'Total de Gols (2.5)',
+        market_group: 'GOALS',
+        line: 2.5,
+        selections: [
+          { key: 'OVER', name: 'Mais de 2.5', odd: 1.95 },
+          { key: 'UNDER', name: 'Menos de 2.5', odd: 1.85 },
+        ]
+      }
+    ];
 
-    if (mtError || !marketTypes) {
-      throw new Error("Erro ao buscar tipos de mercado.");
-    }
-
-    for (const mt of marketTypes) {
+    for (const t of templates) {
       const { data: fm, error: fmError } = await supabase
         .from('fixture_markets')
-        .upsert({
+        .insert({
           fixture_id,
-          market_type_id: mt.id,
+          competition_code: 'DEMO', // Required field
+          market_type: t.market_type,
+          market_name: t.market_name,
+          market_group: t.market_group,
+          line: t.line || null,
           status: 'OPEN'
-        }, { onConflict: 'fixture_id,market_type_id' })
+        })
         .select()
         .single();
 
-      if (fmError || !fm) {
-        console.error(`Error creating fixture_market for ${mt.code}:`, fmError);
+      if (fmError) {
+        console.error(`Error creating market:`, fmError);
         continue;
       }
 
-      const options = mt.market_options as any[];
-      const fixtureMarketOptions = options.map(opt => {
-        const odd = (Math.random() * (5.0 - 1.1) + 1.1).toFixed(2);
-        return {
-          fixture_market_id: fm.id,
-          market_option_id: opt.id,
-          odd: Number(odd),
-          active: true
-        };
-      });
+      const selections = t.selections.map((s, idx) => ({
+        market_id: fm.id,
+        selection_key: s.key,
+        selection_name: s.name,
+        odd: s.odd,
+        sort_order: idx,
+        status: 'OPEN'
+      }));
 
-      const { error: fmoError } = await supabase
-        .from('fixture_market_options')
-        .upsert(fixtureMarketOptions, { onConflict: 'fixture_market_id,market_option_id' });
+      const { error: sError } = await supabase
+        .from('fixture_market_selections')
+        .insert(selections);
 
-      if (fmoError) {
-        console.error(`Error creating fixture_market_options for ${mt.code}:`, fmoError);
-      }
+      if (sError) console.error(`Error creating selections:`, sError);
     }
 
     return { success: true };
