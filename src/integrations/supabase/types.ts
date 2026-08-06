@@ -104,10 +104,13 @@ export type Database = {
       }
       fixture_markets: {
         Row: {
+          away_team: string | null
           competition_code: string
           created_at: string
           fixture_id: number
+          home_team: string | null
           id: string
+          kickoff_at: string | null
           line: number | null
           market_group: string
           market_name: string
@@ -119,10 +122,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          away_team?: string | null
           competition_code: string
           created_at?: string
           fixture_id: number
+          home_team?: string | null
           id?: string
+          kickoff_at?: string | null
           line?: number | null
           market_group: string
           market_name: string
@@ -134,10 +140,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          away_team?: string | null
           competition_code?: string
           created_at?: string
           fixture_id?: number
+          home_team?: string | null
           id?: string
+          kickoff_at?: string | null
           line?: number | null
           market_group?: string
           market_name?: string
@@ -566,10 +575,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ticket_selections_fixture_market_option_id_fkey"
+            foreignKeyName: "ticket_selections_fixture_market_id_fkey"
+            columns: ["fixture_market_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_selections_selection_id_fkey"
             columns: ["fixture_market_option_id"]
             isOneToOne: false
-            referencedRelation: "fixture_market_options"
+            referencedRelation: "fixture_market_selections"
             referencedColumns: ["id"]
           },
           {
@@ -592,6 +608,7 @@ export type Database = {
           payment_attempt: number
           payment_id: string | null
           payment_idempotency_key: string | null
+          payment_mode: string
           payment_status: string
           pix_copy_paste: string | null
           pix_qr_code: string | null
@@ -617,6 +634,7 @@ export type Database = {
           payment_attempt?: number
           payment_id?: string | null
           payment_idempotency_key?: string | null
+          payment_mode?: string
           payment_status?: string
           pix_copy_paste?: string | null
           pix_qr_code?: string | null
@@ -642,6 +660,7 @@ export type Database = {
           payment_attempt?: number
           payment_id?: string | null
           payment_idempotency_key?: string | null
+          payment_mode?: string
           payment_status?: string
           pix_copy_paste?: string | null
           pix_qr_code?: string | null
