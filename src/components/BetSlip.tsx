@@ -36,9 +36,17 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
   const [oddsChangedError, setOddsChangedError] = useState<boolean>(false);
 
   const handleConfirm = async () => {
-    // Phase 3 requirement: "Nesta fase: não navegar; apenas executar: console.log("Próxima fase: autenticação")"
-    console.log("Próxima fase: autenticação");
-    toast.info("Próxima fase: autenticação (Lógica em memória na Fase 3)");
+    if (!isAuthenticated) {
+      setReturnToConfirm(true);
+      navigate({ to: "/login", search: { redirect: window.location.pathname } });
+      toast.info("Por favor, faça login para confirmar seu bilhete.");
+      return;
+    }
+    
+    // Phase 4 requirement: Login mandatory to proceed.
+    // Logic for actually creating the ticket remains mock for now as per instructions.
+    console.log("Fluxo de confirmação: Usuário autenticado.");
+    toast.success("Bilhete pronto para confirmação! (Fase 4)");
   };
 
   if (showConfirmation && confirmedTicket) {

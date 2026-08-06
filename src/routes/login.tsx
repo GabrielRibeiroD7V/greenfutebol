@@ -29,20 +29,21 @@ function LoginComponent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalized = normalizePhone(phone);
+    const normalized = phone.includes("@") ? phone.trim() : normalizePhone(phone);
     
-    if (!isValidBrazilianPhone(normalized)) {
-      toast.error("Por favor, insira um telefone celular brasileiro válido.");
+    if (!phone.includes("@") && !isValidBrazilianPhone(normalized)) {
+      toast.error("Por favor, insira um e-mail ou telefone celular brasileiro válido.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        phone: normalized,
-        password,
-      });
+      const loginParams = phone.includes("@") 
+        ? { email: normalized, password } 
+        : { phone: normalized, password };
+
+      const { error } = await supabase.auth.signInWithPassword(loginParams);
 
       if (error) {
         if (error.message.includes("Invalid login credentials") || error.status === 400) {
@@ -88,14 +89,14 @@ function LoginComponent() {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white/70">Telefone</Label>
+              <Label htmlFor="phone" className="text-white/70">E-mail ou Telefone</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500/50 w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500/50 w-4 h-4" />
                 <Input
                   id="phone"
                   type="text"
-                  placeholder="(00) 00000-0000"
-                  value={maskPhone(phone)}
+                  placeholder="Seu e-mail ou (00) 00000-0000"
+                  value={phone.includes("@") ? phone : maskPhone(phone)}
                   onChange={(e) => setPhone(e.target.value)}
                   className="bg-white/5 border-white/10 text-white pl-10 focus:ring-emerald-500/50"
                   required
