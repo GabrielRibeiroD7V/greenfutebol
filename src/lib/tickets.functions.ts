@@ -87,50 +87,51 @@ export const createTicket = createServerFn({ method: "POST" })
   .validator((data: any) => createTicketInput.parse(data))
   .handler(async ({ data: input }) => {
     const user = await requireUser();
-    const { stake, idempotency_key, selections } = input;
+    const { stake, idempotency_key } = input;
 
-    const { data: rpcResponse, error: rpcError } = await supabase.rpc('create_ticket_atomic', {
-      p_stake: stake,
-      p_idempotency_key: idempotency_key,
-      p_selections: selections.map((s: { fixture_market_option_id: string; expected_odd: number }) => ({
-        option_id: s.fixture_market_option_id,
-        expected_odd: s.expected_odd
-      }))
-    });
+    // Fase 5: Criação simplificada e persistência no banco
+    const total_odd = input.selections.reduce((acc: number, s: any) => acc * s.odd, 1);
+    const potential_return = input.stake * total_odd;
+    
+    // Gerar um código único para o bilhete (ex: GF-123456)
+    const code = `GF-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    if (rpcError) {
-      console.error("RPC Error:", rpcError);
-      
-      if (rpcError.code === 'P0001') {
-        throw new Error(rpcError.message.replace('Market or option is suspended: ', 'O mercado ou opção não está mais disponível: '));
+    const { data: ticket, error: insertError } = await supabase
+      .from('tickets')
+      .insert({
+        user_id: user.id,
+        code,
+        stake: input.stake,
+        total_odd,
+        potential_return,
+        status: 'PENDING_PAYMENT',
+        selection_count: input.selections.length,
+        idempotency_key,
+        selections: input.selections
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      if (insertError.code === '23505') { // Unique constraint (idempotency)
+        const { data: existing } = await supabase
+          .from('tickets')
+          .select('id, code')
+          .eq('idempotency_key', idempotency_key)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (existing) {
+          return { success: true, ticketId: existing.id, ticketCode: existing.code, is_duplicate: true };
+        }
       }
-      if (rpcError.code === 'P0002') {
-        throw new Error(rpcError.message.replace('Match already started: ', 'A partida já começou: '));
-      }
-      if (rpcError.code === '23505') {
-        return { success: true, is_duplicate: true };
-      }
-
-      throw new Error("Erro ao processar bilhete. Tente novamente.");
-    }
-
-    const result = rpcResponse as unknown as RPCResult;
-
-    if (!result || !result.success) {
-      if (result?.error_code === 'ODDS_CHANGED') {
-        return {
-          success: false,
-          error_code: 'ODDS_CHANGED',
-          changed_selections: result.changed_selections
-        };
-      }
-      throw new Error("Erro ao validar bilhete.");
+      console.error("Insert error:", insertError);
+      throw new Error("Erro ao criar aposta no banco.");
     }
 
     return {
       success: true,
-      ticketCode: result.ticket_code,
-      ticketId: result.ticket_id,
-      is_duplicate: result.is_duplicate || false
+      ticketId: ticket.id,
+      ticketCode: ticket.code
     };
   });
