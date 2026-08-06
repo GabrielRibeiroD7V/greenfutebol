@@ -475,7 +475,7 @@ function Index() {
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
                   <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">Saldo</span>
-                  <span className="text-sm font-black text-white">R$ {profile?.balance?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}</span>
+                  <span className="text-sm font-black text-white">R$ 0,00</span>
                 </div>
                 <div 
                   className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
