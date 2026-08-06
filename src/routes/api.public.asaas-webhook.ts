@@ -6,11 +6,15 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          // Asaas envia um token de segurança no header se configurado
-          // const asaasToken = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
-          // if (request.headers.get("asaas-access-token") !== asaasToken) {
-          //   return new Response("Unauthorized", { status: 401 });
-          // }
+          const asaasToken = process.env['ASAAS_WEBHOOK_TOKEN'];
+          if (!asaasToken) {
+            console.error("ASAAS_WEBHOOK_TOKEN não configurada no servidor");
+            return new Response("Unauthorized", { status: 401 });
+          }
+
+          if (request.headers.get("asaas-access-token") !== asaasToken) {
+            return new Response("Unauthorized", { status: 401 });
+          }
 
           const body = await request.json();
           console.log("Asaas Webhook received:", body.event, body.payment?.id);
