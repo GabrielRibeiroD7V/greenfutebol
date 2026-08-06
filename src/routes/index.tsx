@@ -339,32 +339,28 @@ function Index() {
     fetchFixtures();
   }, [activeTab, customDate, competitionCode, retryCount]);
 
-  const groupedFixtures = useMemo(() => {
+  const groupData = (data: Fixture[]) => {
     const search = normalizeText(deferredSearchQuery);
     const filtered = search
-      ? fixtures.filter(
+      ? data.filter(
           (f) =>
             normalizeText(f.home_team_name).includes(search) ||
             normalizeText(f.away_team_name).includes(search) ||
             normalizeText(f.league_name).includes(search) ||
             normalizeText(f.country).includes(search),
         )
-      : fixtures;
+      : data;
 
-    // First, group by Date (YYYY-MM-DD)
     const dateGroups: Record<
       string,
       Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }>
     > = {};
 
     filtered.forEach((f) => {
-      // Get the date in the local timezone for grouping
       const dateKey = getCGRDateString(new Date(f.kickoff_at));
-
       if (!dateGroups[dateKey]) {
         dateGroups[dateKey] = {};
       }
-
       const leagueKey = `${f.country}-${f.league_name}`;
       if (!dateGroups[dateKey][leagueKey]) {
         dateGroups[dateKey][leagueKey] = {
@@ -377,14 +373,16 @@ function Index() {
       dateGroups[dateKey][leagueKey].matches.push(f);
     });
 
-    // Convert to sorted array structure
     return Object.entries(dateGroups)
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
       .map(([date, leagues]) => ({
         date,
         leagues: Object.values(leagues).sort((a, b) => a.name.localeCompare(b.name)),
       }));
-  }, [fixtures, deferredSearchQuery]);
+  };
+
+  const groupedFixtures = useMemo(() => groupData(fixtures), [fixtures, deferredSearchQuery]);
+  const groupedUpcoming = useMemo(() => groupData(upcomingFixtures), [upcomingFixtures, deferredSearchQuery]);
 
   const formatGroupHeader = (dateStr: string) => {
     // Adicionar T12:00:00 para evitar problemas de timezone ao criar o objeto Date apenas da data
