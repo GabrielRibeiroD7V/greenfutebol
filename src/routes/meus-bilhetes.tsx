@@ -47,7 +47,7 @@ function MeusBilhetesComponent() {
   const loadTickets = async () => {
     setLoading(true);
     try {
-      const { tickets: data } = await getMyTickets({ data: { status } });
+      const data = await getMyTickets();
       
       // Fetch details for each ticket to show selections
       const ticketsWithDetails = await Promise.all(

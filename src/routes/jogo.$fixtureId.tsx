@@ -163,7 +163,7 @@ function MatchDetails() {
   const groupedMarkets = useMemo(() => {
     const groups: Record<string, FixtureMarket[]> = {};
     markets.forEach(m => {
-      const catLabel = CATEGORY_MAP[m.market_group] || m.market_group;
+      const catLabel = CATEGORY_MAP[m.market_group] || m.market_group || "Outros";
       if (!groups[catLabel]) groups[catLabel] = [];
       groups[catLabel].push(m);
     });
@@ -271,21 +271,25 @@ function MatchDetails() {
             </div>
           ) : (
             <div className="space-y-8 pb-20">
-              {CATEGORY_ORDER.map(cat => groupedMarkets[CATEGORY_MAP[cat]] && (
+            {CATEGORY_ORDER.map(cat => {
+              const groupLabel = CATEGORY_MAP[cat];
+              if (!groupLabel || !groupedMarkets[groupLabel]) return null;
+              
+              return (
                 <div key={cat} className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="h-6 w-1.5 bg-emerald-500 rounded-full" />
-                    <h3 className="text-xl font-black uppercase tracking-tighter italic">{CATEGORY_MAP[cat]}</h3>
+                    <h3 className="text-xl font-black uppercase tracking-tighter italic">{groupLabel}</h3>
                   </div>
                   <div className="grid gap-3">
-                    {groupedMarkets[CATEGORY_MAP[cat]].map(market => (
+                    {groupedMarkets[groupLabel].map((market: FixtureMarket) => (
                       <div key={market.id} className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
                         <div className="p-4 border-b border-white/5 flex justify-between items-center">
                           <h4 className="text-sm font-black uppercase tracking-tight text-slate-300">{market.market_name}</h4>
                           <Info size={14} className="text-slate-600" />
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3">
-                          {market.fixture_market_selections.map(selection => {
+                          {market.fixture_market_selections.map((selection: FixtureMarketSelection) => {
                             const isSelected = selections.some(s => s.id === selection.id);
                             return (
                               <button
