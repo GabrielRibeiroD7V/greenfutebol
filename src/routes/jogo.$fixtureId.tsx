@@ -295,41 +295,40 @@ function MatchDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200">
-      <header className="bg-black/80 backdrop-blur-md border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-30 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
+    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200">
+      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50">
+        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <button 
               onClick={handleBack}
-              className="p-2 hover:bg-white/5 rounded-xl transition-colors text-emerald-500"
+              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-emerald-500"
             >
               <ArrowLeft size={24} />
             </button>
             <div className="flex flex-col">
-              <h1 className="text-sm sm:text-lg font-black uppercase tracking-tight leading-tight truncate max-w-[200px] sm:max-w-none">
+              <h1 className="text-xs sm:text-sm font-black uppercase tracking-tight leading-tight truncate max-w-[200px] sm:max-w-none">
                 {fixture.home_team_name} x {fixture.away_team_name}
               </h1>
-              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest truncate">{fixture.league_name}</span>
+              <span className="text-[9px] text-emerald-500/70 font-bold uppercase tracking-widest truncate">{fixture.league_name}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Admin generate odds button (visible in preview for testing) */}
             <button 
               onClick={handleGenerateMockOdds}
               disabled={isGeneratingOdds}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-600/20 transition-all disabled:opacity-50"
             >
               {isGeneratingOdds ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
-              Gerar Odds Teste
+              Odds Teste
             </button>
-
+            
             {isAuthenticated && (
               <button 
                 onClick={() => navigate({ to: "/meus-bilhetes" })}
-                className="p-2 text-emerald-500 hover:bg-white/5 rounded-xl transition-colors relative"
+                className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20"
               >
-                <Ticket size={24} />
+                <Ticket size={20} />
               </button>
             )}
           </div>
