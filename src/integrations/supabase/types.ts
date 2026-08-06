@@ -62,6 +62,53 @@ export type Database = {
           },
         ]
       }
+      fixture_market_selections: {
+        Row: {
+          created_at: string
+          id: string
+          market_id: string
+          odd: number
+          result: string | null
+          selection_key: string
+          selection_name: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          market_id: string
+          odd: number
+          result?: string | null
+          selection_key: string
+          selection_name: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          market_id?: string
+          odd?: number
+          result?: string | null
+          selection_key?: string
+          selection_name?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixture_market_selections_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixture_markets: {
         Row: {
           closes_at: string | null
@@ -410,6 +457,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ticket_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          payload: Json | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       ticket_selections: {
         Row: {
