@@ -530,34 +530,30 @@ function MatchDetails() {
         </div>
 
         <aside className="hidden lg:block w-80 shrink-0 sticky top-20">
-          <BetSlip />
+          <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 text-center space-y-4">
+            <Info className="w-8 h-8 text-emerald-500 mx-auto" />
+            <h3 className="text-sm font-black text-white uppercase tracking-tight">Seleções de Teste</h3>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-relaxed">
+              Fase 2: Estrutura de mercados. Selecione as odds para visualizar o destaque.
+            </p>
+            <div className="pt-4 border-t border-white/5">
+              <span className="text-[9px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">
+                GreenFutebol &bull; Phase 2
+              </span>
+            </div>
+          </div>
         </aside>
       </main>
 
       {/* Mobile Bet Slip */}
-      {!isBetSlipOpen && selections.length > 0 && (
+      {/* Mobile Indicator */}
+      {Object.values(localSelections).filter(id => id !== "").length > 0 && (
         <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
-          <button 
-            onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
-          >
-            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Drawer */}
-      {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
-              <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <BetSlip isMobile />
-            </div>
+          <div className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6">
+            <span className="flex items-center gap-2"><Target size={20} /> Seleções</span>
+            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">
+              {Object.values(localSelections).filter(id => id !== "").length}
+            </span>
           </div>
         </div>
       )}
