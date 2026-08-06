@@ -74,11 +74,16 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
       });
 
       if (result.success) {
-        setConfirmedTicket({ code: result.ticketCode!, id: result.ticketId! });
-        setShowConfirmation(true);
-        clearSlip();
         toast.success("Aposta criada com sucesso! Aguardando pagamento.");
+        clearSlip();
+        navigate({ 
+          to: "/pagamento.$ticketId", 
+          params: { ticketId: result.ticketId! } 
+        });
       }
+
+
+
     } catch (err: any) {
       console.error("Error creating ticket:", err);
       toast.error(err.message || "Erro ao criar aposta. Tente novamente.");

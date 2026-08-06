@@ -521,9 +521,14 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          expires_at: string | null
           id: string
           idempotency_key: string
+          invoice_url: string | null
+          payment_id: string | null
           payment_status: string
+          pix_copy_paste: string | null
+          pix_qr_code: string | null
           potential_return: number
           selection_count: number
           selections: Json | null
@@ -539,9 +544,14 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           idempotency_key?: string
+          invoice_url?: string | null
+          payment_id?: string | null
           payment_status?: string
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
           potential_return: number
           selection_count: number
           selections?: Json | null
@@ -557,9 +567,14 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           idempotency_key?: string
+          invoice_url?: string | null
+          payment_id?: string | null
           payment_status?: string
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
           potential_return?: number
           selection_count?: number
           selections?: Json | null

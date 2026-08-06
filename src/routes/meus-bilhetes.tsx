@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Ticket, Search, AlertCircle, Loader2, ChevronRight, Filter, Clock, CheckCircle2, XCircle, ArrowLeft, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -101,7 +101,7 @@ function MeusBilhetesComponent() {
 
       <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-          {["ALL", "PENDING_PAYMENT", "CONFIRMED", "CANCELLED"].map((s) => (
+          {["ALL", "PENDING_PAYMENT", "WAITING_PAYMENT", "PAID", "CANCELLED"].map((s) => (
             <button
               key={s}
               onClick={() => setStatus(s)}
@@ -110,7 +110,7 @@ function MeusBilhetesComponent() {
                 status === s ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
               )}
             >
-              {s === 'ALL' ? 'Todos' : s === 'PENDING_PAYMENT' ? 'Aguardando Pagamento' : s === 'CONFIRMED' ? 'Confirmados' : 'Cancelados'}
+              {s === 'ALL' ? 'Todos' : s === 'PENDING_PAYMENT' ? 'Iniciados' : s === 'WAITING_PAYMENT' ? 'Aguardando PIX' : s === 'PAID' ? 'Pagos' : 'Cancelados'}
             </button>
           ))}
         </div>
@@ -150,12 +150,14 @@ function MeusBilhetesComponent() {
                           t.status === 'VOID' ? "bg-slate-500/10 text-slate-500" :
                           "bg-amber-500/10 text-amber-500"
                         )}>
-                        {t.status === 'CONFIRMED' ? 'Confirmado' : 
-                           t.status === 'PENDING_PAYMENT' ? 'Aguardando Pagamento' :
+                        {t.status === 'PAID' ? 'Pago' : 
+                           t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
+                           t.status === 'PENDING_PAYMENT' ? 'Iniciado' :
                            t.status === 'WON' ? 'Ganho' :
                            t.status === 'LOST' ? 'Perdido' :
                            t.status === 'VOID' ? 'Anulado' :
                            t.status === 'CANCELLED' ? 'Cancelado' : t.status}
+
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
@@ -218,10 +220,12 @@ function MeusBilhetesComponent() {
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
                                   <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(t.status))}>
-                                    {t.status === 'PENDING_PAYMENT' ? 'Pendente' : 
+                                    {t.status === 'PAID' ? 'Confirmada' : 
+                                     t.status === 'WAITING_PAYMENT' ? 'Aguardando' :
                                      t.status === 'WON' ? 'Vencedora' :
                                      t.status === 'LOST' ? 'Perdida' :
-                                     t.status === 'VOID' ? 'Anulada' : 'Aguardando'}
+                                     t.status === 'VOID' ? 'Anulada' : 'Pendente'}
+
                                   </span>
                                 </div>
                               </div>
@@ -267,9 +271,21 @@ function MeusBilhetesComponent() {
                       </div>
                       
                       <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5">
-                        <div className="text-xs text-slate-500 italic">
-                          Odd Total: <span className="font-bold text-white">{t.total_odd.toFixed(2)}</span>
+                        <div className="flex gap-4">
+                          <div className="text-xs text-slate-500 italic">
+                            Odd Total: <span className="font-bold text-white">{t.total_odd.toFixed(2)}</span>
+                          </div>
+                          {(t.status === 'PENDING_PAYMENT' || t.status === 'WAITING_PAYMENT') && (
+                            <Link 
+                              to="/pagamento.$ticketId" 
+                              params={{ ticketId: t.id }}
+                              className="text-xs text-emerald-500 font-bold hover:underline"
+                            >
+                              {t.status === 'WAITING_PAYMENT' ? 'Ver PIX' : 'Pagar Agora'}
+                            </Link>
+                          )}
                         </div>
+
                         <Button 
                           variant="ghost" 
                           size="sm" 

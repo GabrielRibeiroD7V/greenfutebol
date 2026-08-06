@@ -19,6 +19,8 @@ import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
 import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
 import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
 import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
+import { Route as PagamentoTicketIdRouteImport } from './routes/pagamento.$ticketId'
+import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api.public.asaas-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +72,16 @@ const JogoFixtureIdRoute = JogoFixtureIdRouteImport.update({
   path: '/jogo/$fixtureId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PagamentoTicketIdRoute = PagamentoTicketIdRouteImport.update({
+  id: '/pagamento/$ticketId',
+  path: '/pagamento/$ticketId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
+  id: '/api/public/asaas-webhook',
+  path: '/api/public/asaas-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
+  '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +108,8 @@ export interface FileRoutesByTo {
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
+  '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +123,8 @@ export interface FileRoutesById {
   '/admin/mercados': typeof AdminMercadosRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
+  '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +139,8 @@ export interface FileRouteTypes {
     | '/admin/mercados'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
+    | '/pagamento/$ticketId'
+    | '/api/public/asaas-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +153,8 @@ export interface FileRouteTypes {
     | '/admin/mercados'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
+    | '/pagamento/$ticketId'
+    | '/api/public/asaas-webhook'
   id:
     | '__root__'
     | '/'
@@ -145,6 +167,8 @@ export interface FileRouteTypes {
     | '/admin/mercados'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
+    | '/pagamento/$ticketId'
+    | '/api/public/asaas-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,6 +179,8 @@ export interface RootRouteChildren {
   MeusBilhetesRoute: typeof MeusBilhetesRoute
   PerfilRoute: typeof PerfilRoute
   JogoFixtureIdRoute: typeof JogoFixtureIdRoute
+  PagamentoTicketIdRoute: typeof PagamentoTicketIdRoute
+  ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -229,6 +255,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JogoFixtureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pagamento/$ticketId': {
+      id: '/pagamento/$ticketId'
+      path: '/pagamento/$ticketId'
+      fullPath: '/pagamento/$ticketId'
+      preLoaderRoute: typeof PagamentoTicketIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/asaas-webhook': {
+      id: '/api/public/asaas-webhook'
+      path: '/api/public/asaas-webhook'
+      fullPath: '/api/public/asaas-webhook'
+      preLoaderRoute: typeof ApiPublicAsaasWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -256,6 +296,8 @@ const rootRouteChildren: RootRouteChildren = {
   MeusBilhetesRoute: MeusBilhetesRoute,
   PerfilRoute: PerfilRoute,
   JogoFixtureIdRoute: JogoFixtureIdRoute,
+  PagamentoTicketIdRoute: PagamentoTicketIdRoute,
+  ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
