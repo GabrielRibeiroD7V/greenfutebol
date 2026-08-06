@@ -1,92 +1,101 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
-export interface Selection {
-  id: string; // The selection_id (UUID)
-  market_id: string; // The market_id (UUID)
-  fixture_id: number;
-  odd: number;
-  label: string; // selection_name
-  market_name: string;
-  home_team: string;
-  away_team: string;
-  competition?: string;
-}
+export type BetSlipSelection = {
+  fixtureId: number;
+  fixtureName: string;
+  kickoffAt: string;
+  competitionName: string | null;
+  marketId: string;
+  marketName: string;
+  marketType: string;
+  selectionId: string;
+  selectionName: string;
+  displayedOdd: number;
+  homeTeam: string;
+  awayTeam: string;
+};
 
 export function useBetSlip() {
-  const [selections, setSelections] = useState<Selection[]>([]);
+  const [selections, setSelections] = useState<BetSlipSelection[]>([]);
   const [stake, setStake] = useState<number>(10);
-  const [isValidating, setIsValidating] = useState(false);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(crypto.randomUUID());
-  const [returnToConfirm, setReturnToConfirm] = useState(false);
-  
   const isFirstMount = useRef(true);
-
-  const revalidateSelections = useCallback(async (currentSelections: Selection[]) => {
-    // Phase 3 requirement: "Não realizar nenhuma chamada para API. Tudo em memória."
-    // We disable revalidation during this phase to maintain isolation.
-    return;
-  }, []);
 
   // Load from localStorage on mount
   useEffect(() => {
-    if (!isFirstMount.current) return;
-    isFirstMount.current = false;
-
+    if (typeof window === "undefined") return;
+    
     const saved = localStorage.getItem("gf_bet_slip");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setSelections(parsed.selections || []);
-        setStake(parsed.stake || 10);
-        setReturnToConfirm(parsed.returnToConfirm || false);
-        if (parsed.selections?.length > 0) {
-          revalidateSelections(parsed.selections);
+        const data = parsed.selections || [];
+        
+        // Detect legacy format: id, fixture_id, market_id, selection_id
+        const isLegacy = data.some((s: any) => 
+          s.id || s.fixture_id || s.market_id || s.selection_id
+        );
+
+        if (isLegacy) {
+          localStorage.removeItem("gf_bet_slip");
+          setSelections([]);
+        } else {
+          setSelections(data);
         }
       } catch (e) {
-        console.error("Error loading bet slip from localStorage", e);
+        setSelections([]);
       }
     }
-  }, [revalidateSelections]);
+  }, []);
 
   // Save to localStorage on change
   useEffect(() => {
-    localStorage.setItem("gf_bet_slip", JSON.stringify({
-      selections,
-      stake,
-      returnToConfirm
-    }));
-  }, [selections, stake, returnToConfirm]);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    localStorage.setItem("gf_bet_slip", JSON.stringify({ selections }));
+  }, [selections]);
 
-  const addSelection = useCallback((newSelection: Selection) => {
+  const hasSelection = useCallback((selectionId: string) => {
+    return selections.some(s => s.selectionId === selectionId);
+  }, [selections]);
+
+  const getSelectionByMarket = useCallback((marketId: string) => {
+    return selections.find(s => s.marketId === marketId);
+  }, [selections]);
+
+  const removeSelection = useCallback((selectionId: string) => {
+    setSelections(prev => prev.filter(s => s.selectionId !== selectionId));
+  }, []);
+
+  const clearBetSlip = useCallback(() => {
+    setSelections([]);
+  }, []);
+
+  const addSelection = useCallback((newSelection: BetSlipSelection) => {
+    if (!newSelection.selectionId || !newSelection.marketId || newSelection.fixtureId <= 0) return;
+    if (newSelection.displayedOdd <= 1.0) return;
+
     setSelections(prev => {
-      // Incompatibility Rule: Only one selection per fixture_id + market_id
-      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.market_id === newSelection.market_id));
-      const isAlreadySelected = prev.find(s => s.id === newSelection.id);
-      
-      if (isAlreadySelected) {
-        return prev.filter(s => s.id !== newSelection.id);
+      const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
+      if (prev.some(s => s.selectionId === newSelection.selectionId)) {
+        return prev.filter(s => s.selectionId !== newSelection.selectionId);
       }
-
       return [...filtered, newSelection];
     });
   }, []);
 
-  const removeSelection = useCallback((id: string) => {
-    setSelections(prev => prev.filter(s => s.id !== id));
-  }, []);
+  const toggleSelection = useCallback((newSelection: BetSlipSelection) => {
+    const exists = selections.find(s => s.selectionId === newSelection.selectionId);
+    if (exists) {
+      removeSelection(newSelection.selectionId);
+    } else {
+      addSelection(newSelection);
+    }
+  }, [selections, addSelection, removeSelection]);
 
-  const clearSlip = useCallback(() => {
-    setSelections([]);
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
-
-  const refreshIdempotency = useCallback(() => {
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
-
-  const totalOdd = selections.reduce((acc, s) => acc * s.odd, 1);
-  const potentialReturn = stake * totalOdd;
+  const previewTotalOdd = selections.reduce((acc, s) => acc * s.displayedOdd, 1);
+  const selectionCount = selections.length;
 
   return {
     selections,
@@ -94,13 +103,13 @@ export function useBetSlip() {
     setStake,
     addSelection,
     removeSelection,
-    clearSlip,
-    totalOdd,
-    potentialReturn,
-    isValidating,
-    idempotencyKey,
-    refreshIdempotency,
-    returnToConfirm,
-    setReturnToConfirm
+    toggleSelection,
+    clearBetSlip,
+    hasSelection,
+    getSelectionByMarket,
+    selectionCount,
+    previewTotalOdd,
+    totalOdd: previewTotalOdd,
+    clearSlip: clearBetSlip
   };
 }
