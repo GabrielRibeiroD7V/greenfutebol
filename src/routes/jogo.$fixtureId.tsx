@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X } from "lucide-react";
+import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
@@ -109,6 +109,7 @@ function MatchDetails() {
   const { selections, addSelection } = useBetSlip();
   const [fixture, setFixture] = useState<FixtureDetails | null>(null);
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
+  const [localSelections, setLocalSelections] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -439,20 +440,16 @@ function MatchDetails() {
                           </div>
                           <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {market.options.map(opt => {
-                              const isSelected = selections.some(s => s.fixture_market_option_id === opt.id);
+                              const isSelected = localSelections[market.id] === opt.id;
                               return (
                                 <button 
                                   key={opt.id}
-                                  onClick={() => addSelection({
-                                    fixture_market_option_id: opt.id,
-                                    fixture_market_id: market.id,
-                                    odd: opt.odd,
-                                    label: opt.market_option.label,
-                                    market_name: market.market_type.name,
-                                    home_team: fixture.home_team_name,
-                                    away_team: fixture.away_team_name,
-                                    fixture_id: fixture.fixture_id
-                                  })}
+                                  onClick={() => {
+                                    setLocalSelections(prev => ({
+                                      ...prev,
+                                      [market.id]: prev[market.id] === opt.id ? "" : opt.id
+                                    }));
+                                  }}
                                   className={cn(
                                     "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
                                     isSelected 
