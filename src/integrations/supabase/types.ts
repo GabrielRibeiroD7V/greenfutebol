@@ -526,6 +526,7 @@ export type Database = {
           payment_status: string
           potential_return: number
           selection_count: number
+          selections: Json | null
           settled_at: string | null
           settled_return: number | null
           settled_total_odd: number | null
@@ -543,6 +544,7 @@ export type Database = {
           payment_status?: string
           potential_return: number
           selection_count: number
+          selections?: Json | null
           settled_at?: string | null
           settled_return?: number | null
           settled_total_odd?: number | null
@@ -560,6 +562,7 @@ export type Database = {
           payment_status?: string
           potential_return?: number
           selection_count?: number
+          selections?: Json | null
           settled_at?: string | null
           settled_return?: number | null
           settled_total_odd?: number | null
