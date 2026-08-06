@@ -22,29 +22,46 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
           // Eventos de interesse: PAYMENT_RECEIVED, PAYMENT_CONFIRMED
           if (body.event === "PAYMENT_RECEIVED" || body.event === "PAYMENT_CONFIRMED") {
             const paymentId = body.payment.id;
-            const externalReference = body.payment.externalReference;
-
-            // Usar o service_role para atualizar o banco (bypassing RLS)
-            // Importante: No TanStack Start, podemos usar o supabaseAdmin do servidor
+            
             const { createClient } = await import("@supabase/supabase-js");
             const supabaseAdmin = createClient(
               process.env['SUPABASE_URL']!,
               process.env['SUPABASE_SERVICE_ROLE_KEY']!
             );
 
+            // 1. Verificar se o ticket já está PAID de forma atômica ou robusta
+            const { data: ticket, error: fetchError } = await supabaseAdmin
+              .from("tickets")
+              .select("id, status, payment_id")
+              .eq("payment_id", paymentId)
+              .single();
 
-            const { error } = await supabaseAdmin
+            if (fetchError || !ticket) {
+              console.warn("Webhook: Ticket não encontrado para payment_id:", paymentId);
+              return new Response("Not Found", { status: 404 });
+            }
+
+            if (ticket.status === "PAID") {
+              console.log("Webhook: Ticket já estava pago (idempotência):", ticket.id);
+              return new Response("OK", { status: 200 });
+            }
+
+            // 2. Atualizar para PAID apenas se o payment_id corresponder (segurança adicional)
+            const { error: updateError } = await supabaseAdmin
               .from("tickets")
               .update({ 
                 status: "PAID",
                 payment_status: body.event 
               })
+              .eq("id", ticket.id)
               .eq("payment_id", paymentId);
 
-            if (error) {
-              console.error("Webhook update error:", error);
+            if (updateError) {
+              console.error("Webhook update error:", updateError);
               return new Response("Internal Error", { status: 500 });
             }
+            
+            console.log("Webhook: Ticket atualizado para PAID:", ticket.id);
           }
 
           return new Response("OK", { status: 200 });
