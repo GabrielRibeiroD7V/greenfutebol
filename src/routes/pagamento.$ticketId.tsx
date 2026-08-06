@@ -216,7 +216,7 @@ function PaymentPage() {
           </button>
           
           <a
-            href={ticket.invoice_url}
+            href={ticket.invoice_url || undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
