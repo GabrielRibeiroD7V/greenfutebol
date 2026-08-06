@@ -24,9 +24,10 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
             // Importante: No TanStack Start, podemos usar o supabaseAdmin do servidor
             const { createClient } = await import("@supabase/supabase-js");
             const supabaseAdmin = createClient(
-              process.env.SUPABASE_URL!,
-              process.env.SUPABASE_SERVICE_ROLE_KEY!
+              process.env['SUPABASE_URL']!,
+              process.env['SUPABASE_SERVICE_ROLE_KEY']!
             );
+
 
             const { error } = await supabaseAdmin
               .from("tickets")
