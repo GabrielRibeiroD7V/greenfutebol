@@ -131,15 +131,19 @@ function Index() {
   const { selections } = useBetSlip();
   const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "live" | "custom">("today");
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [upcomingFixtures, setUpcomingFixtures] = useState<Fixture[]>([]);
+  const [upcomingDate, setUpcomingDate] = useState<string | null>(null);
   const [isPartial, setIsPartial] = useState(false);
   const [displayedDate, setDisplayedDate] = useState<string | null>(null);
-  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
+  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false); // Legacy flag
   const [competitionCode, setCompetitionCode] = useState<
     "BSA" | "PL" | "CL" | "BL1" | "PD" | "SA" | "FL1" | "DED" | "ELC" | "PPL" | "ALL"
   >("ALL");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearchingUpcoming, setIsSearchingUpcoming] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [upcomingError, setUpcomingError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [customDate, setCustomDate] = useState("");
