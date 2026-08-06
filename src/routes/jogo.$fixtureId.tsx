@@ -108,9 +108,8 @@ function MatchDetails() {
   const { user, isAuthenticated } = useAuth();
   const [fixture, setFixture] = useState<FixtureDetails | null>(null);
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
+  const { selections, addSelection } = useBetSlip();
   const [localSelections, setLocalSelections] = useState<Record<string, string>>({});
-  // Phase 3 requirement: Auto-open betslip
-  const { selections, addSelection, removeSelection, clearSlip, totalOdd } = useBetSlip();
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [error, setError] = useState<string | null>(null);
