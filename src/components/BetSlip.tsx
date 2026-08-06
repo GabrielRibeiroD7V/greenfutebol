@@ -56,19 +56,21 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
     setIsConfirming(true);
     try {
       const result = await createTicket({
-        stake,
-        idempotency_key: idempotencyKey,
-        selections: selections.map(s => ({
-          fixture_id: s.fixture_id,
-          fixture_market_option_id: s.fixture_market_option_id,
-          fixture_market_id: s.fixture_market_id,
-          market: s.market_name,
-          option: s.label,
-          odd: s.odd,
-          home_team: s.home_team,
-          away_team: s.away_team,
-          competition: s.competition || "Futebol"
-        }))
+        data: {
+          stake,
+          idempotency_key: idempotencyKey,
+          selections: selections.map(s => ({
+            fixture_id: s.fixture_id,
+            fixture_market_option_id: s.fixture_market_option_id,
+            fixture_market_id: s.fixture_market_id,
+            market: s.market_name,
+            option: s.label,
+            odd: s.odd,
+            home_team: s.home_team,
+            away_team: s.away_team,
+            competition: s.competition || "Futebol"
+          }))
+        }
       });
 
       if (result.success) {
