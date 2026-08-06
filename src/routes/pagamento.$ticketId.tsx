@@ -161,15 +161,16 @@ function PaymentPage() {
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-[0_0_50px_rgba(255,255,255,0.05)] border border-white/10 flex flex-col items-center">
-          {ticket.pix_qr_code ? (
-            <img 
-              src={`data:image/png;base64,${ticket.pix_qr_code}`} 
-              alt="QR Code PIX"
-              className="w-full max-w-[240px] aspect-square object-contain"
-            />
-          ) : (
-            <div className="w-full max-w-[240px] aspect-square bg-slate-100 animate-pulse rounded-2xl" />
-          )}
+            {ticket.pix_qr_code ? (
+              <img 
+                src={`data:image/png;base64,${ticket.pix_qr_code}`} 
+                alt="QR Code PIX"
+                className="w-full max-w-[240px] aspect-square object-contain"
+              />
+            ) : (
+              <div className="w-full max-w-[240px] aspect-square bg-slate-100 animate-pulse rounded-2xl" />
+            )}
+
 
           <p className="text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-widest">
             Aponte a câmera para pagar

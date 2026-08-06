@@ -75,12 +75,13 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
 
       if (result.success) {
         toast.success("Aposta criada com sucesso! Aguardando pagamento.");
-        clearSelections();
+        clearSlip();
         navigate({ 
           to: "/pagamento.$ticketId", 
           params: { ticketId: result.ticketId! } 
         });
       }
+
 
 
     } catch (err: any) {
