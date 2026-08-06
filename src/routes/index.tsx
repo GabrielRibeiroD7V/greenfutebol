@@ -580,292 +580,156 @@ function Index() {
               ))}
             </div>
 
-          {activeTab === 'custom' && (
-            <div className="flex flex-col items-center gap-2">
-              <input
-                type="date"
-                value={customDate}
-                onChange={(e) => setCustomDate(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/50 outline-none w-full md:w-auto text-white"
-              />
-              {customDate && (() => {
-                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                const yearStr = customDate.split('-')[0];
-                const year = yearStr ? parseInt(yearStr) : NaN;
-                const parsedDate = new Date(customDate);
-                const isValidDate = dateRegex.test(customDate) && 
-                                   customDate.length === 10 &&
-                                   year >= 2000 && year <= 2100 &&
-                                   !isNaN(parsedDate.getTime()) && 
-                                   parsedDate.toISOString().slice(0, 10) === customDate;
-                
-                return !isValidDate && (
-                  <span className="text-xs text-red-400 font-medium">Selecione uma data válida.</span>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-
-
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-            <p className="text-slate-400 font-medium">Buscando jogos reais...</p>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center space-y-3">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
-            <h3 className="text-red-800 font-bold text-lg">Ops! Algo deu errado</h3>
-            <p className="text-red-600">{error}</p>
-            <button 
-              onClick={() => setActiveTab(activeTab)}
-              className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        ) : groupedFixtures.length === 0 ? (
-          <div className="space-y-4">
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
-              <div className="space-y-2">
-                <p className="text-slate-600 font-bold text-lg">
-                  {reachedLimit 
-                    ? "Não encontramos jogos nos próximos 14 dias para este filtro."
-                    : activeTab === 'custom' && !customDate 
-                      ? "Selecione uma data" 
-                      : searchQuery 
-                        ? "Nenhum resultado" 
-                        : "Não há jogos destas competições nesta data."}
-                </p>
-                <p className="text-slate-400 font-medium text-sm">
-                  {reachedLimit
-                    ? "Escolha outra competição ou consulte uma data específica."
-                    : activeTab === 'custom' && !customDate 
-                      ? "Escolha um dia no calendário para ver os jogos disponíveis." 
-                      : searchQuery 
-                        ? "Tente ajustar sua busca para encontrar o que procura." 
-                        : "Escolha outra data para consultar as próximas partidas."}
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                <p className="text-slate-400 font-medium text-xs uppercase tracking-widest">Buscando cotações reais...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center space-y-3">
+                <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
+                <h3 className="text-white font-black uppercase tracking-widest text-sm">Erro de Conexão</h3>
+                <p className="text-slate-400 text-xs">{error}</p>
+                <button 
+                  onClick={() => setActiveTab(activeTab)}
+                  className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            ) : groupedFixtures.length === 0 ? (
+              <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
+                <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
+                  {reachedLimit ? "Sem jogos para este filtro" : "Nenhum jogo encontrado"}
                 </p>
               </div>
-              {(!customDate || reachedLimit) && activeTab !== 'custom' && (
-                <button
-                  onClick={() => setActiveTab('custom')}
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors text-sm"
-                >
-                  <Calendar size={16} />
-                  Escolher data
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6 sm:space-y-8">
-            {isShowingNextAvailable && displayedDate && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 sm:p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)] mx-2 sm:mx-0">
-                <Info size={18} className="shrink-0 sm:w-5 sm:h-5" />
-                <div className="space-y-0.5">
-                  <p className="font-bold text-[12px] sm:text-sm leading-tight">Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.</p>
-                  <p className="text-emerald-300 font-medium text-[10px] sm:text-xs">Próximos jogos: {formatDateBR(displayedDate)}</p>
-                </div>
+            ) : (
+              <div className="space-y-6">
+                {isShowingNextAvailable && displayedDate && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                    <Info size={16} className="shrink-0" />
+                    <p className="font-bold text-[10px] uppercase tracking-widest">Exibindo próximos jogos em {formatDateBR(displayedDate)}</p>
+                  </div>
+                )}
+                
+                {groupedFixtures.map((dateGroup) => (
+                  <div key={dateGroup.date} className="space-y-4">
+                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
+                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                        {formatGroupHeader(dateGroup.date)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {dateGroup.leagues.map((league) => (
+                        <div key={`${dateGroup.date}-${league.country}-${league.name}`} className="space-y-2">
+                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                            {league.logo ? (
+                              <img src={league.logo} alt={league.name} className="w-4 h-4 object-contain brightness-125" />
+                            ) : (
+                              <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">⚽</div>
+                            )}
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{league.name}</span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-2">
+                            {league.matches.map((match) => (
+                              <div key={match.fixture_id} className="relative group">
+                                <Link to="/jogo/$fixtureId" params={{ fixtureId: String(match.fixture_id) }}>
+                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div className="flex flex-col min-w-[60px]">
+                                        <span className="text-[11px] font-black text-white">{formatTimeOnly(match.kickoff_at)}</span>
+                                        <span className={cn(
+                                          "text-[9px] font-black uppercase tracking-tighter",
+                                          LIVE_STATUSES.includes(match.status) ? "text-emerald-500 animate-pulse" : "text-slate-600"
+                                        )}>
+                                          {getStatusDisplay(match.status, match.elapsed)}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex-1 flex flex-col gap-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            {match.home_team_logo && <img src={match.home_team_logo} className="w-4 h-4 object-contain" />}
+                                            <span className="text-xs font-bold text-slate-200 truncate">{match.home_team_name}</span>
+                                          </div>
+                                          <span className="text-xs font-black text-white">{match.home_score ?? 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            {match.away_team_logo && <img src={match.away_team_logo} className="w-4 h-4 object-contain" />}
+                                            <span className="text-xs font-bold text-slate-200 truncate">{match.away_team_name}</span>
+                                          </div>
+                                          <span className="text-xs font-black text-white">{match.away_score ?? 0}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="hidden sm:flex items-center gap-2">
+                                        {[
+                                          { label: 'Casa', value: '1', odd: 1.95 },
+                                          { label: 'Empate', value: 'X', odd: 3.40 },
+                                          { label: 'Fora', value: '2', odd: 3.85 }
+                                        ].map(o => (
+                                          <div key={o.value} className="bg-white/5 border border-white/10 rounded-lg p-2 min-w-[60px] text-center">
+                                            <span className="text-[8px] font-black text-slate-500 block uppercase leading-none mb-1">{o.label}</span>
+                                            <span className="text-xs font-black text-emerald-400">{o.odd.toFixed(2)}</span>
+                                          </div>
+                                        ))}
+                                        <ChevronRight size={16} className="text-slate-700" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </Link>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-            {groupedFixtures.map((dateGroup) => (
-              <div key={dateGroup.date} className="space-y-6">
-                <div className="sticky top-16 sm:top-20 z-10 py-3 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-emerald-500/5 px-2 sm:px-0">
-                  <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2 px-2">
-                    <Calendar size={18} className="text-emerald-500" />
-                    {formatGroupHeader(dateGroup.date)}
-                  </h3>
-                </div>
-
-                <div className="space-y-6 pl-4 border-l-2 border-white/5 ml-2">
-                  {dateGroup.leagues.map((league) => (
-                    <div key={`${dateGroup.date}-${league.country}-${league.name}`} className="space-y-3">
-                      <div className="flex items-center gap-3 px-2">
-                        {league.logo ? (
-                          <img src={league.logo} alt={league.name} className="w-6 h-6 object-contain brightness-125" />
-                        ) : (
-                          <div className="w-6 h-6 bg-white/10 rounded-md flex items-center justify-center text-[10px]">⚽</div>
-                        )}
-                        <div>
-                          <h2 className="font-bold text-slate-100 leading-none">{league.name}</h2>
-                          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{league.country}</span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-3">
-                        {league.matches.map((match) => (
-                          <div key={match.fixture_id} className="relative group">
-                            <Link
-                              to="/jogo/$fixtureId"
-                              params={{ fixtureId: String(match.fixture_id) }}
-                              className="block"
-                            >
-                              <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden group-hover:border-emerald-500/50 group-hover:bg-white/[0.08] transition-all duration-300">
-                                <div className="p-4 flex flex-col gap-6 md:grid md:grid-cols-[1fr_2fr_120px] md:items-center md:gap-4">
-                                  {/* Cabeçalho do Card */}
-                                  <div className="flex flex-col items-center md:items-start space-y-1">
-                                    <span className="text-[12px] sm:text-sm font-black text-white">{formatDateTime(match.kickoff_at)}</span>
-                                    <span className={cn(
-                                      "text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider",
-                                      LIVE_STATUSES.includes(match.status) ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse" : "bg-white/5 text-slate-400"
-                                    )}>
-                                      {getStatusDisplay(match.status, match.elapsed)}
-                                    </span>
-                                  </div>
-
-                                  {/* Área da Partida */}
-                                  <div className="grid grid-cols-[1fr_auto_1fr] items-start sm:items-center gap-3 sm:gap-4 px-2 sm:px-0">
-                                    <div className="flex flex-col items-center sm:flex-row sm:justify-end gap-2 sm:gap-3 text-center sm:text-right min-w-0">
-                                      <div className="shrink-0 order-first sm:order-last">
-                                        {match.home_team_logo ? (
-                                          <img src={match.home_team_logo} alt={match.home_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
-                                        ) : (
-                                          <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                        )}
-                                      </div>
-                                      <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
-                                        {match.home_team_name}
-                                      </span>
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-1 bg-black/40 border border-white/5 text-white rounded-xl font-black text-lg sm:text-xl min-w-[70px] sm:min-w-[85px] justify-center shadow-2xl group-hover:border-emerald-500/30 transition-all self-center">
-                                      <span>{match.home_score ?? 0}</span>
-                                      <span className="text-white/20 text-xs">x</span>
-                                      <span>{match.away_score ?? 0}</span>
-                                    </div>
-
-                                    <div className="flex flex-col items-center sm:flex-row gap-2 sm:gap-3 text-center sm:text-left min-w-0">
-                                      <div className="shrink-0">
-                                        {match.away_team_logo ? (
-                                          <img src={match.away_team_logo} alt={match.away_team_name} className="w-10 h-10 sm:w-8 sm:h-8 object-contain brightness-110" />
-                                        ) : (
-                                          <div className="w-10 h-10 sm:w-8 sm:h-8 bg-white/5 rounded-full flex items-center justify-center text-[10px] text-slate-500">🛡️</div>
-                                        )}
-                                      </div>
-                                      <span className="text-[13px] sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight sm:leading-normal max-w-full overflow-hidden break-words line-clamp-2 px-1">
-                                        {match.away_team_name}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* Link p/ Detalhes */}
-                                  <div className="hidden md:flex justify-end pr-4">
-                                    <div className="p-2 bg-white/5 rounded-full text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                                      <ChevronRight size={20} />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
-        )}
-      </div>
+        </main>
 
-        {/* Desktop Sidebar Bet Slip */}
-        <aside className="hidden lg:block sticky top-28 space-y-6">
+        {/* Bilhete Lateral Desktop */}
+        <aside className="hidden xl:block w-80 shrink-0 border-l border-white/5 p-4 overflow-y-auto no-scrollbar bg-[#080808]">
           <BetSlip />
         </aside>
-      </main>
+      </div>
 
-      {/* Mobile Bet Slip Floating Button */}
-      {!isBetSlipOpen && selections && selections.length > 0 && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-40 animate-in slide-in-from-bottom-10 duration-500">
-          <button 
-            onClick={() => setIsBetSlipOpen(true)}
-            className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-[0_0_40px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 border border-emerald-400/30 active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Ticket size={24} className="brightness-125" />
-              <span>Ver Bilhete</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="bg-black/20 px-3 py-1 rounded-full text-sm font-black">{selections.length}</span>
-            </div>
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Bet Slip Drawer */}
-      {isBetSlipOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="absolute bottom-0 left-0 w-full max-h-[90vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-bottom duration-500">
-            <div className="flex items-center justify-between p-4 border-b border-white/5 relative">
-              <div className="w-12 h-1.5 bg-white/10 rounded-full absolute top-2 left-1/2 -translate-x-1/2" />
-              <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
-                <Ticket className="text-emerald-500" />
-                Seu Bilhete
-              </h3>
-              <button 
-                onClick={() => setIsBetSlipOpen(false)}
-                className="p-2 bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
-              <BetSlip isMobile />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Bet Slip Floating Button */}
+      {/* Mobile Bet Slip Toggle */}
       {!isBetSlipOpen && selections.length > 0 && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-40 animate-in slide-in-from-bottom-10 duration-500">
+        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
           <button 
             onClick={() => setIsBetSlipOpen(true)}
-            className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-[0_0_40px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 border border-emerald-400/30 active:scale-[0.98] transition-all"
+            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
           >
-            <div className="flex items-center gap-3">
-              <Ticket size={24} className="brightness-125" />
-              <span>Ver Bilhete</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="bg-black/20 px-3 py-1 rounded-full text-sm font-black">{selections.length}</span>
-            </div>
+            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
+            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
           </button>
         </div>
       )}
 
-      {/* Mobile Bet Slip Drawer */}
+      {/* Mobile Drawer */}
       {isBetSlipOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="absolute bottom-0 left-0 w-full max-h-[90vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-bottom duration-500">
-            <div className="flex items-center justify-between p-4 border-b border-white/5">
-              <div className="w-12 h-1.5 bg-white/10 rounded-full absolute top-2 left-1/2 -translate-x-1/2" />
-              <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
-                <Ticket className="text-emerald-500" />
-                Seu Bilhete
-              </h3>
-              <button 
-                onClick={() => setIsBetSlipOpen(false)}
-                className="p-2 bg-white/5 rounded-full text-slate-400 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
+          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
+              <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
+            <div className="flex-1 overflow-y-auto p-4">
               <BetSlip isMobile />
             </div>
           </div>
         </div>
       )}
 
-      <footer className="py-10 px-4 text-center text-slate-600 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 mt-auto bg-black/40 w-full overflow-hidden">
-        <div className="max-w-5xl mx-auto flex flex-col gap-2">
-          <span>&copy; 2026 GREENFUTEBOL.</span>
-          <span className="opacity-50">DADOS POR FOOTBALL-DATA.ORG.</span>
-        </div>
+      <footer className="py-6 border-t border-white/5 text-center bg-black">
+        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">&copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE</span>
       </footer>
     </div>
   );
