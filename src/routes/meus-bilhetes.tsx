@@ -101,7 +101,7 @@ function MeusBilhetesComponent() {
 
       <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-          {["ALL", "CONFIRMED", "CANCELLED"].map((s) => (
+          {["ALL", "PENDING_PAYMENT", "CONFIRMED", "CANCELLED"].map((s) => (
             <button
               key={s}
               onClick={() => setStatus(s)}
@@ -110,7 +110,7 @@ function MeusBilhetesComponent() {
                 status === s ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
               )}
             >
-              {s === 'ALL' ? 'Todos' : s === 'CONFIRMED' ? 'Confirmados' : 'Cancelados'}
+              {s === 'ALL' ? 'Todos' : s === 'PENDING_PAYMENT' ? 'Aguardando Pagamento' : s === 'CONFIRMED' ? 'Confirmados' : 'Cancelados'}
             </button>
           ))}
         </div>
@@ -150,7 +150,8 @@ function MeusBilhetesComponent() {
                           t.status === 'VOID' ? "bg-slate-500/10 text-slate-500" :
                           "bg-amber-500/10 text-amber-500"
                         )}>
-                          {t.status === 'CONFIRMED' ? 'Confirmado' : 
+                        {t.status === 'CONFIRMED' ? 'Confirmado' : 
+                           t.status === 'PENDING_PAYMENT' ? 'Aguardando Pagamento' :
                            t.status === 'WON' ? 'Ganho' :
                            t.status === 'LOST' ? 'Perdido' :
                            t.status === 'VOID' ? 'Anulado' :
@@ -161,7 +162,7 @@ function MeusBilhetesComponent() {
                         <Clock size={12} />
                         {new Date(t.created_at).toLocaleString('pt-BR')}
                         <span className="mx-1">•</span>
-                        {t.ticket_selections?.length || 0} {t.ticket_selections?.length === 1 ? 'Seleção' : 'Seleções'}
+                        {(t.selections?.length || t.ticket_selections?.length || 0)} {(t.selections?.length || t.ticket_selections?.length || 0) === 1 ? 'Seleção' : 'Seleções'}
                       </div>
                     </div>
                   </div>
@@ -190,41 +191,79 @@ function MeusBilhetesComponent() {
                         Detalhes do Bilhete
                       </h4>
                       <div className="grid gap-3">
-                        {t.ticket_selections?.map((sel: any, idx: number) => (
-                          <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-black uppercase">
-                                  {sel.market_name_snapshot}
-                                </span>
-                                <span className="text-sm font-black text-white">
-                                  {sel.option_label_snapshot}
-                                </span>
+                        {t.selections ? (
+                          t.selections.map((sel: any, idx: number) => (
+                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-black uppercase">
+                                    {sel.market || sel.market_name_snapshot}
+                                  </span>
+                                  <span className="text-sm font-black text-white">
+                                    {sel.option || sel.option_label_snapshot}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-slate-400 font-medium">
+                                  {sel.home_team || sel.home_team_snapshot} x {sel.away_team || sel.away_team_snapshot}
+                                </div>
+                                <div className="text-[10px] text-slate-600">
+                                  {sel.competition || sel.league_name_snapshot} • {sel.kickoff_at_snapshot ? new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR') : 'Aposta Realizada'}
+                                </div>
                               </div>
-                              <div className="text-xs text-slate-400 font-medium">
-                                {sel.home_team_snapshot} x {sel.away_team_snapshot}
-                              </div>
-                              <div className="text-[10px] text-slate-600">
-                                {sel.league_name_snapshot} • {new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR')}
+                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                                <div className="flex flex-col sm:items-end">
+                                  <span className="text-[9px] text-slate-500 font-bold uppercase">Cotação</span>
+                                  <span className="text-base font-black text-emerald-400">{(sel.odd || sel.odd_snapshot).toFixed(2)}</span>
+                                </div>
+                                <div className="flex flex-col sm:items-end">
+                                  <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
+                                  <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(t.status))}>
+                                    {t.status === 'PENDING_PAYMENT' ? 'Pendente' : 
+                                     t.status === 'WON' ? 'Vencedora' :
+                                     t.status === 'LOST' ? 'Perdida' :
+                                     t.status === 'VOID' ? 'Anulada' : 'Aguardando'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
-                              <div className="flex flex-col sm:items-end">
-                                <span className="text-[9px] text-slate-500 font-bold uppercase">Cotação</span>
-                                <span className="text-base font-black text-emerald-400">{sel.odd_snapshot.toFixed(2)}</span>
+                          ))
+                        ) : (
+                          t.ticket_selections?.map((sel: any, idx: number) => (
+                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-black uppercase">
+                                    {sel.market_name_snapshot}
+                                  </span>
+                                  <span className="text-sm font-black text-white">
+                                    {sel.option_label_snapshot}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-slate-400 font-medium">
+                                  {sel.home_team_snapshot} x {sel.away_team_snapshot}
+                                </div>
+                                <div className="text-[10px] text-slate-600">
+                                  {sel.league_name_snapshot} • {new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR')}
+                                </div>
                               </div>
-                              <div className="flex flex-col sm:items-end">
-                                <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
-                                <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(sel.status))}>
-                                  {sel.status === 'PENDING' ? 'Pendente' : 
-                                   sel.status === 'WON' ? 'Vencedora' :
-                                   sel.status === 'LOST' ? 'Perdida' :
-                                   sel.status === 'VOID' ? 'Anulada' : sel.status}
-                                </span>
+                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                                <div className="flex flex-col sm:items-end">
+                                  <span className="text-[9px] text-slate-500 font-bold uppercase">Cotação</span>
+                                  <span className="text-base font-black text-emerald-400">{sel.odd_snapshot.toFixed(2)}</span>
+                                </div>
+                                <div className="flex flex-col sm:items-end">
+                                  <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
+                                  <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(sel.status))}>
+                                    {sel.status === 'PENDING' ? 'Pendente' : 
+                                     sel.status === 'WON' ? 'Vencedora' :
+                                     sel.status === 'LOST' ? 'Perdida' :
+                                     sel.status === 'VOID' ? 'Anulada' : sel.status}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                       
                       <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5">
