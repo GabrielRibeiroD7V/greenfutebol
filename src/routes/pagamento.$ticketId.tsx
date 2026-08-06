@@ -16,7 +16,7 @@ import { getTicketDetail } from "@/lib/tickets.functions";
 import { generatePix, checkPixStatus } from "@/lib/payments.functions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/pagamento.$ticketId")({
+export const Route = createFileRoute("/pagamento/$ticketId")({
   head: () => ({
     meta: [{ title: "Pagamento PIX - GreenFutebol" }],
   }),
