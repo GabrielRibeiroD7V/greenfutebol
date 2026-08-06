@@ -55,13 +55,16 @@ Deno.serve(async (req) => {
 
     const { date, competition_code } = body;
     const competitionCode = competition_code || "BSA";
-    
+
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!date || !dateRegex.test(date)) {
-      return new Response(JSON.stringify({ error: "Invalid or missing date format (YYYY-MM-DD)" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
+      return new Response(
+        JSON.stringify({ error: "Invalid or missing date format (YYYY-MM-DD)" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
+      );
     }
 
     const validCompetitions = ["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL"];
@@ -100,11 +103,20 @@ Deno.serve(async (req) => {
     let allFixtures: any[] = [];
     let isPartial = false;
     let apiCallCount = 0;
+    const failedCompetitions: string[] = [];
 
     const statusMap: Record<string, string> = {
-      "SCHEDULED": "NS", "TIMED": "NS", "IN_PLAY": "LIVE", "PAUSED": "HT",
-      "EXTRA_TIME": "ET", "PENALTY_SHOOTOUT": "P", "FINISHED": "FT",
-      "AWARDED": "FT", "SUSPENDED": "SUSP", "POSTPONED": "PST", "CANCELLED": "CANC",
+      SCHEDULED: "NS",
+      TIMED: "NS",
+      IN_PLAY: "LIVE",
+      PAUSED: "HT",
+      EXTRA_TIME: "ET",
+      PENALTY_SHOOTOUT: "P",
+      FINISHED: "FT",
+      AWARDED: "FT",
+      SUSPENDED: "SUSP",
+      POSTPONED: "PST",
+      CANCELLED: "CANC",
     };
 
     for (const comp of competitionsToFetch) {
@@ -122,7 +134,9 @@ Deno.serve(async (req) => {
 
           if (cacheData && new Date(cacheData.expires_at) > new Date()) {
             if (Array.isArray(cacheData.payload?.fixtures)) {
-              console.log(JSON.stringify({ event: "cache_hit", competition_code: comp, fixture_date: date }));
+              console.log(
+                JSON.stringify({ event: "cache_hit", competition_code: comp, fixture_date: date }),
+              );
               compFixtures = cacheData.payload.fixtures;
             }
           }
@@ -133,31 +147,30 @@ Deno.serve(async (req) => {
 
       // 2. Fetch do provedor se necessário
       if (!compFixtures) {
-        if (apiCallCount >= 3) {
-          console.log(JSON.stringify({ event: "api_limit_reached", competition_code: comp }));
-          isPartial = true;
-          continue;
-        }
-
         try {
-          console.log(JSON.stringify({ event: "provider_fetch", competition_code: comp, fixture_date: date }));
+          console.log(
+            JSON.stringify({ event: "provider_fetch", competition_code: comp, fixture_date: date }),
+          );
           apiCallCount++;
-          const year = date.split('-')[0];
+          const year = date.split("-")[0];
           const url = `https://api.football-data.org/v4/competitions/${comp}/matches?dateFrom=${date}&dateTo=${date}&season=${year}`;
-          
+
           const providerResponse = await fetch(url, {
             headers: { "X-Auth-Token": apiToken },
+            signal: AbortSignal.timeout(8_000),
           });
 
           if (!providerResponse.ok) {
             console.error(`Provider error for ${comp}: ${providerResponse.status}`);
             isPartial = true;
+            failedCompetitions.push(comp);
             continue;
           }
 
           const data = await providerResponse.json();
           if (!data || !Array.isArray(data.matches)) {
             isPartial = true;
+            failedCompetitions.push(comp);
             continue;
           }
 
@@ -173,7 +186,7 @@ Deno.serve(async (req) => {
             kickoff_at: match.utcDate,
             venue: match.venue ?? null,
             status: statusMap[match.status] || match.status,
-            elapsed: typeof match.minute === 'number' ? match.minute : null,
+            elapsed: typeof match.minute === "number" ? match.minute : null,
             home_score: match.score.fullTime?.home ?? null,
             away_score: match.score.fullTime?.away ?? null,
           }));
@@ -190,7 +203,9 @@ Deno.serve(async (req) => {
               else if (date === tomorrowStr) ttlSeconds = 6 * 60 * 60;
               else ttlSeconds = 12 * 60 * 60;
             } else if (date === todayStr) {
-              const hasLive = compFixtures!.some((f: any) => ["LIVE", "HT", "ET", "P"].includes(f.status));
+              const hasLive = compFixtures!.some((f: any) =>
+                ["LIVE", "HT", "ET", "P"].includes(f.status),
+              );
               const allFinished = compFixtures!.every((f: any) => f.status === "FT");
               if (hasLive) ttlSeconds = 60;
               else if (allFinished) ttlSeconds = 24 * 60 * 60;
@@ -198,7 +213,7 @@ Deno.serve(async (req) => {
 
             const now = new Date().toISOString();
             const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
-            
+
             await supabaseAdmin.from("football_fixtures_cache").upsert({
               cache_key: cacheKey,
               competition_code: comp,
@@ -206,12 +221,13 @@ Deno.serve(async (req) => {
               payload: { fixtures: compFixtures },
               fetched_at: now,
               expires_at: expiresAt,
-              updated_at: now
+              updated_at: now,
             });
           }
         } catch (err) {
           console.error(`Fetch error for ${comp}:`, err);
           isPartial = true;
+          failedCompetitions.push(comp);
           continue;
         }
       }
@@ -222,17 +238,22 @@ Deno.serve(async (req) => {
     }
 
     // Remover duplicatas e ordenar
-    const uniqueFixtures = Array.from(new Map(allFixtures.map(f => [f.fixture_id, f])).values());
-    uniqueFixtures.sort((a: any, b: any) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+    const uniqueFixtures = Array.from(new Map(allFixtures.map((f) => [f.fixture_id, f])).values());
+    uniqueFixtures.sort(
+      (a: any, b: any) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+    );
 
     const responsePayload: any = { fixtures: uniqueFixtures };
-    if (isPartial) responsePayload.partial = true;
+    if (isPartial) {
+      responsePayload.partial = true;
+      responsePayload.failed_competitions = [...new Set(failedCompetitions)];
+    }
+    responsePayload.provider_requests = apiCallCount;
 
     return new Response(JSON.stringify(responsePayload), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-
   } catch (error) {
     console.error("Internal error:", error);
     return new Response(JSON.stringify({ error: "Unexpected error occurred" }), {

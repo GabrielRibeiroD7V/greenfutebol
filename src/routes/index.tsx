@@ -1,9 +1,22 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useMemo, useEffect, useRef } from "react";
-import { 
-  Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, 
-  Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, 
-  ShieldCheck, RefreshCw, Star, Trophy, Target, Zap
+import { useState, useMemo, useEffect, useRef, useDeferredValue } from "react";
+import {
+  Search,
+  Ticket,
+  Calendar,
+  Clock,
+  PlayCircle,
+  AlertCircle,
+  LogIn,
+  LogOut,
+  Info,
+  Menu,
+  X,
+  ChevronRight,
+  Star,
+  Trophy,
+  Target,
+  Zap,
 } from "lucide-react";
 
 import logoAsset from "@/assets/logo.png.asset.json";
@@ -14,12 +27,27 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
 import { maskPhone } from "@/lib/phone-utils";
+import {
+  APP_TIMEZONE,
+  FIXTURES_REQUEST_TIMEOUT_MS,
+  FUTURE_SEARCH_LIMIT,
+  addCalendarDays,
+  formatFixtureDateTime,
+  getDateInTimezone,
+  getFixturesErrorMessage,
+  isValidIsoDate,
+  withTimeout,
+} from "@/lib/fixtures-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "GreenFutebol - Plataforma Premium de Futebol" },
-      { name: "description", content: "Acompanhe jogos de futebol em tempo real na GreenFutebol com tecnologia de ponta." },
+      {
+        name: "description",
+        content:
+          "Acompanhe jogos de futebol em tempo real na GreenFutebol com tecnologia de ponta.",
+      },
     ],
   }),
   component: Index,
@@ -43,6 +71,30 @@ interface Fixture {
 }
 
 const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+const COMPETITION_CODES = ["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL"] as const;
+
+function FixturesSkeleton() {
+  return (
+    <div className="space-y-6" aria-label="Carregando jogos" aria-busy="true">
+      {[0, 1].map((section) => (
+        <div key={section} className="space-y-3 animate-pulse">
+          <div className="h-4 w-44 rounded bg-white/10" />
+          <div className="h-8 rounded-xl border border-white/5 bg-white/[0.04]" />
+          {[0, 1, 2].map((card) => (
+            <div key={card} className="flex items-center gap-4 rounded-xl border border-white/5 bg-[#0c0c0c] p-4">
+              <div className="h-8 w-14 rounded bg-white/10" />
+              <div className="flex-1 space-y-3">
+                <div className="h-3 w-3/5 rounded bg-white/10" />
+                <div className="h-3 w-2/5 rounded bg-white/[0.07]" />
+              </div>
+              <div className="h-8 w-8 rounded-full bg-white/10" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const STATUS_MAP: Record<string, string> = {
   NS: "Não iniciado",
@@ -64,26 +116,42 @@ const STATUS_MAP: Record<string, string> = {
   P: "Pênaltis",
 };
 
+function getStatusClass(status: string): string {
+  if (LIVE_STATUSES.includes(status)) return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+  if (["NS", "TBD"].includes(status)) return "bg-blue-500/10 text-blue-300 border-blue-500/20";
+  if (["FT", "AET", "PEN"].includes(status)) return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  if (["PST", "SUSP", "INT", "ABD"].includes(status)) return "bg-amber-500/10 text-amber-300 border-amber-500/20";
+  if (status === "CANC") return "bg-red-500/10 text-red-300 border-red-500/20";
+  return "bg-white/5 text-slate-400 border-white/10";
+}
+
 function Index() {
   const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const { selections } = useBetSlip();
-  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
+  const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "live" | "custom">("today");
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
   const [displayedDate, setDisplayedDate] = useState<string | null>(null);
   const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
-  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'PD' | 'SA' | 'FL1' | 'DED' | 'ELC' | 'PPL' | 'ALL'>('ALL');
+  const [competitionCode, setCompetitionCode] = useState<
+    "BSA" | "PL" | "CL" | "BL1" | "PD" | "SA" | "FL1" | "DED" | "ELC" | "PPL" | "ALL"
+  >("ALL");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [customDate, setCustomDate] = useState("");
   const [reachedLimit, setReachedLimit] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
-  
+  const [retryCount, setRetryCount] = useState(0);
+
   const requestIdRef = useRef(0);
+  const fixturesCacheRef = useRef(
+    new Map<string, { fixtures: Fixture[]; partial: boolean; expiresAt: number }>(),
+  );
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -95,9 +163,7 @@ function Index() {
     } catch (err: unknown) {
       console.error("Erro ao sair:", err);
       toast.error(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível sair da conta. Tente novamente."
+        err instanceof Error ? err.message : "Não foi possível sair da conta. Tente novamente.",
       );
     } finally {
       setIsLoggingOut(false);
@@ -105,88 +171,37 @@ function Index() {
   };
 
   const normalizeText = (text: string | null | undefined) => {
-    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return (text || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
   };
 
-  const TIMEZONE = "America/Campo_Grande";
+  const TIMEZONE = APP_TIMEZONE;
 
-  const getCGRDateString = (dateObj: Date) => {
-    const formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: TIMEZONE,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    const parts = formatter.formatToParts(dateObj);
-    const year = parts.find(p => p.type === 'year')?.value;
-    const month = parts.find(p => p.type === 'month')?.value;
-    const day = parts.find(p => p.type === 'day')?.value;
-    return `${year}-${month}-${day}`;
-  };
+  const getCGRDateString = getDateInTimezone;
 
   const getTomorrowCGRDateString = () => {
-    const formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: TIMEZONE,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    const parts = formatter.formatToParts(new Date());
-    const year = parseInt(parts.find(p => p.type === 'year')!.value);
-    const month = parseInt(parts.find(p => p.type === 'month')!.value) - 1;
-    const day = parseInt(parts.find(p => p.type === 'day')!.value);
-
-    const utcDate = new Date(Date.UTC(year, month, day));
-    utcDate.setUTCDate(utcDate.getUTCDate() + 1);
-
-    const y = utcDate.getUTCFullYear();
-    const m = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(utcDate.getUTCDate()).padStart(2, '0');
-    
-    return `${y}-${m}-${d}`;
+    return addCalendarDays(getCGRDateString(new Date()), 1);
   };
 
   const getNextCGRDateString = (dateStr: string) => {
-    const parts = dateStr.split('-').map(Number);
-    if (parts.length !== 3) return dateStr;
-    const year = parts[0]!;
-    const month = parts[1]!;
-    const day = parts[2]!;
-    
-    const date = new Date(Date.UTC(year, month - 1, day));
-    date.setUTCDate(date.getUTCDate() + 1);
-    
-    const y = date.getUTCFullYear();
-    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(date.getUTCDate()).padStart(2, '0');
-    
-    return `${y}-${m}-${d}`;
+    return addCalendarDays(dateStr, 1);
   };
 
   const formatDateBR = (dateStr: string) => {
     if (!dateStr) return "";
-    const parts = dateStr.split('-');
+    const parts = dateStr.split("-");
     if (parts.length !== 3) return dateStr;
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
-    
-    const fetchFixtures = async () => {
-      if (activeTab === 'custom') {
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        const yearStr = customDate?.split('-')[0];
-        const year = yearStr ? parseInt(yearStr) : NaN;
-        const parsedDate = new Date(customDate || "");
-        const isValidDate = customDate && 
-                           dateRegex.test(customDate) && 
-                           customDate.length === 10 &&
-                           year >= 2000 && year <= 2100 &&
-                           !isNaN(parsedDate.getTime()) && 
-                           parsedDate.toISOString().slice(0, 10) === customDate;
 
-        if (!isValidDate) {
+    const fetchFixtures = async () => {
+      if (activeTab === "custom") {
+        if (!isValidIsoDate(customDate)) {
           if (currentRequestId === requestIdRef.current) {
             setFixtures([]);
             setDisplayedDate(null);
@@ -202,12 +217,17 @@ function Index() {
       setError(null);
       setIsPartial(false);
       setReachedLimit(false);
-      
+
       try {
+        const now = Date.now();
+        for (const [key, cached] of fixturesCacheRef.current) {
+          if (cached.expiresAt <= now) fixturesCacheRef.current.delete(key);
+        }
+
         let requestedDate: string;
-        if (activeTab === 'tomorrow') {
+        if (activeTab === "tomorrow") {
           requestedDate = getTomorrowCGRDateString();
-        } else if (activeTab === 'custom') {
+        } else if (activeTab === "custom") {
           requestedDate = customDate;
         } else {
           requestedDate = getCGRDateString(new Date());
@@ -216,52 +236,101 @@ function Index() {
         let currentDate = requestedDate;
         let foundFixtures: Fixture[] = [];
         let searchCount = 0;
-        const maxSearchDays = 14;
+        const maxSearchDays = FUTURE_SEARCH_LIMIT;
         let finalPartial = false;
+
+        const fetchDate = async (date: string, publishProgress = true) => {
+          const codes = competitionCode === "ALL" ? COMPETITION_CODES : [competitionCode];
+          const progressiveFixtures: Fixture[] = [];
+          let partial = false;
+          let successfulRequests = 0;
+          let lastRequestError: unknown = null;
+
+          await Promise.all(codes.map(async (code) => {
+            if (currentRequestId !== requestIdRef.current) return;
+            try {
+              const cacheKey = `${code}:${date}:${activeTab === "live" ? "live" : "all"}`;
+              const cached = fixturesCacheRef.current.get(cacheKey);
+              let results: Fixture[];
+              let responsePartial = false;
+
+              if (cached && cached.expiresAt > Date.now()) {
+                results = cached.fixtures;
+                responsePartial = cached.partial;
+              } else {
+                const { data, error: invokeError } = await withTimeout(
+                  supabase.functions.invoke("get-football-fixtures", {
+                    body: { date, competition_code: code },
+                  }),
+                  FIXTURES_REQUEST_TIMEOUT_MS,
+                );
+                if (invokeError) throw invokeError;
+                results = Array.isArray(data?.fixtures) ? data.fixtures : [];
+                responsePartial = !!data?.partial;
+                fixturesCacheRef.current.set(cacheKey, {
+                  fixtures: results,
+                  partial: responsePartial,
+                  expiresAt: Date.now() + (activeTab === "live" ? 30_000 : 5 * 60_000),
+                });
+                while (fixturesCacheRef.current.size > 100) {
+                  const oldestKey = fixturesCacheRef.current.keys().next().value;
+                  if (!oldestKey) break;
+                  fixturesCacheRef.current.delete(oldestKey);
+                }
+              }
+
+              successfulRequests++;
+
+              if (activeTab === "live") {
+                results = results.filter((fixture) => LIVE_STATUSES.includes(fixture.status));
+              }
+              partial ||= responsePartial;
+              progressiveFixtures.push(...results);
+
+              if (
+                publishProgress &&
+                results.length > 0 &&
+                currentRequestId === requestIdRef.current
+              ) {
+                const unique = Array.from(
+                  new Map(progressiveFixtures.map((fixture) => [fixture.fixture_id, fixture])).values(),
+                ).sort(
+                  (a, b) =>
+                    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+                );
+                setFixtures(unique);
+                setDisplayedDate(date);
+                setIsShowingNextAvailable(date !== requestedDate);
+                setIsLoading(false);
+              }
+            } catch (requestError) {
+              partial = true;
+              lastRequestError = requestError;
+              console.error(`Erro ao consultar ${code}:`, requestError);
+            }
+          }));
+
+          if (successfulRequests === 0 && lastRequestError) throw lastRequestError;
+
+          return { fixtures: progressiveFixtures, partial };
+        };
 
         // Sequence search loop
         while (searchCount < maxSearchDays) {
-          // If live or custom, we only search once
-          if (activeTab === 'live' || activeTab === 'custom') {
-             const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-              body: { 
-                date: currentDate,
-                competition_code: competitionCode
-              }
-            });
-            if (invokeError) throw invokeError;
-            
-            let results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
-            if (activeTab === 'live') {
-              results = results.filter(f => LIVE_STATUSES.includes(f.status));
-            }
-            foundFixtures = results;
-            finalPartial = !!data?.partial;
-            break; // Stop after first try for live/custom
-          }
+          const result = await fetchDate(currentDate);
+          finalPartial ||= result.partial;
 
-          // Search for today/tomorrow
-          const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-            body: { 
-              date: currentDate,
-              competition_code: competitionCode
-            }
-          });
-
-          if (invokeError) throw invokeError;
-
-          const results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
-          finalPartial = finalPartial || !!data?.partial;
-
-          if (results.length > 0) {
-            foundFixtures = results;
+          if (result.fixtures.length > 0) {
+            foundFixtures = result.fixtures;
             break;
           }
+
+          if (activeTab === "live" || activeTab === "custom") break;
 
           // If no results, try next day
           currentDate = getNextCGRDateString(currentDate);
           searchCount++;
-          
+
           if (searchCount >= maxSearchDays) {
             setReachedLimit(true);
           }
@@ -269,16 +338,23 @@ function Index() {
 
         if (currentRequestId !== requestIdRef.current) return;
 
-        foundFixtures.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
-        
+        foundFixtures.sort(
+          (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+        );
+
         setFixtures(foundFixtures);
         setDisplayedDate(currentDate);
         setIsShowingNextAvailable(currentDate !== requestedDate);
         setIsPartial(finalPartial);
-      } catch (err: any) {
+
+        if ((activeTab === "today" || activeTab === "tomorrow") && foundFixtures.length > 0) {
+          const prefetchDate = addCalendarDays(currentDate, 1);
+          void fetchDate(prefetchDate, false).catch(() => undefined);
+        }
+      } catch (err: unknown) {
         if (currentRequestId !== requestIdRef.current) return;
         console.error("Erro ao buscar jogos:", err);
-        setError("Não foi possível carregar os jogos. Tente novamente mais tarde.");
+        setError(getFixturesErrorMessage(err));
       } finally {
         if (currentRequestId === requestIdRef.current) {
           setIsLoading(false);
@@ -287,26 +363,30 @@ function Index() {
     };
 
     fetchFixtures();
-  }, [activeTab, customDate, competitionCode]);
+  }, [activeTab, customDate, competitionCode, retryCount]);
 
   const groupedFixtures = useMemo(() => {
-    const search = normalizeText(searchQuery);
+    const search = normalizeText(deferredSearchQuery);
     const filtered = search
-      ? fixtures.filter(f => 
-          normalizeText(f.home_team_name).includes(search) ||
-          normalizeText(f.away_team_name).includes(search) ||
-          normalizeText(f.league_name).includes(search) ||
-          normalizeText(f.country).includes(search)
+      ? fixtures.filter(
+          (f) =>
+            normalizeText(f.home_team_name).includes(search) ||
+            normalizeText(f.away_team_name).includes(search) ||
+            normalizeText(f.league_name).includes(search) ||
+            normalizeText(f.country).includes(search),
         )
       : fixtures;
 
     // First, group by Date (YYYY-MM-DD)
-    const dateGroups: Record<string, Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }>> = {};
-    
-    filtered.forEach(f => {
+    const dateGroups: Record<
+      string,
+      Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }>
+    > = {};
+
+    filtered.forEach((f) => {
       // Get the date in the local timezone for grouping
       const dateKey = getCGRDateString(new Date(f.kickoff_at));
-      
+
       if (!dateGroups[dateKey]) {
         dateGroups[dateKey] = {};
       }
@@ -317,7 +397,7 @@ function Index() {
           name: f.league_name,
           country: f.country,
           logo: f.league_logo,
-          matches: []
+          matches: [],
         };
       }
       dateGroups[dateKey][leagueKey].matches.push(f);
@@ -328,63 +408,9 @@ function Index() {
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
       .map(([date, leagues]) => ({
         date,
-        leagues: Object.values(leagues).sort((a, b) => a.name.localeCompare(b.name))
+        leagues: Object.values(leagues).sort((a, b) => a.name.localeCompare(b.name)),
       }));
-  }, [fixtures, searchQuery]);
-
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const now = new Date();
-    
-    // Configurar o formatador para America/Campo_Grande
-    const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false
-    });
-
-    const dayFormatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      weekday: "short"
-    });
-
-    const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      day: "2-digit",
-      month: "2-digit"
-    });
-
-    const yearFormatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      year: "numeric"
-    });
-
-    const timeStr = timeFormatter.format(date);
-    let weekDay = dayFormatter.format(date).replace(".", "");
-    weekDay = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
-    
-    const datePart = dateFormatter.format(date);
-    const yearPart = yearFormatter.format(date);
-    const currentYear = yearFormatter.format(now);
-
-    const isDifferentYear = yearPart !== currentYear;
-    
-    if (isDifferentYear) {
-      return `${weekDay}, ${datePart}/${yearPart} • ${timeStr}`;
-    }
-    
-    return `${weekDay}, ${datePart} • ${timeStr}`;
-  };
-
-  const formatTime = (isoString: string) => {
-    return new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(new Date(isoString));
-  };
-
+  }, [fixtures, deferredSearchQuery]);
 
   const formatGroupHeader = (dateStr: string) => {
     // Adicionar T12:00:00 para evitar problemas de timezone ao criar o objeto Date apenas da data
@@ -392,12 +418,12 @@ function Index() {
     const today = getCGRDateString(new Date());
     const tomorrow = getTomorrowCGRDateString();
 
-    const parts = dateStr.split('-');
+    const parts = dateStr.split("-");
     const year = parts[0];
     const month = parts[1];
     const day = parts[2];
     const formattedDate = `${day}/${month}/${year}`;
-    
+
     let prefix = "";
     if (dateStr === today) {
       prefix = "Hoje";
@@ -405,20 +431,12 @@ function Index() {
       prefix = "Amanhã";
     } else {
       const weekDay = new Intl.DateTimeFormat("pt-BR", {
-        weekday: "long"
+        weekday: "long",
       }).format(date);
       prefix = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
     }
 
     return `${prefix} — ${formattedDate}`;
-  };
-
-  const formatTimeOnly = (isoString: string) => {
-    return new Intl.DateTimeFormat("pt-BR", {
-      timeZone: TIMEZONE,
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(new Date(isoString));
   };
 
   const getStatusDisplay = (status: string, elapsed: number | null) => {
@@ -430,51 +448,80 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]" data-testid="main-container">
+    <div
+      className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]"
+      data-testid="main-container"
+    >
       {/* Header Fixo e Denso */}
       <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
-            <button 
+            <button
+              aria-label={isMenuOpen ? "Fechar menu" : "Menu"}
+              aria-expanded={isMenuOpen}
               className="p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
+            <div
+              className="flex items-center gap-2 group cursor-pointer"
+              onClick={() => navigate({ to: "/" })}
+            >
               <div className="relative">
                 <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/20 transition-colors" />
-                <img 
-                  src={logoAsset.url} 
-                  alt="GreenFutebol" 
-                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
+                <img
+                  src={logoAsset.url}
+                  alt="GreenFutebol"
+                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]"
                 />
               </div>
             </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
-            <button 
-              onClick={() => { navigate({ to: "/" }); setCompetitionCode('ALL'); }} 
-              className={cn("pb-5 pt-5 transition-all border-b-2", competitionCode === 'ALL' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            <button
+              onClick={() => {
+                navigate({ to: "/" });
+                setCompetitionCode("ALL");
+              }}
+              className={cn(
+                "pb-5 pt-5 transition-all border-b-2",
+                competitionCode === "ALL"
+                  ? "text-emerald-500 border-emerald-500"
+                  : "text-slate-400 border-transparent hover:text-white",
+              )}
             >
               Futebol
             </button>
-            <button 
-              onClick={() => { setActiveTab('live'); navigate({ to: "/" }); }} 
-              className={cn("pb-5 pt-5 transition-all border-b-2", activeTab === 'live' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            <button
+              onClick={() => {
+                setActiveTab("live");
+                navigate({ to: "/" });
+              }}
+              className={cn(
+                "pb-5 pt-5 transition-all border-b-2",
+                activeTab === "live"
+                  ? "text-emerald-500 border-emerald-500"
+                  : "text-slate-400 border-transparent hover:text-white",
+              )}
             >
               Ao Vivo
             </button>
-            <button onClick={() => navigate({ to: "/meus-bilhetes" })} className="text-slate-400 hover:text-white transition-colors">Minhas Apostas</button>
+            <button
+              onClick={() => navigate({ to: "/meus-bilhetes" })}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              Minhas Apostas
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden md:relative md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
-              <input 
-                type="text" 
-                placeholder="Buscar jogo..." 
+              <input
+                type="text"
+                placeholder="Buscar jogo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-white placeholder:text-white/20 transition-all outline-none"
@@ -484,10 +531,12 @@ function Index() {
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">Saldo</span>
+                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">
+                    Saldo
+                  </span>
                   <span className="text-sm font-black text-white">R$ 0,00</span>
                 </div>
-                <div 
+                <div
                   className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
                   onClick={() => navigate({ to: "/meus-bilhetes" })}
                 >
@@ -496,13 +545,13 @@ function Index() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={() => navigate({ to: "/login" })}
                   className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-300 hover:text-white transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
-                <button 
+                <button
                   onClick={() => navigate({ to: "/cadastro" })}
                   className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-widest transition-all"
                 >
@@ -517,31 +566,52 @@ function Index() {
       {/* Estrutura 3 Colunas Desktop */}
       <div className="flex-1 flex w-full max-w-[1920px] mx-auto overflow-hidden">
         {/* Sidebar Esquerda: Ligas e Favoritos */}
-        <aside className={cn(
-          "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
-          isMenuOpen ? "w-64 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static" : "w-0 lg:w-64"
-        )}>
+        <aside
+          className={cn(
+            "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
+            isMenuOpen ? "w-64 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static" : "w-0 lg:w-64",
+          )}
+        >
           <div className="p-4 space-y-6">
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Principais Ligas</h4>
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">
+                Principais Ligas
+              </h4>
               <div className="space-y-1">
                 {[
-                  { id: 'BSA', name: 'Brasileirão Série A', icon: Trophy },
-                  { id: 'PL', name: 'Premier League', icon: Star },
-                  { id: 'CL', name: 'Champions League', icon: Zap },
-                  { id: 'SA', name: 'Serie A (Itália)', icon: Target },
-                  { id: 'PD', name: 'La Liga', icon: Star },
-                  { id: 'BL1', name: 'Bundesliga', icon: Trophy },
+                  { id: "ALL", name: "Todas as Ligas", icon: Trophy },
+                  { id: "BSA", name: "Brasileirão Série A", icon: Trophy },
+                  { id: "PL", name: "Premier League", icon: Star },
+                  { id: "BL1", name: "Bundesliga", icon: Trophy },
+                  { id: "CL", name: "Champions League", icon: Zap },
+                  { id: "PD", name: "La Liga", icon: Star },
+                  { id: "SA", name: "Serie A (Itália)", icon: Target },
+                  { id: "FL1", name: "Ligue 1", icon: Star },
+                  { id: "ELC", name: "Championship", icon: Trophy },
+                  { id: "DED", name: "Eredivisie", icon: Target },
+                  { id: "PPL", name: "Primeira Liga", icon: Zap },
                 ].map((league) => (
-                  <button 
+                  <button
                     key={league.id}
-                    onClick={() => { setCompetitionCode(league.id as any); if (window.innerWidth < 1024) setIsMenuOpen(false); }}
+                    onClick={() => {
+                      setCompetitionCode(league.id as any);
+                      if (window.innerWidth < 1024) setIsMenuOpen(false);
+                    }}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold group",
-                      competitionCode === league.id ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      competitionCode === league.id
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        : "text-slate-400 hover:bg-white/5 hover:text-white",
                     )}
                   >
-                    <league.icon size={16} className={cn(competitionCode === league.id ? "text-emerald-500" : "text-slate-500 group-hover:text-emerald-500")} />
+                    <league.icon
+                      size={16}
+                      className={cn(
+                        competitionCode === league.id
+                          ? "text-emerald-500"
+                          : "text-slate-500 group-hover:text-emerald-500",
+                      )}
+                    />
                     {league.name}
                   </button>
                 ))}
@@ -549,25 +619,47 @@ function Index() {
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Filtros</h4>
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">
+                Filtros
+              </h4>
               <div className="space-y-1">
                 {[
-                  { id: 'today', name: 'Hoje', icon: Clock },
-                  { id: 'tomorrow', name: 'Amanhã', icon: Calendar },
-                  { id: 'live', name: 'Ao Vivo', icon: PlayCircle },
+                  { id: "today", name: "Hoje", icon: Clock },
+                  { id: "tomorrow", name: "Amanhã", icon: Calendar },
+                  { id: "live", name: "Ao Vivo", icon: PlayCircle },
                 ].map((tab) => (
-                  <button 
+                  <button
                     key={tab.id}
-                    onClick={() => { setActiveTab(tab.id as any); if (window.innerWidth < 1024) setIsMenuOpen(false); }}
+                    onClick={() => {
+                      setActiveTab(tab.id as any);
+                      if (window.innerWidth < 1024) setIsMenuOpen(false);
+                    }}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold",
-                      activeTab === tab.id ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      activeTab === tab.id
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        : "text-slate-400 hover:bg-white/5 hover:text-white",
                     )}
                   >
-                    <tab.icon size={16} className={cn(activeTab === tab.id ? "text-emerald-500" : "text-slate-500")} />
+                    <tab.icon
+                      size={16}
+                      className={cn(activeTab === tab.id ? "text-emerald-500" : "text-slate-500")}
+                    />
                     {tab.name}
                   </button>
                 ))}
+                <label className="block px-3 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  Escolher data
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={(event) => {
+                      setCustomDate(event.target.value);
+                      setActiveTab("custom");
+                    }}
+                    className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 outline-none focus:border-emerald-500/40"
+                  />
+                </label>
               </div>
             </div>
           </div>
@@ -578,12 +670,16 @@ function Index() {
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Banner e Filtros Mobile */}
             <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">
-              {['BSA', 'PL', 'CL', 'BL1'].map(id => (
-                <button 
-                  key={id} 
+              {["ALL", ...COMPETITION_CODES].map((id) => (
+                <button
+                  key={id}
                   onClick={() => setCompetitionCode(id as any)}
-                  className={cn("px-4 py-2 rounded-full text-[10px] font-black uppercase whitespace-nowrap border transition-all", 
-                    competitionCode === id ? "bg-emerald-600 border-emerald-400 text-white" : "bg-white/5 border-white/10 text-slate-400")}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-[10px] font-black uppercase whitespace-nowrap border transition-all",
+                    competitionCode === id
+                      ? "bg-emerald-600 border-emerald-400 text-white"
+                      : "bg-white/5 border-white/10 text-slate-400",
+                  )}
                 >
                   {id}
                 </button>
@@ -591,37 +687,48 @@ function Index() {
             </div>
 
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-                <p className="text-slate-400 font-medium text-xs uppercase tracking-widest">Buscando cotações reais...</p>
-              </div>
+              <FixturesSkeleton />
             ) : error ? (
               <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center space-y-3">
                 <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-                <h3 className="text-white font-black uppercase tracking-widest text-sm">Erro de Conexão</h3>
+                <h3 className="text-white font-black uppercase tracking-widest text-sm">
+                  Erro de Conexão
+                </h3>
                 <p className="text-slate-400 text-xs">{error}</p>
-                <button 
-                  onClick={() => setActiveTab(activeTab)}
+                <button
+                  onClick={() => setRetryCount((value) => value + 1)}
                   className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all"
                 >
-                  Tentar novamente
+                  Atualizar
                 </button>
               </div>
             ) : groupedFixtures.length === 0 ? (
               <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
                 <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
-                  {reachedLimit ? "Sem jogos para este filtro" : "Nenhum jogo encontrado"}
+                  {isPartial
+                    ? "Algumas competições não puderam ser atualizadas. Tente novamente."
+                    : reachedLimit
+                      ? "Sem jogos para este filtro nos próximos 14 dias"
+                      : "Nenhum jogo encontrado"}
                 </p>
               </div>
             ) : (
               <div className="space-y-6">
+                {isPartial && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                    Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
+                  </div>
+                )}
                 {isShowingNextAvailable && displayedDate && (
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
                     <Info size={16} className="shrink-0" />
-                    <p className="font-bold text-[10px] uppercase tracking-widest">Exibindo próximos jogos em {formatDateBR(displayedDate)}</p>
+                    <p className="font-bold text-[10px] uppercase tracking-widest">
+                      Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.
+                      Data: {formatDateBR(displayedDate)}
+                    </p>
                   </div>
                 )}
-                
+
                 {groupedFixtures.map((dateGroup) => (
                   <div key={dateGroup.date} className="space-y-4">
                     <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
@@ -632,60 +739,83 @@ function Index() {
 
                     <div className="space-y-3">
                       {dateGroup.leagues.map((league) => (
-                        <div key={`${dateGroup.date}-${league.country}-${league.name}`} className="space-y-2">
+                        <div
+                          key={`${dateGroup.date}-${league.country}-${league.name}`}
+                          className="space-y-2"
+                        >
                           <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
                             {league.logo ? (
-                              <img src={league.logo} alt={league.name} className="w-4 h-4 object-contain brightness-125" />
+                              <img
+                                src={league.logo}
+                                alt={league.name}
+                                className="w-4 h-4 object-contain brightness-125"
+                              />
                             ) : (
-                              <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">⚽</div>
+                              <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
+                                ⚽
+                              </div>
                             )}
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{league.name}</span>
+                            <div className="min-w-0">
+                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 gap-2">
                             {league.matches.map((match) => (
                               <div key={match.fixture_id} className="relative group">
-                                <Link to="/jogo/$fixtureId" params={{ fixtureId: String(match.fixture_id) }}>
+                                <Link
+                                  to="/jogo/$fixtureId"
+                                  params={{ fixtureId: String(match.fixture_id) }}
+                                >
                                   <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[11px] font-black text-white">{formatTimeOnly(match.kickoff_at)}</span>
-                                        <span className={cn(
-                                          "text-[9px] font-black uppercase tracking-tighter",
-                                          LIVE_STATUSES.includes(match.status) ? "text-emerald-500 animate-pulse" : "text-slate-600"
-                                        )}>
+                                        <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                          {formatFixtureDateTime(match.kickoff_at)}
+                                        </span>
+                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
                                         </span>
+                                        {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
                                       </div>
 
                                       <div className="flex-1 flex flex-col gap-2">
                                         <div className="flex items-center justify-between gap-2">
                                           <div className="flex items-center gap-2 min-w-0">
-                                            {match.home_team_logo && <img src={match.home_team_logo} className="w-4 h-4 object-contain" />}
-                                            <span className="text-xs font-bold text-slate-200 truncate">{match.home_team_name}</span>
+                                            {match.home_team_logo && (
+                                              <img
+                                                src={match.home_team_logo}
+                                                className="w-4 h-4 object-contain"
+                                              />
+                                            )}
+                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              {match.home_team_name}
+                                            </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">{match.home_score ?? 0}</span>
+                                          <span className="text-xs font-black text-white">
+                                            {match.home_score ?? 0}
+                                          </span>
                                         </div>
                                         <div className="flex items-center justify-between gap-2">
                                           <div className="flex items-center gap-2 min-w-0">
-                                            {match.away_team_logo && <img src={match.away_team_logo} className="w-4 h-4 object-contain" />}
-                                            <span className="text-xs font-bold text-slate-200 truncate">{match.away_team_name}</span>
+                                            {match.away_team_logo && (
+                                              <img
+                                                src={match.away_team_logo}
+                                                className="w-4 h-4 object-contain"
+                                              />
+                                            )}
+                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              {match.away_team_name}
+                                            </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">{match.away_score ?? 0}</span>
+                                          <span className="text-xs font-black text-white">
+                                            {match.away_score ?? 0}
+                                          </span>
                                         </div>
                                       </div>
 
                                       <div className="hidden sm:flex items-center gap-2">
-                                        {[
-                                          { label: 'Casa', value: '1', odd: 1.95 },
-                                          { label: 'Empate', value: 'X', odd: 3.40 },
-                                          { label: 'Fora', value: '2', odd: 3.85 }
-                                        ].map(o => (
-                                          <div key={o.value} className="bg-white/5 border border-white/10 rounded-lg p-2 min-w-[60px] text-center">
-                                            <span className="text-[8px] font-black text-slate-500 block uppercase leading-none mb-1">{o.label}</span>
-                                            <span className="text-xs font-black text-emerald-400">{o.odd.toFixed(2)}</span>
-                                          </div>
-                                        ))}
                                         <ChevronRight size={16} className="text-slate-700" />
                                       </div>
                                     </div>
@@ -713,11 +843,13 @@ function Index() {
       {/* Mobile Bet Slip Toggle */}
       {!isBetSlipOpen && selections.length > 0 && (
         <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
-          <button 
+          <button
             onClick={() => setIsBetSlipOpen(true)}
             className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
           >
-            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
+            <span className="flex items-center gap-2">
+              <Ticket size={20} /> Bilhete
+            </span>
             <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
           </button>
         </div>
@@ -728,8 +860,12 @@ function Index() {
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
           <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
-              <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
+              <span className="text-sm font-black text-white uppercase tracking-widest">
+                Seu Bilhete
+              </span>
+              <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400">
+                <X size={20} />
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <BetSlip isMobile />
@@ -739,7 +875,9 @@ function Index() {
       )}
 
       <footer className="py-6 border-t border-white/5 text-center bg-black">
-        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">&copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE</span>
+        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">
+          &copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE
+        </span>
       </footer>
     </div>
   );

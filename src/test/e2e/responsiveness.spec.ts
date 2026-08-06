@@ -2,8 +2,13 @@ import { test, expect } from '@playwright/test';
 
 const viewports = [
   { width: 320, height: 800, name: 'Mobile Mini' },
+  { width: 360, height: 800, name: 'Android Compact' },
+  { width: 375, height: 812, name: 'iPhone Compact' },
   { width: 390, height: 844, name: 'iPhone 12/13' },
+  { width: 414, height: 896, name: 'Mobile Large' },
   { width: 768, height: 1024, name: 'iPad' },
+  { width: 1024, height: 768, name: 'Tablet Landscape' },
+  { width: 1366, height: 768, name: 'Notebook' },
   { width: 1440, height: 900, name: 'Desktop' },
 ];
 
