@@ -11,11 +11,12 @@ export type BetSlipSelection = {
   selectionId: string;
   selectionName: string;
   displayedOdd: number;
+  homeTeam: string;
+  awayTeam: string;
 };
 
 export function useBetSlip() {
   const [selections, setSelections] = useState<BetSlipSelection[]>([]);
-  // Use a local state for stake that is NOT persisted in tickets (as per Phase 2 requirements)
   const [stake, setStake] = useState<number>(10);
   const isFirstMount = useRef(true);
 
@@ -35,14 +36,12 @@ export function useBetSlip() {
         );
 
         if (isLegacy) {
-          console.warn("Legacy bet slip format detected. Clearing.");
           localStorage.removeItem("gf_bet_slip");
           setSelections([]);
         } else {
           setSelections(data);
         }
       } catch (e) {
-        console.error("Error loading bet slip from localStorage", e);
         setSelections([]);
       }
     }
@@ -74,14 +73,11 @@ export function useBetSlip() {
   }, []);
 
   const addSelection = useCallback((newSelection: BetSlipSelection) => {
-    // Validation
     if (!newSelection.selectionId || !newSelection.marketId || newSelection.fixtureId <= 0) return;
     if (newSelection.displayedOdd <= 1.0) return;
 
     setSelections(prev => {
-      // One selection per marketId
       const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
-      // No duplicate selectionId (redundant but safe)
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
         return prev.filter(s => s.selectionId !== newSelection.selectionId);
       }
@@ -98,10 +94,6 @@ export function useBetSlip() {
     }
   }, [selections, addSelection, removeSelection]);
 
-  const replaceMarketSelection = useCallback((newSelection: BetSlipSelection) => {
-    addSelection(newSelection);
-  }, [addSelection]);
-
   const previewTotalOdd = selections.reduce((acc, s) => acc * s.displayedOdd, 1);
   const selectionCount = selections.length;
 
@@ -111,14 +103,12 @@ export function useBetSlip() {
     setStake,
     addSelection,
     removeSelection,
-    replaceMarketSelection,
     toggleSelection,
     clearBetSlip,
     hasSelection,
     getSelectionByMarket,
     selectionCount,
     previewTotalOdd,
-    // Aliases for backward compatibility if needed during refactoring
     totalOdd: previewTotalOdd,
     clearSlip: clearBetSlip
   };
