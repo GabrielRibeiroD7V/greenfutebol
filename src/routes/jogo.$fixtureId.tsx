@@ -322,7 +322,8 @@ function MatchDetails() {
                     ))}
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           )}
         </main>
