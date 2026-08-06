@@ -127,6 +127,34 @@ function getStatusClass(status: string): string {
 }
 
 function Index() {
+  // O conteúdo abaixo é um roteiro para a FASE 7.
+  // Ele não é renderizado na UI final para os usuários, mas serve como guia.
+  /*
+  FASE 7 — LIQUIDAÇÃO E HOMOLOGAÇÃO DO PAGAMENTO PIX
+
+  IMPORTANTE
+  Esta fase NÃO adiciona novas funcionalidades.
+  O objetivo é homologar completamente o fluxo de pagamento e garantir que nenhum cenário gere inconsistências.
+
+  NÃO alterar:
+  - Homepage;
+  - Mercados;
+  - Bilhete;
+  - Login;
+  - Cadastro;
+  - Layout;
+  - Edge Function de jogos.
+
+  OBJETIVO
+  Validar toda a máquina de estados do pagamento.
+
+  ESTADOS
+  PENDING_PAYMENT → WAITING_PAYMENT → PAID → SETTLED (futuro) ou CANCELLED
+
+  VALIDAÇÕES (Asaas Sandbox)
+  ... (restante dos testes)
+  */
+
   const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const { selections } = useBetSlip();
