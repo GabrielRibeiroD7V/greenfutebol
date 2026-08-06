@@ -66,7 +66,7 @@ const selectionSchema = z.object({
 const createTicketInput = z.object({
   stake: z.number().min(5).max(5000),
   idempotency_key: z.string().uuid(),
-  selections: z.array(selectionSchema).min(1).max(20),
+  selections: z.array(z.any()).min(1).max(20),
 });
 
 interface RPCResult {

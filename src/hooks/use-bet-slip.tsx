@@ -8,8 +8,10 @@ export interface Selection {
   label: string;
   market_name: string;
   home_team: string;
-  away_team: string;
   fixture_id: number;
+  competition?: string;
+  home_team: string;
+  away_team: string;
 }
 
 export function useBetSlip() {
