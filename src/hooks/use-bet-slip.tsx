@@ -3,13 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Selection {
   fixture_market_option_id: string;
-  fixture_market_id: string; // New structural key
+  fixture_market_id: string;
   odd: number;
   label: string;
   market_name: string;
   home_team: string;
   away_team: string;
   fixture_id: number;
+  competition?: string;
 }
 
 export function useBetSlip() {

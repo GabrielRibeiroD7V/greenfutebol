@@ -42,11 +42,49 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
       toast.info("Por favor, faça login para confirmar seu bilhete.");
       return;
     }
-    
-    // Phase 4 requirement: Login mandatory to proceed.
-    // Logic for actually creating the ticket remains mock for now as per instructions.
-    console.log("Fluxo de confirmação: Usuário autenticado.");
-    toast.success("Bilhete pronto para confirmação! (Fase 4)");
+
+    if (selections.length === 0) {
+      toast.error("Seu bilhete está vazio.");
+      return;
+    }
+
+    if (stake < 5) {
+      toast.error("O valor mínimo da aposta é R$ 5,00.");
+      return;
+    }
+
+    setIsConfirming(true);
+    try {
+      const result = await createTicket({
+        data: {
+          stake,
+          idempotency_key: idempotencyKey,
+          selections: selections.map(s => ({
+            fixture_id: s.fixture_id,
+            fixture_market_option_id: s.fixture_market_option_id,
+            fixture_market_id: s.fixture_market_id,
+            market: s.market_name,
+            option: s.label,
+            odd: s.odd,
+            home_team: s.home_team,
+            away_team: s.away_team,
+            competition: s.competition || "Futebol"
+          }))
+        }
+      });
+
+      if (result.success) {
+        setConfirmedTicket({ code: result.ticketCode!, id: result.ticketId! });
+        setShowConfirmation(true);
+        clearSlip();
+        toast.success("Aposta criada com sucesso! Aguardando pagamento.");
+      }
+    } catch (err: any) {
+      console.error("Error creating ticket:", err);
+      toast.error(err.message || "Erro ao criar aposta. Tente novamente.");
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   if (showConfirmation && confirmedTicket) {

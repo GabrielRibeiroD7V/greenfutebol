@@ -511,7 +511,8 @@ function MatchDetails() {
                                       market_name: market.market_type.name,
                                       home_team: fixture.home_team_name,
                                       away_team: fixture.away_team_name,
-                                      fixture_id: fixture.fixture_id
+                                      fixture_id: fixture.fixture_id,
+                                      competition: fixture.league_name
                                     };
 
                                     addSelection(selection);
@@ -548,32 +549,48 @@ function MatchDetails() {
           </div>
         </div>
 
-        <aside className="hidden lg:block w-80 shrink-0 sticky top-20">
-          <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 text-center space-y-4">
-            <Info className="w-8 h-8 text-emerald-500 mx-auto" />
-            <h3 className="text-sm font-black text-white uppercase tracking-tight">Seleções de Teste</h3>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest leading-relaxed">
-              Fase 2: Estrutura de mercados. Selecione as odds para visualizar o destaque.
-            </p>
-            <div className="pt-4 border-t border-white/5">
-              <span className="text-[9px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">
-                GreenFutebol &bull; Phase 2
-              </span>
-            </div>
-          </div>
+        <aside className="hidden lg:block w-80 shrink-0 sticky top-20 overflow-y-auto max-h-[calc(100vh-100px)] no-scrollbar">
+          <BetSlip className="h-fit" />
         </aside>
       </main>
 
       {/* Mobile Bet Slip */}
-      {/* Mobile Indicator */}
-      {Object.values(localSelections).filter(id => id !== "").length > 0 && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
-          <div className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6">
-            <span className="flex items-center gap-2"><Target size={20} /> Seleções</span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">
-              {Object.values(localSelections).filter(id => id !== "").length}
-            </span>
+      <div className={cn(
+        "fixed inset-0 z-[60] lg:hidden transition-transform duration-500 ease-in-out",
+        isBetSlipOpen ? "translate-y-0" : "translate-y-full"
+      )}>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsBetSlipOpen(false)} />
+        <div className="absolute bottom-0 left-0 right-0 h-[85vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/40">
+            <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Bilhete Mobile</span>
+            <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
           </div>
+          <div className="flex-1 overflow-hidden">
+            <BetSlip className="rounded-none border-none h-full" isMobile />
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Mobile Trigger */}
+      {selections.length > 0 && !isBetSlipOpen && (
+        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50 animate-in slide-in-from-bottom-10 duration-500">
+          <button 
+            onClick={() => setIsBetSlipOpen(true)}
+            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 active:scale-95 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <Ticket size={20} className="animate-pulse" />
+              <span>Ver Bilhete</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-black/20 px-3 py-1 rounded-full text-xs">
+                {selections.length}
+              </span>
+              <span className="text-sm">R$ {selections.reduce((acc, s) => acc * s.odd, 1).toFixed(2)}</span>
+            </div>
+          </button>
         </div>
       )}
 
