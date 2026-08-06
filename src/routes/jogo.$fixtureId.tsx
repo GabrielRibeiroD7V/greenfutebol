@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star, Calendar } from "lucide-react";
+import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star, Calendar, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip, Selection } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
-import { generateMockOdds } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -40,34 +40,26 @@ interface FixtureDetails {
   elapsed: number | null;
   home_score: number | null;
   away_score: number | null;
-  halftime_home: number | null;
-  halftime_away: number | null;
-  fulltime_home: number | null;
-  fulltime_away: number | null;
 }
 
 interface FixtureMarket {
   id: string;
+  market_name: string;
+  market_type: string;
+  market_group: string;
+  line: number | null;
+  period: string;
   status: string;
-  market_type: {
-    code: string;
-    name: string;
-    category: string;
-  };
-  options: FixtureMarketOption[];
+  fixture_market_selections: FixtureMarketSelection[];
 }
 
-interface FixtureMarketOption {
+interface FixtureMarketSelection {
   id: string;
+  selection_key: string;
+  selection_name: string;
   odd: number;
-  active: boolean;
-  market_option: {
-    code: string;
-    label: string;
-    parameter: number | null;
-    side: string | null;
-    display_order: number;
-  };
+  status: string;
+  sort_order: number;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -86,130 +78,48 @@ const STATUS_MAP: Record<string, string> = {
   HT: "Intervalo",
   "2H": "2º tempo",
   FT: "Encerrado",
-  AET: "Encerrado após prorrogação",
-  PEN: "Encerrado nos pênaltis",
-  PST: "Adiado",
-  CANC: "Cancelado",
-  ABD: "Abandonado",
-  SUSP: "Suspenso",
-  TBD: "A definir",
-  INT: "Interrompido",
-  LIVE: "Ao vivo",
-  ET: "Prorrogação",
-  BT: "Intervalo Prorrogação",
-  P: "Pênaltis",
 };
 
-const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "LIVE"];
+const TIMEZONE = "America/Campo_Grande";
 
 function MatchDetails() {
   const { fixtureId } = useParams({ from: "/jogo/$fixtureId" });
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [fixture, setFixture] = useState<FixtureDetails | null>(null);
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
-  const { selections, addSelection } = useBetSlip();
-  const [localSelections, setLocalSelections] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
+  const [isLoadingMarkets, setIsLoadingMarkets] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    RESULT: true,
-    GOALS: true
-  });
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({ Principais: true });
   const [isGeneratingOdds, setIsGeneratingOdds] = useState(false);
-  const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
 
-  const TIMEZONE = "America/Campo_Grande";
-
-  const generateMockMarkets = (fixture: FixtureDetails) => {
-    const mockMarkets: FixtureMarket[] = [
-      {
-        id: "mock-1x2",
-        status: "OPEN",
-        market_type: { code: "1X2", name: "Resultado Final", category: "RESULT" },
-        options: [
-          { id: "opt-1", odd: 1.42, active: true, market_option: { code: "H", label: "Vitória da Casa", parameter: null, side: "HOME", display_order: 1 } },
-          { id: "opt-2", odd: 3.40, active: true, market_option: { code: "D", label: "Empate", parameter: null, side: "DRAW", display_order: 2 } },
-          { id: "opt-3", odd: 5.60, active: true, market_option: { code: "A", label: "Vitória Visitante", parameter: null, side: "AWAY", display_order: 3 } },
-        ]
-      },
-      {
-        id: "mock-over-under",
-        status: "OPEN",
-        market_type: { code: "OU", name: "Total de Gols", category: "GOALS" },
-        options: [
-          { id: "opt-4", odd: 1.12, active: true, market_option: { code: "O05", label: "Over 0.5", parameter: 0.5, side: "OVER", display_order: 1 } },
-          { id: "opt-5", odd: 1.65, active: true, market_option: { code: "O15", label: "Over 1.5", parameter: 1.5, side: "OVER", display_order: 2 } },
-          { id: "opt-6", odd: 2.10, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 3 } },
-          { id: "opt-7", odd: 3.80, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 4 } },
-          { id: "opt-8", odd: 6.50, active: true, market_option: { code: "U05", label: "Under 0.5", parameter: 0.5, side: "UNDER", display_order: 5 } },
-          { id: "opt-9", odd: 2.80, active: true, market_option: { code: "U15", label: "Under 1.5", parameter: 1.5, side: "UNDER", display_order: 6 } },
-          { id: "opt-10", odd: 1.70, active: true, market_option: { code: "U25", label: "Under 2.5", parameter: 2.5, side: "UNDER", display_order: 7 } },
-          { id: "opt-11", odd: 1.25, active: true, market_option: { code: "U35", label: "Under 3.5", parameter: 3.5, side: "UNDER", display_order: 8 } },
-        ]
-      },
-      {
-        id: "mock-btts",
-        status: "OPEN",
-        market_type: { code: "BTTS", name: "Ambas Marcam", category: "GOALS" },
-        options: [
-          { id: "opt-12", odd: 1.85, active: true, market_option: { code: "YES", label: "Sim", parameter: null, side: null, display_order: 1 } },
-          { id: "opt-13", odd: 1.95, active: true, market_option: { code: "NO", label: "Não", parameter: null, side: null, display_order: 2 } },
-        ]
-      },
-      {
-        id: "mock-double-chance",
-        status: "OPEN",
-        market_type: { code: "DC", name: "Dupla Chance", category: "RESULT" },
-        options: [
-          { id: "opt-14", odd: 1.15, active: true, market_option: { code: "HD", label: "Casa ou Empate", parameter: null, side: null, display_order: 1 } },
-          { id: "opt-15", odd: 1.25, active: true, market_option: { code: "HA", label: "Casa ou Visitante", parameter: null, side: null, display_order: 2 } },
-          { id: "opt-16", odd: 2.15, active: true, market_option: { code: "DA", label: "Empate ou Visitante", parameter: null, side: null, display_order: 3 } },
-        ]
-      },
-      {
-        id: "mock-corners",
-        status: "OPEN",
-        market_type: { code: "CORNERS", name: "Escanteios", category: "CORNERS" },
-        options: [
-          { id: "opt-17", odd: 1.55, active: true, market_option: { code: "O75", label: "Over 7.5", parameter: 7.5, side: "OVER", display_order: 1 } },
-          { id: "opt-18", odd: 1.85, active: true, market_option: { code: "O85", label: "Over 8.5", parameter: 8.5, side: "OVER", display_order: 2 } },
-          { id: "opt-19", odd: 2.25, active: true, market_option: { code: "O95", label: "Over 9.5", parameter: 9.5, side: "OVER", display_order: 3 } },
-          { id: "opt-20", odd: 2.85, active: true, market_option: { code: "O105", label: "Over 10.5", parameter: 10.5, side: "OVER", display_order: 4 } },
-        ]
-      },
-      {
-        id: "mock-cards",
-        status: "OPEN",
-        market_type: { code: "CARDS", name: "Cartões", category: "CARDS" },
-        options: [
-          { id: "opt-21", odd: 1.65, active: true, market_option: { code: "O25", label: "Over 2.5", parameter: 2.5, side: "OVER", display_order: 1 } },
-          { id: "opt-22", odd: 2.10, active: true, market_option: { code: "O35", label: "Over 3.5", parameter: 3.5, side: "OVER", display_order: 2 } },
-          { id: "opt-23", odd: 3.40, active: true, market_option: { code: "O45", label: "Over 4.5", parameter: 4.5, side: "OVER", display_order: 3 } },
-        ]
-      }
-    ];
-    setMarkets(mockMarkets);
-    setIsLoadingMarkets(false);
-  };
-
-  useEffect(() => {
-    if (fixture) {
-      generateMockMarkets(fixture);
-    }
-  }, [fixture]);
+  const { addSelection, selections } = useBetSlip();
 
   const fetchMarkets = async () => {
     setIsLoadingMarkets(true);
     try {
-      // In Phase 2, we are instructed to use MOCK odds.
-      // We will skip the DB fetch for now to comply with the requirement of MOCK odds and no persistence.
-      if (fixture) {
-        generateMockMarkets(fixture);
-      }
+      const { data, error: marketsError } = await supabase
+        .from("fixture_markets")
+        .select("*, fixture_market_selections(*)")
+        .eq("fixture_id", parseInt(fixtureId))
+        .eq("status", "OPEN");
+        
+      if (marketsError) throw marketsError;
+      
+      // Filter out markets with no open selections
+      const validMarkets = (data || []).map(m => ({
+        ...m,
+        fixture_market_selections: (m.fixture_market_selections || [])
+          .filter((s: any) => s.status === 'OPEN')
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+      })).filter(m => m.fixture_market_selections.length > 0);
+
+      setMarkets(validMarkets as FixtureMarket[]);
     } catch (err) {
       console.error("Erro ao buscar mercados:", err);
+    } finally {
       setIsLoadingMarkets(false);
     }
   };
@@ -229,37 +139,33 @@ function MatchDetails() {
         });
 
         if (invokeError) {
-          if (invokeError.status === 404) {
-            setError("Partida não encontrada.");
-          } else {
-            throw invokeError;
-          }
+          setError(invokeError.status === 404 ? "Partida não encontrada." : "Erro na API.");
           return;
         }
 
         if (data?.fixture) {
           setFixture(data.fixture);
+          fetchMarkets();
         } else {
-          setError("Dados da partida indisponíveis.");
+          setError("Dados indisponíveis.");
         }
       } catch (err) {
-        console.error("Erro ao buscar detalhes:", err);
-        setError("Não foi possível carregar os detalhes da partida.");
+        console.error("Erro:", err);
+        setError("Erro ao carregar partida.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFixture();
-    fetchMarkets();
   }, [fixtureId]);
 
   const groupedMarkets = useMemo(() => {
     const groups: Record<string, FixtureMarket[]> = {};
     markets.forEach(m => {
-      const cat = m.market_type.category;
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(m);
+      const catLabel = CATEGORY_MAP[m.market_group] || m.market_group || "Outros";
+      if (!groups[catLabel]) groups[catLabel] = [];
+      groups[catLabel].push(m);
     });
     return groups;
   }, [markets]);
@@ -267,45 +173,28 @@ function MatchDetails() {
   const formatTime = (isoString: string) => {
     return new Intl.DateTimeFormat("pt-BR", {
       timeZone: TIMEZONE,
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
     }).format(new Date(isoString));
   };
 
-  const getStatusDisplay = (status: string, elapsed: number | null) => {
-    const translated = STATUS_MAP[status] || status;
-    if (LIVE_STATUSES.includes(status) && elapsed !== null && status !== "HT") {
-      return `${translated} ${elapsed}'`;
-    }
-    return translated;
-  };
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      navigate({ to: "/" });
-    }
-  };
-
-  const toggleCategory = (cat: string) => {
-    setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const handleGenerateMockOdds = async () => {
-    if (isGeneratingOdds) return;
+  const handleGenerateDemo = async () => {
     setIsGeneratingOdds(true);
     try {
-      const result = await generateMockOdds({ data: { fixture_id: parseInt(fixtureId) } });
-      if (result.success) {
-        toast.success("Odds de teste geradas com sucesso!");
-        fetchMarkets();
-      }
+      const { data, error } = await supabase.functions.invoke("get-football-fixture", {
+        body: { fixture_id: parseInt(fixtureId) }
+      });
+      if (error) throw error;
+      
+      const { error: genError } = await supabase.functions.invoke("admin-generate-odds", {
+        body: { fixture: data.fixture }
+      });
+      if (genError) throw genError;
+      
+      toast.success("Odds DEMO geradas!");
+      fetchMarkets();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar odds.");
+      toast.error(err.message || "Erro ao gerar odds");
     } finally {
       setIsGeneratingOdds(false);
     }
@@ -313,290 +202,137 @@ function MatchDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-        <p className="mt-4 text-slate-500 font-medium">Carregando GreenFutebol...</p>
       </div>
     );
   }
 
   if (error || !fixture) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]" />
-        <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">{error || "Algo deu errado"}</h2>
-        <button 
-          onClick={handleBack}
-          className="mt-4 flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-        >
-          <ArrowLeft size={18} />
-          Voltar
-        </button>
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-4 flex flex-col items-center justify-center space-y-4">
+        <ShieldAlert className="w-16 h-16 text-red-500" />
+        <h2 className="text-xl font-black uppercase">{error || "Erro desconhecido"}</h2>
+        <button onClick={() => navigate({ to: "/" })} className="px-6 py-2 bg-emerald-600 rounded-lg font-bold">Voltar</button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200">
-      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50">
-        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={handleBack}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-emerald-500"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div className="flex flex-col">
-              <h1 className="text-xs sm:text-sm font-black uppercase tracking-tight leading-tight truncate max-w-[200px] sm:max-w-none">
-                {fixture.home_team_name} x {fixture.away_team_name}
-              </h1>
-              <span className="text-[9px] text-emerald-500/70 font-bold uppercase tracking-widest truncate">{fixture.league_name}</span>
-            </div>
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col lg:flex-row">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="sticky top-0 z-40 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5 p-4 flex items-center gap-4">
+          <button onClick={() => navigate({ to: "/" })} className="p-2 hover:bg-white/5 rounded-full"><ArrowLeft size={20} /></button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-black uppercase tracking-tighter truncate text-emerald-500">{fixture.league_name}</h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{fixture.country} • {fixture.round || "Detalhes"}</p>
           </div>
+        </header>
 
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleGenerateMockOdds}
-              disabled={isGeneratingOdds}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-600/20 transition-all disabled:opacity-50"
-            >
-              {isGeneratingOdds ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
-              Odds Teste
-            </button>
-            
-            {isAuthenticated && (
-              <button 
-                onClick={() => navigate({ to: "/meus-bilhetes" })}
-                className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20"
-              >
-                <Ticket size={20} />
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 max-w-[1920px] mx-auto w-full p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[1fr_350px] lg:gap-8 items-start">
-        <div className="space-y-6">
-          {/* Match Scoreboard Card */}
-          <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden backdrop-blur-sm relative group">
-            <div className="relative z-10 p-6 md:p-8 space-y-6">
+        <main className="flex-1 p-4 space-y-6 max-w-4xl mx-auto w-full">
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600/20 via-black to-black border border-emerald-500/10 p-8">
+            <div className="relative z-10 flex items-center justify-between gap-4 sm:gap-12">
+              <div className="flex-1 flex flex-col items-center text-center space-y-4">
+                <img src={fixture.home_team_logo || ""} alt="" className="w-16 h-16 sm:w-24 sm:h-24 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] object-contain" />
+                <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tighter leading-none">{fixture.home_team_name}</h2>
+              </div>
               <div className="flex flex-col items-center space-y-2">
-                <div className="flex items-center gap-3">
-                  {fixture.league_logo && (
-                    <img src={fixture.league_logo} alt={fixture.league_name} className="w-6 h-6 object-contain brightness-110" />
-                  )}
-                  <div className="flex flex-col items-center">
-                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{fixture.league_name}</span>
-                    <div className="flex items-center gap-2 mt-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                      <Calendar size={10} className="text-emerald-500/50" />
-                      <span>{formatTime(fixture.kickoff_at).split(' • ')[0]}</span>
-                      <Clock size={10} className="text-emerald-500/50 ml-1" />
-                      <span>{formatTime(fixture.kickoff_at).split(' • ')[1]}</span>
-                    </div>
-                  </div>
+                <div className="bg-black/40 px-3 py-1 rounded-full border border-white/5 flex items-center gap-2">
+                  <span className={cn("w-2 h-2 rounded-full", LIVE_STATUSES.includes(fixture.status) ? "bg-red-500 animate-pulse" : "bg-slate-600")} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{STATUS_MAP[fixture.status] || fixture.status}</span>
+                </div>
+                <div className="text-4xl sm:text-6xl font-black tracking-tighter text-emerald-500 flex items-center gap-4">
+                  <span>{fixture.home_score ?? 0}</span>
+                  <span className="text-slate-800 text-2xl">-</span>
+                  <span>{fixture.away_score ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Clock size={12} />
+                  <span className="text-[10px] font-bold uppercase">{formatTime(fixture.kickoff_at)}</span>
                 </div>
               </div>
-
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-8">
-                <div className="flex flex-col items-center space-y-2 text-center">
-                  <div className="w-16 h-16 md:w-24 md:h-24 bg-black/40 border border-white/5 rounded-xl flex items-center justify-center p-3">
-                    {fixture.home_team_logo ? (
-                      <img src={fixture.home_team_logo} alt={fixture.home_team_name} className="w-full h-full object-contain brightness-110" />
-                    ) : (
-                      <Trophy className="w-8 h-8 text-white/5" />
-                    )}
-                  </div>
-                  <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.home_team_name}</h2>
-                </div>
-
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="flex items-center gap-4 text-4xl md:text-6xl font-black italic tracking-tighter text-white">
-                    {typeof fixture.home_score === 'number' ? (
-                      <>
-                        <span>{fixture.home_score}</span>
-                        <span className="text-emerald-500/30 text-xl not-italic tracking-normal">x</span>
-                        <span>{fixture.away_score}</span>
-                      </>
-                    ) : (
-                      <span className="text-white/20 text-xl font-black tracking-widest uppercase">VS</span>
-                    )}
-                  </div>
-                  <div className={cn(
-                    "px-3 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                    LIVE_STATUSES.includes(fixture.status) 
-                      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 animate-pulse" 
-                      : "bg-white/5 text-slate-500 border-white/5"
-                  )}>
-                    {getStatusDisplay(fixture.status, fixture.elapsed)}
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center space-y-2 text-center">
-                  <div className="w-16 h-16 md:w-24 md:h-24 bg-black/40 border border-white/5 rounded-xl flex items-center justify-center p-3">
-                    {fixture.away_team_logo ? (
-                      <img src={fixture.away_team_logo} alt={fixture.away_team_name} className="w-full h-full object-contain brightness-110" />
-                    ) : (
-                      <Trophy className="w-8 h-8 text-white/5" />
-                    )}
-                  </div>
-                  <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.away_team_name}</h2>
-                </div>
+              <div className="flex-1 flex flex-col items-center text-center space-y-4">
+                <img src={fixture.away_team_logo || ""} alt="" className="w-16 h-16 sm:w-24 sm:h-24 drop-shadow-[0_0_15px_rgba(16,185,129,0.3)] object-contain" />
+                <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tighter leading-none">{fixture.away_team_name}</h2>
               </div>
-
-              {fixture.venue && (
-                <div className="flex items-center justify-center gap-2 text-[9px] text-slate-500 font-bold uppercase tracking-widest pt-2 border-t border-white/5">
-                  <MapPin size={10} className="text-emerald-500/50" />
-                  <span>{fixture.venue}{fixture.city ? `, ${fixture.city}` : ''}</span>
-                </div>
-              )}
             </div>
-          </div>
+          </section>
 
-          {/* Mercados Filtros Chips */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            {CATEGORY_ORDER.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => toggleCategory(cat)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap",
-                  expandedCategories[cat] ? "bg-emerald-600 border-emerald-400 text-white" : "bg-white/5 border-white/10 text-slate-500"
-                )}
-              >
-                {CATEGORY_MAP[cat] || cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Markets Section */}
-          <div className="space-y-4">
-            {isLoadingMarkets ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
-                <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest">Carregando Mercados...</p>
+          {markets.length === 0 ? (
+            <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-3xl flex flex-col items-center space-y-6">
+              <div className="space-y-2">
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Nenhum mercado aberto</p>
+                <p className="text-slate-600 text-[10px] max-w-xs mx-auto">Esta partida ainda não possui mercados ativos para apostas.</p>
               </div>
-            ) : markets.length === 0 ? (
-              <div className="bg-white/5 rounded-2xl p-12 flex flex-col items-center justify-center text-center space-y-6 border border-white/5 backdrop-blur-sm">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sem mercados para esta partida</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {CATEGORY_ORDER.map(cat => {
-                  const catMarkets = groupedMarkets[cat];
-                  if (!catMarkets || catMarkets.length === 0 || !expandedCategories[cat]) return null;
-
-                  return (
-                    <div key={cat} className="space-y-3 animate-in fade-in duration-300">
-                      {catMarkets.map(market => (
-                        <div key={market.id} className="bg-[#0c0c0c] border border-white/5 rounded-xl overflow-hidden">
-                          <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{market.market_type.name}</span>
-                          </div>
-                          <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {market.options.map(opt => {
-                              const isSelected = localSelections[market.id] === opt.id;
-                              return (
-                                <button 
-                                  key={opt.id}
-                                  onClick={() => {
-                                    if (!fixture) return;
-                                    
-                                    const selection: Selection = {
-                                      fixture_market_option_id: opt.id,
-                                      fixture_market_id: market.id,
-                                      odd: opt.odd,
-                                      label: opt.market_option.label,
-                                      market_name: market.market_type.name,
-                                      home_team: fixture.home_team_name,
-                                      away_team: fixture.away_team_name,
-                                      fixture_id: fixture.fixture_id,
-                                      competition: fixture.league_name
-                                    };
-
-                                    addSelection(selection);
-                                    
-                                    // Local state highlighting
-                                    setLocalSelections(prev => ({
-                                      ...prev,
-                                      [market.id]: prev[market.id] === opt.id ? "" : opt.id
-                                    }));
-                                    
-                                    // Phase 3 requirement: Auto-open betslip
-                                    setIsBetSlipOpen(true);
-                                  }}
-                                  className={cn(
-                                    "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
-                                    isSelected 
-                                      ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]" 
-                                      : "bg-white/5 border-white/5 text-slate-400 hover:border-emerald-500/30"
-                                  )}
-                                >
-                                  <span className="text-[9px] font-bold uppercase truncate w-full text-center">{opt.market_option.label}</span>
-                                  <span className="text-base font-black">{opt.odd.toFixed(2)}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
+              <Button onClick={handleGenerateDemo} disabled={isGeneratingOdds} className="bg-emerald-600 hover:bg-emerald-500 h-12 px-8 rounded-xl font-black uppercase tracking-tight">
+                {isGeneratingOdds ? <Loader2 className="animate-spin mr-2" /> : <Plus size={20} className="mr-2" />}
+                Gerar Odds Demo
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-8 pb-20">
+            {CATEGORY_ORDER.map(cat => {
+              const groupLabel = CATEGORY_MAP[cat];
+              if (!groupLabel || !groupedMarkets[groupLabel]) return null;
+              
+              return (
+                <div key={cat} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-1.5 bg-emerald-500 rounded-full" />
+                    <h3 className="text-xl font-black uppercase tracking-tighter italic">{groupLabel}</h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {groupedMarkets[groupLabel].map((market: FixtureMarket) => (
+                      <div key={market.id} className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
+                        <div className="p-4 border-b border-white/5 flex justify-between items-center">
+                          <h4 className="text-sm font-black uppercase tracking-tight text-slate-300">{market.market_name}</h4>
+                          <Info size={14} className="text-slate-600" />
                         </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <aside className="hidden lg:block w-80 shrink-0 sticky top-20 overflow-y-auto max-h-[calc(100vh-100px)] no-scrollbar">
-          <BetSlip className="h-fit" />
-        </aside>
-      </main>
-
-      {/* Mobile Bet Slip */}
-      <div className={cn(
-        "fixed inset-0 z-[60] lg:hidden transition-transform duration-500 ease-in-out",
-        isBetSlipOpen ? "translate-y-0" : "translate-y-full"
-      )}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsBetSlipOpen(false)} />
-        <div className="absolute bottom-0 left-0 right-0 h-[85vh] bg-[#0a0a0a] rounded-t-3xl border-t border-emerald-500/20 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/40">
-            <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Bilhete Mobile</span>
-            <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400 hover:text-white transition-colors">
-              <X size={20} />
-            </button>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <BetSlip className="rounded-none border-none h-full" isMobile />
-          </div>
-        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3">
+                          {market.fixture_market_selections.map((selection: FixtureMarketSelection) => {
+                            const isSelected = selections.some(s => s.id === selection.id);
+                            return (
+                              <button
+                                key={selection.id}
+                                onClick={() => addSelection({
+                                  id: selection.id,
+                                  market_id: market.id,
+                                  fixture_id: fixture.fixture_id,
+                                  odd: selection.odd,
+                                  label: selection.selection_name,
+                                  market_name: market.market_name,
+                                  home_team: fixture.home_team_name,
+                                  away_team: fixture.away_team_name,
+                                  competition: fixture.league_name
+                                })}
+                                className={cn(
+                                  "p-4 flex flex-col items-center justify-center gap-1 border-r border-b border-white/5 transition-all",
+                                  isSelected ? "bg-emerald-600 text-white" : "hover:bg-white/[0.02]"
+                                )}
+                              >
+                                <span className={cn("text-[10px] font-bold uppercase", isSelected ? "text-emerald-200" : "text-slate-500")}>
+                                  {selection.selection_name}
+                                </span>
+                                <span className="text-lg font-black">{selection.odd.toFixed(2)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+          )}
+        </main>
       </div>
-
-      {/* Floating Mobile Trigger */}
-      {selections.length > 0 && !isBetSlipOpen && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50 animate-in slide-in-from-bottom-10 duration-500">
-          <button 
-            onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6 active:scale-95 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Ticket size={20} className="animate-pulse" />
-              <span>Ver Bilhete</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-black/20 px-3 py-1 rounded-full text-xs">
-                {selections.length}
-              </span>
-              <span className="text-sm">R$ {selections.reduce((acc, s) => acc * s.odd, 1).toFixed(2)}</span>
-            </div>
-          </button>
+      <aside className="lg:w-96 lg:border-l lg:border-white/5 bg-black/40 backdrop-blur-xl shrink-0">
+        <div className="sticky top-0 h-screen overflow-y-auto">
+          <BetSlip />
         </div>
-      )}
-
-      <footer className="py-6 border-t border-white/5 text-center bg-black mt-auto">
-        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">&copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE</span>
-      </footer>
+      </aside>
     </div>
   );
 }

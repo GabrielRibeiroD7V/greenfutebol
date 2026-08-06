@@ -18,6 +18,7 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
 import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
+import { Route as AdminOddsRouteImport } from './routes/admin/odds'
 import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
 import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 import { Route as PagamentoTicketIdRouteImport } from './routes/pagamento.$ticketId'
@@ -68,6 +69,11 @@ const AdminMercadosRoute = AdminMercadosRouteImport.update({
   path: '/mercados',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminOddsRoute = AdminOddsRouteImport.update({
+  id: '/odds',
+  path: '/odds',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminResultadosRoute = AdminResultadosRouteImport.update({
   id: '/resultados',
   path: '/resultados',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
   '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/odds'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/odds'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/bilhetes'
     | '/admin/mercados'
+    | '/admin/odds'
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
@@ -258,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMercadosRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/odds': {
+      id: '/admin/odds'
+      path: '/odds'
+      fullPath: '/admin/odds'
+      preLoaderRoute: typeof AdminOddsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/resultados': {
       id: '/admin/resultados'
       path: '/resultados'
@@ -292,6 +311,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteRouteChildren {
   AdminBilhetesRoute: typeof AdminBilhetesRoute
   AdminMercadosRoute: typeof AdminMercadosRoute
+  AdminOddsRoute: typeof AdminOddsRoute
   AdminResultadosRoute: typeof AdminResultadosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -299,6 +319,7 @@ interface AdminRouteRouteChildren {
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBilhetesRoute: AdminBilhetesRoute,
   AdminMercadosRoute: AdminMercadosRoute,
+  AdminOddsRoute: AdminOddsRoute,
   AdminResultadosRoute: AdminResultadosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Selection {
-  fixture_market_option_id: string;
-  fixture_market_id: string;
+  id: string; // The selection_id (UUID)
+  market_id: string; // The market_id (UUID)
+  fixture_id: number;
   odd: number;
-  label: string;
+  label: string; // selection_name
   market_name: string;
   home_team: string;
   away_team: string;
-  fixture_id: number;
   competition?: string;
 }
 
@@ -60,12 +60,12 @@ export function useBetSlip() {
 
   const addSelection = useCallback((newSelection: Selection) => {
     setSelections(prev => {
-      // Incompatibility Rule: Only one selection per fixture_id + fixture_market_id
-      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.fixture_market_id === newSelection.fixture_market_id));
-      const isAlreadySelected = prev.find(s => s.fixture_market_option_id === newSelection.fixture_market_option_id);
+      // Incompatibility Rule: Only one selection per fixture_id + market_id
+      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.market_id === newSelection.market_id));
+      const isAlreadySelected = prev.find(s => s.id === newSelection.id);
       
       if (isAlreadySelected) {
-        return prev.filter(s => s.fixture_market_option_id !== newSelection.fixture_market_option_id);
+        return prev.filter(s => s.id !== newSelection.id);
       }
 
       return [...filtered, newSelection];
@@ -73,7 +73,7 @@ export function useBetSlip() {
   }, []);
 
   const removeSelection = useCallback((id: string) => {
-    setSelections(prev => prev.filter(s => s.fixture_market_option_id !== id));
+    setSelections(prev => prev.filter(s => s.id !== id));
   }, []);
 
   const clearSlip = useCallback(() => {

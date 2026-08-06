@@ -47,13 +47,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fixture_market_options_fixture_market_id_fkey"
-            columns: ["fixture_market_id"]
-            isOneToOne: false
-            referencedRelation: "fixture_markets"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fixture_market_options_market_option_id_fkey"
             columns: ["market_option_id"]
             isOneToOne: false
@@ -62,49 +55,100 @@ export type Database = {
           },
         ]
       }
+      fixture_market_selections: {
+        Row: {
+          created_at: string
+          id: string
+          market_id: string
+          odd: number
+          result: string | null
+          selection_key: string
+          selection_name: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          market_id: string
+          odd: number
+          result?: string | null
+          selection_key: string
+          selection_name: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          market_id?: string
+          odd?: number
+          result?: string | null
+          selection_key?: string
+          selection_name?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixture_market_selections_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixture_markets: {
         Row: {
-          closes_at: string | null
+          competition_code: string
           created_at: string
           fixture_id: number
           id: string
-          market_type_id: string
+          line: number | null
+          market_group: string
+          market_name: string
+          market_type: string
           opens_at: string | null
+          period: string
           status: string
           suspends_at: string | null
           updated_at: string
         }
         Insert: {
-          closes_at?: string | null
+          competition_code: string
           created_at?: string
           fixture_id: number
           id?: string
-          market_type_id: string
+          line?: number | null
+          market_group: string
+          market_name: string
+          market_type: string
           opens_at?: string | null
+          period?: string
           status?: string
           suspends_at?: string | null
           updated_at?: string
         }
         Update: {
-          closes_at?: string | null
+          competition_code?: string
           created_at?: string
           fixture_id?: number
           id?: string
-          market_type_id?: string
+          line?: number | null
+          market_group?: string
+          market_name?: string
+          market_type?: string
           opens_at?: string | null
+          period?: string
           status?: string
           suspends_at?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fixture_markets_market_type_id_fkey"
-            columns: ["market_type_id"]
-            isOneToOne: false
-            referencedRelation: "market_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       fixture_results: {
         Row: {
@@ -411,6 +455,33 @@ export type Database = {
           },
         ]
       }
+      ticket_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          payload: Json | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ticket_selections: {
         Row: {
           away_team_logo_snapshot: string | null
@@ -494,13 +565,6 @@ export type Database = {
           ticket_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "ticket_selections_fixture_market_id_fkey"
-            columns: ["fixture_market_id"]
-            isOneToOne: false
-            referencedRelation: "fixture_markets"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ticket_selections_fixture_market_option_id_fkey"
             columns: ["fixture_market_option_id"]
