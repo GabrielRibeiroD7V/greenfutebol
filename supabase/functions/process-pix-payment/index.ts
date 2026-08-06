@@ -93,7 +93,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Criar cobrança no ASAAS
+    // 3. Buscar dados do ticket para a cobrança (agora que temos o lock)
+    const { data: ticketData, error: ticketFetchError } = await supabaseClient
+      .from("tickets")
+      .select("*")
+      .eq("id", ticket_id)
+      .single();
+
+    if (ticketFetchError || !ticketData) throw new Error("Erro ao carregar dados do ticket após lock");
+
+    // 4. Garantir que o cliente existe no ASAAS
     // Primeiro, precisamos garantir que o cliente existe no ASAAS ou criar um "placeholder" 
     // Para simplificar esta fase, vamos usar um cliente genérico ou criar um baseado no e-mail do user
     
@@ -125,20 +134,26 @@ Deno.serve(async (req) => {
 
     if (!customerId) throw new Error("Não foi possível criar/localizar cliente no Asaas");
 
-    // Criar Cobrança PIX
+    // Criar Cobrança PIX com Idempotência Determinística
+    // A chave deriva do ticket_id e da tentativa atual persistida no banco
+    const asaasIdempotencyKey = `greensport:pix:${ticket_id}:${current_attempt}`;
+
     const paymentResponse = await fetch(`${asaasUrl}/payments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         access_token: asaasApiKey,
+        // Header de idempotência do Asaas: "idempotency-key" ou similar
+        // Consultando a documentação do Asaas, o header padrão de idempotência é "idempotency-key"
+        "idempotency-key": asaasIdempotencyKey,
       },
       body: JSON.stringify({
         customer: customerId,
         billingType: "PIX",
-        value: ticket.stake,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 24h
-        description: `Bilhete GreenFutebol ${ticket.code}`,
-        externalReference: ticket.id,
+        value: ticketData.stake,
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        description: `Bilhete GreenFutebol ${ticketData.code}`,
+        externalReference: ticket_id,
       }),
     });
 
@@ -154,7 +169,7 @@ Deno.serve(async (req) => {
     });
     const qrCodeData = await qrCodeResponse.json();
 
-    // 4. Atualizar Ticket no Banco
+    // 4. Atualizar Ticket no Banco de forma atômica
     const { error: updateError } = await supabaseClient
       .from("tickets")
       .update({
@@ -166,7 +181,8 @@ Deno.serve(async (req) => {
         expires_at: paymentData.dueDate + "T23:59:59Z",
         status: "WAITING_PAYMENT",
       })
-      .eq("id", ticket.id);
+      .eq("id", ticket_id)
+      .eq("status", "PENDING_PAYMENT"); // Check-and-set extra protection
 
     if (updateError) throw updateError;
 
