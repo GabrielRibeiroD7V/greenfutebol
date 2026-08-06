@@ -430,247 +430,155 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]" data-testid="main-container">
-      <header className="bg-black/80 backdrop-blur-md border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-30 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/20 transition-colors" />
-              <img 
-                src={logoAsset.url} 
-                alt="GreenFutebol" 
-                className="h-8 sm:h-12 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
-              />
+    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]" data-testid="main-container">
+      {/* Header Fixo e Denso */}
+      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
+          <div className="flex items-center gap-4">
+            <button 
+              className="p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/20 transition-colors" />
+                <img 
+                  src={logoAsset.url} 
+                  alt="GreenFutebol" 
+                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
+                />
+              </div>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
+            <Link to="/" className="text-emerald-500 border-b-2 border-emerald-500 pb-5 pt-5">Futebol</Link>
+            <button onClick={() => setActiveTab('live')} className="text-slate-400 hover:text-white transition-colors">Ao Vivo</button>
+            <button onClick={() => navigate({ to: "/meus-bilhetes" })} className="text-slate-400 hover:text-white transition-colors">Minhas Apostas</button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden md:relative md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
               <input 
                 type="text" 
-                placeholder="Buscar..." 
+                placeholder="Buscar jogo..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/50 w-48 text-white placeholder:text-white/30 transition-all focus:bg-white/10 outline-none"
+                className="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-white placeholder:text-white/20 transition-all outline-none"
               />
             </div>
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-medium text-white/50 uppercase tracking-widest">
-                    {profile?.name || user?.phone || user?.email}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    {profile?.role === 'admin' && (
-                      <button 
-                        onClick={() => navigate({ to: "/admin/bilhetes" })}
-                        className="text-[11px] text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 transition-colors font-bold"
-                      >
-                        <ShieldCheck size={12} />
-                        Admin
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => navigate({ to: "/meus-bilhetes" })}
-                      className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors font-bold"
-                    >
-                      <Ticket size={12} />
-                      Bilhetes
-                    </button>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end mr-2">
+                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">Saldo</span>
+                  <span className="text-sm font-black text-white">R$ {profile?.balance?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}</span>
                 </div>
-                <button 
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="flex h-10 items-center gap-2 rounded-xl bg-white/5 px-4 text-sm font-bold text-white hover:bg-white/10 transition-all disabled:opacity-50 border border-white/5"
+                <div 
+                  className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
+                  onClick={() => navigate({ to: "/meus-bilhetes" })}
                 >
-                  {isLoggingOut ? <Loader2 size={16} className="animate-spin text-emerald-500" /> : <LogOut size={16} className="text-emerald-500" />}
-                  <span className="hidden sm:inline">Sair</span>
-                </button>
+                  {(profile?.name || "U").charAt(0).toUpperCase()}
+                </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button 
                   onClick={() => navigate({ to: "/login" })}
-                  className="h-10 px-6 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-300 hover:text-white transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
                 <button 
                   onClick={() => navigate({ to: "/cadastro" })}
-                  className="h-10 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-widest transition-all"
                 >
-                  Criar Conta
+                  Cadastrar
                 </button>
               </div>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
         </div>
+      </header>
 
-        {/* Mobile Menu Panel */}
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-t border-emerald-500/10 shadow-2xl animate-in slide-in-from-top duration-300 z-50 overflow-y-auto max-h-[calc(100vh-64px)]">
-            <div className="p-4 space-y-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
-                  type="text" 
-                  placeholder="Buscar times ou ligas..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base w-full text-white placeholder:text-white/30 focus:ring-2 focus:ring-emerald-500/50 outline-none"
-                />
-              </div>
-
-              <nav className="grid grid-cols-1 gap-2">
+      {/* Estrutura 3 Colunas Desktop */}
+      <div className="flex-1 flex w-full max-w-[1920px] mx-auto overflow-hidden">
+        {/* Sidebar Esquerda: Ligas e Favoritos */}
+        <aside className={cn(
+          "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
+          isMenuOpen ? "w-64 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static" : "w-0 lg:w-64"
+        )}>
+          <div className="p-4 space-y-6">
+            <div className="space-y-2">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Principais Ligas</h4>
+              <div className="space-y-1">
                 {[
-                  { label: 'Início', icon: PlayCircle, onClick: () => { navigate({ to: "/" }); setIsMenuOpen(false); } },
-                  { label: 'Hoje', icon: Clock, onClick: () => { setActiveTab('today'); setIsMenuOpen(false); } },
-                  { label: 'Amanhã', icon: Calendar, onClick: () => { setActiveTab('tomorrow'); setIsMenuOpen(false); } },
-                  { label: 'Ao vivo', icon: Info, onClick: () => { setActiveTab('live'); setIsMenuOpen(false); } },
-                  { label: 'Escolher data', icon: Calendar, onClick: () => { setActiveTab('custom'); setIsMenuOpen(false); } },
-                ].map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={item.onClick}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all font-bold text-lg active:scale-[0.98]"
+                  { id: 'BSA', name: 'Brasileirão Série A', icon: Trophy },
+                  { id: 'PL', name: 'Premier League', icon: Star },
+                  { id: 'CL', name: 'Champions League', icon: Zap },
+                  { id: 'SA', name: 'Serie A (Itália)', icon: Target },
+                  { id: 'PD', name: 'La Liga', icon: Star },
+                  { id: 'BL1', name: 'Bundesliga', icon: Trophy },
+                ].map((league) => (
+                  <button 
+                    key={league.id}
+                    onClick={() => { setCompetitionCode(league.id as any); if (window.innerWidth < 1024) setIsMenuOpen(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold group",
+                      competitionCode === league.id ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    )}
                   >
-                    <item.icon size={22} />
-                    {item.label}
+                    <league.icon size={16} className={cn(competitionCode === league.id ? "text-emerald-500" : "text-slate-500 group-hover:text-emerald-500")} />
+                    {league.name}
                   </button>
                 ))}
-              </nav>
+              </div>
+            </div>
 
-              <div className="pt-4 border-t border-white/5">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
-                        {(profile?.name || user?.phone || user?.email || "U").charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-white truncate">
-                          {profile?.name || (user?.phone ? maskPhone(user.phone) : user?.email)}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          {profile?.role === 'admin' && (
-                            <button 
-                              onClick={() => { navigate({ to: "/admin/bilhetes" }); setIsMenuOpen(false); }}
-                              className="text-xs text-amber-400 font-bold flex items-center gap-1"
-                            >
-                              <ShieldCheck size={12} />
-                              Admin
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => { navigate({ to: "/meus-bilhetes" }); setIsMenuOpen(false); }}
-                            className="text-xs text-emerald-400 font-bold flex items-center gap-1"
-                          >
-                            <Ticket size={12} />
-                            Meus Bilhetes
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                      className="w-full py-4 rounded-2xl bg-white/5 text-red-400 font-bold flex items-center justify-center gap-2 active:scale-[0.98]"
-                    >
-                      <LogOut size={20} />
-                      Sair da Conta
-                    </button>
-                  </div>
-                ) : (
+            <div className="space-y-2">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">Filtros</h4>
+              <div className="space-y-1">
+                {[
+                  { id: 'today', name: 'Hoje', icon: Clock },
+                  { id: 'tomorrow', name: 'Amanhã', icon: Calendar },
+                  { id: 'live', name: 'Ao Vivo', icon: PlayCircle },
+                ].map((tab) => (
                   <button 
-                    onClick={() => { navigate({ to: "/login" }); setIsMenuOpen(false); }}
-                    className="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg shadow-[0_0_20px_rgba(5,150,105,0.3)] active:scale-[0.98] flex items-center justify-center gap-2"
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id as any); if (window.innerWidth < 1024) setIsMenuOpen(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold",
+                      activeTab === tab.id ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    )}
                   >
-                    <LogIn size={22} />
-                    ENTRAR AGORA
+                    <tab.icon size={16} className={cn(activeTab === tab.id ? "text-emerald-500" : "text-slate-500")} />
+                    {tab.name}
                   </button>
-                )}
+                ))}
               </div>
             </div>
           </div>
-        )}
-      </header>
+        </aside>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[1fr_350px] lg:gap-8 items-start overflow-x-hidden">
-        <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-6 bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 gap-1 backdrop-blur-sm mx-1 sm:mx-0 overflow-x-auto sm:overflow-x-visible no-scrollbar scroll-smooth touch-pan-x px-2 sm:px-1">
-            {[
-              { label: 'Todos', value: 'ALL' },
-              { label: 'Brasileirão', value: 'BSA' },
-              { label: 'Premier League', value: 'PL' },
-              { label: 'Champions League', value: 'CL' },
-              { label: 'Bundesliga', value: 'BL1' },
-              { label: 'La Liga', value: 'PD' },
-              { label: 'Serie A', value: 'SA' },
-              { label: 'Ligue 1', value: 'FL1' },
-              { label: 'Eredivisie', value: 'DED' },
-              { label: 'Championship', value: 'ELC' },
-              { label: 'Primeira Liga', value: 'PPL' },
-            ].map((comp) => (
-              <button
-                key={comp.value}
-                onClick={() => setCompetitionCode(comp.value as any)}
-                disabled={isLoading}
-                className={cn(
-                  "px-4 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95 flex items-center justify-center text-center border whitespace-nowrap flex-shrink-0 sm:flex-shrink",
-                  competitionCode === comp.value 
-                    ? "bg-emerald-600 text-white border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
-                    : "text-slate-400 border-transparent hover:text-white hover:bg-white/5 disabled:opacity-50"
-                )}
-              >
-                {comp.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex bg-white/5 rounded-2xl p-1 shadow-2xl border border-white/5 backdrop-blur-sm mx-1 sm:mx-0">
-            {(['today', 'tomorrow', 'live', 'custom'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                disabled={isLoading && tab !== 'live' && tab !== 'custom'}
-                className={cn(
-                  "flex-1 py-3 sm:py-3.5 px-2 sm:px-4 text-[11px] sm:text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 border",
-                  activeTab === tab 
-                    ? "bg-emerald-600/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-                    : "text-slate-500 hover:bg-white/5 disabled:opacity-50 border-transparent"
-                )}
-              >
-                {tab === 'today' && <Clock size={14} className="sm:w-4 sm:h-4" />}
-                {tab === 'tomorrow' && <Calendar size={14} className="sm:w-4 sm:h-4" />}
-                {tab === 'live' && <PlayCircle size={14} className="sm:w-4 sm:h-4" />}
-                {tab === 'custom' && <Search size={14} className="sm:w-4 sm:h-4" />}
-                <span className={cn(activeTab === tab ? "block" : "hidden sm:block")}>
-                  {tab === 'today' && "Hoje"}
-                  {tab === 'tomorrow' && "Amanhã"}
-                  {tab === 'live' && "Ao vivo"}
-                  {tab === 'custom' && "Data"}
-                </span>
-                {activeTab !== tab && <span className="sm:hidden text-[9px]">
-                  {tab === 'today' && "HJ"}
-                  {tab === 'tomorrow' && "AM"}
-                  {tab === 'live' && "LIVE"}
-                  {tab === 'custom' && "DATA"}
-                </span>}
-              </button>
-            ))}
-          </div>
+        {/* Conteúdo Central: Jogos */}
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-[#050505] p-2 sm:p-4">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {/* Banner e Filtros Mobile */}
+            <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">
+              {['BSA', 'PL', 'CL', 'BL1'].map(id => (
+                <button 
+                  key={id} 
+                  onClick={() => setCompetitionCode(id as any)}
+                  className={cn("px-4 py-2 rounded-full text-[10px] font-black uppercase whitespace-nowrap border transition-all", 
+                    competitionCode === id ? "bg-emerald-600 border-emerald-400 text-white" : "bg-white/5 border-white/10 text-slate-400")}
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
 
           {activeTab === 'custom' && (
             <div className="flex flex-col items-center gap-2">
