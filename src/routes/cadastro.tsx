@@ -77,7 +77,7 @@ function CadastroComponent() {
       
       toast.success("Cadastro realizado com sucesso!");
       
-      let target = "/meus-bilhetes";
+      let target = "/";
       if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
         target = redirectTo;
       }

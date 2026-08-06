@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Loader2, ArrowLeft, Phone, Lock } from "lucide-react";
+import { Loader2, ArrowLeft, Phone, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { normalizePhone, maskPhone, isValidBrazilianPhone } from "@/lib/phone-utils";
 import logoAsset from "@/assets/logo.png.asset.json";
@@ -54,7 +54,7 @@ function LoginComponent() {
 
       toast.success("Login realizado com sucesso!");
       
-      let target = "/meus-bilhetes";
+      let target = "/";
       if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
         target = redirectTo;
       }
