@@ -8,13 +8,15 @@ import {
   Loader2, 
   ArrowLeft,
   ExternalLink,
-  Zap
+  Zap,
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getTicketDetail } from "@/lib/tickets.functions";
 import { generatePix, checkPixStatus } from "@/lib/payments.functions";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/pagamento/$ticketId")({
   head: () => ({
@@ -168,6 +170,7 @@ function PaymentPage() {
           ) : (
             <div className="w-full max-w-[240px] aspect-square bg-slate-100 animate-pulse rounded-2xl" />
           )}
+
           <p className="text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-widest">
             Aponte a câmera para pagar
           </p>
