@@ -525,7 +525,9 @@ export type Database = {
           id: string
           idempotency_key: string
           invoice_url: string | null
+          payment_attempt: number
           payment_id: string | null
+          payment_idempotency_key: string | null
           payment_status: string
           pix_copy_paste: string | null
           pix_qr_code: string | null
@@ -548,7 +550,9 @@ export type Database = {
           id?: string
           idempotency_key?: string
           invoice_url?: string | null
+          payment_attempt?: number
           payment_id?: string | null
+          payment_idempotency_key?: string | null
           payment_status?: string
           pix_copy_paste?: string | null
           pix_qr_code?: string | null
@@ -571,7 +575,9 @@ export type Database = {
           id?: string
           idempotency_key?: string
           invoice_url?: string | null
+          payment_attempt?: number
           payment_id?: string | null
+          payment_idempotency_key?: string | null
           payment_status?: string
           pix_copy_paste?: string | null
           pix_qr_code?: string | null
@@ -612,6 +618,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_payment_lock: {
+        Args: { p_ticket_id: string }
+        Returns: {
+          current_attempt: number
+          existing_payment_id: string
+          idempotency_key: string
+          success: boolean
+        }[]
+      }
       create_ticket_atomic: {
         Args: { p_idempotency_key: string; p_selections: Json; p_stake: number }
         Returns: Json
