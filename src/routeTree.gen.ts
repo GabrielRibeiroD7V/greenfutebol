@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteRouteImport } from './routes/admin.route'
+import { Route as BilheteRouteImport } from './routes/bilhete'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BilheteRoute = BilheteRouteImport.update({
+  id: '/bilhete',
+  path: '/bilhete',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -98,6 +104,7 @@ const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/bilhete': typeof BilheteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bilhete': typeof BilheteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/bilhete': typeof BilheteRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/bilhete'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bilhete'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/bilhete'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
@@ -196,6 +208,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  BilheteRoute: typeof BilheteRoute
   CadastroRoute: typeof CadastroRoute
   LoginRoute: typeof LoginRoute
   MeusBilhetesRoute: typeof MeusBilhetesRoute
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bilhete': {
+      id: '/bilhete'
+      path: '/bilhete'
+      fullPath: '/bilhete'
+      preLoaderRoute: typeof BilheteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -331,6 +351,7 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  BilheteRoute: BilheteRoute,
   CadastroRoute: CadastroRoute,
   LoginRoute: LoginRoute,
   MeusBilhetesRoute: MeusBilhetesRoute,
