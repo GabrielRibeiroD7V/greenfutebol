@@ -5,7 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
-export function BetSlip() {
+export function BetSlip({ isMobile }: { isMobile?: boolean }) {
   const { 
     selections, 
     removeSelection, 
