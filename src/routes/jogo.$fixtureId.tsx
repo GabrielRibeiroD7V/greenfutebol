@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star } from "lucide-react";
+import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X, Target, Zap, Star, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
@@ -346,7 +346,15 @@ function MatchDetails() {
                   {fixture.league_logo && (
                     <img src={fixture.league_logo} alt={fixture.league_name} className="w-6 h-6 object-contain brightness-110" />
                   )}
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{fixture.league_name}</span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{fixture.league_name}</span>
+                    <div className="flex items-center gap-2 mt-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                      <Calendar size={10} className="text-emerald-500/50" />
+                      <span>{formatTime(fixture.kickoff_at).split(' • ')[0]}</span>
+                      <Clock size={10} className="text-emerald-500/50 ml-1" />
+                      <span>{formatTime(fixture.kickoff_at).split(' • ')[1]}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -395,6 +403,13 @@ function MatchDetails() {
                   <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.away_team_name}</h2>
                 </div>
               </div>
+
+              {fixture.venue && (
+                <div className="flex items-center justify-center gap-2 text-[9px] text-slate-500 font-bold uppercase tracking-widest pt-2 border-t border-white/5">
+                  <MapPin size={10} className="text-emerald-500/50" />
+                  <span>{fixture.venue}{fixture.city ? `, ${fixture.city}` : ''}</span>
+                </div>
+              )}
             </div>
           </div>
 
