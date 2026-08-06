@@ -24,7 +24,6 @@ export const createTicket = createServerFn({ method: "POST" })
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error("Acesso negado: Login necessário");
 
-    // 1. Lock and validate ticket creation (Simplified for Phase 5)
     // Check idempotency first
     const { data: existingTicket } = await supabase
       .from('tickets')
@@ -37,10 +36,7 @@ export const createTicket = createServerFn({ method: "POST" })
       return { success: true, ticketId: existingTicket.id };
     }
 
-    // Calculate total odd again for safety
     const total_odd = data.selections.reduce((acc, s) => acc * s.odd, 1);
-    
-    // Generate unique code
     const code = `GF-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const { data: ticket, error: ticketError } = await supabase
@@ -53,31 +49,65 @@ export const createTicket = createServerFn({ method: "POST" })
         total_odd,
         potential_return: data.stake * total_odd,
         payment_idempotency_key: data.idempotency_key,
-        selections: data.selections // Store as JSONB in this simplified version
+        selections: data.selections as any,
+        selection_count: data.selections.length
       })
       .select()
       .single();
 
     if (ticketError) throw ticketError;
 
-    // Create ticket selections for easy query/audit
+    // Create ticket selections (matching current DB schema)
     const ticketSelections = data.selections.map(s => ({
       ticket_id: ticket.id,
       fixture_id: s.fixture_id,
-      market_name: s.market,
-      selection_name: s.option,
-      odd: s.odd,
-      home_team: s.home_team,
-      away_team: s.away_team,
-      competition_name: s.competition,
-      // We could also store market_id/selection_id here if we want to link them formally
+      fixture_market_id: s.market_id,
+      fixture_market_option_id: s.selection_id,
+      market_snapshot: s.market,
+      selection_snapshot: s.option,
+      odd_snapshot: s.odd,
+      home_team_snapshot: s.home_team,
+      away_team_snapshot: s.away_team,
+      competition_snapshot: s.competition,
     }));
 
     const { error: selectionsError } = await supabase
       .from('ticket_selections')
-      .insert(ticketSelections);
+      .insert(ticketSelections as any);
 
     if (selectionsError) console.error("Error creating ticket selections:", selectionsError);
 
     return { success: true, ticketId: ticket.id };
+  });
+
+export const getMyTickets = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Não autenticado");
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, ticket_selections(*)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  });
+
+export const getTicketDetail = createServerFn({ method: "GET" })
+  .validator((data: any) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Não autenticado");
+
+    const { data: ticket, error } = await supabase
+      .from('tickets')
+      .select('*, ticket_selections(*)')
+      .eq('id', data.id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) throw error;
+    return ticket;
   });
