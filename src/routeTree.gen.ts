@@ -15,6 +15,7 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MeusBilhetesRouteImport } from './routes/meus-bilhetes'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBilhetesRouteImport } from './routes/admin/bilhetes'
 import { Route as AdminMercadosRouteImport } from './routes/admin/mercados'
 import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
@@ -51,6 +52,11 @@ const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBilhetesRoute = AdminBilhetesRouteImport.update({
   id: '/bilhetes',
@@ -95,11 +101,11 @@ export interface FileRoutesByFullPath {
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/meus-bilhetes': typeof MeusBilhetesRoute
@@ -109,6 +115,7 @@ export interface FileRoutesByTo {
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/admin': typeof AdminIndexRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesById {
@@ -124,6 +131,7 @@ export interface FileRoutesById {
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRouteTypes {
@@ -140,11 +148,11 @@ export interface FileRouteTypes {
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
+    | '/admin/'
     | '/api/public/asaas-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/cadastro'
     | '/login'
     | '/meus-bilhetes'
@@ -154,6 +162,7 @@ export interface FileRouteTypes {
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
+    | '/admin'
     | '/api/public/asaas-webhook'
   id:
     | '__root__'
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin/resultados'
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
+    | '/admin/'
     | '/api/public/asaas-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -227,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/bilhetes': {
       id: '/admin/bilhetes'
       path: '/bilhetes'
@@ -276,12 +293,14 @@ interface AdminRouteRouteChildren {
   AdminBilhetesRoute: typeof AdminBilhetesRoute
   AdminMercadosRoute: typeof AdminMercadosRoute
   AdminResultadosRoute: typeof AdminResultadosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBilhetesRoute: AdminBilhetesRoute,
   AdminMercadosRoute: AdminMercadosRoute,
   AdminResultadosRoute: AdminResultadosRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
@@ -302,13 +321,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
