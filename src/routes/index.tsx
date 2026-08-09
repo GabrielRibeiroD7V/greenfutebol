@@ -704,7 +704,7 @@ function Index() {
                         setCustomDate(event.target.value);
                         setActiveTab("custom");
                       }}
-                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-slate-200 bg-slate-50 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-700 outline-none focus:border-emerald-500/40"
+                      className="mt-1 lg:mt-2 w-full rounded-[4px] border border-[#E5E7EB] bg-slate-50 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-700 outline-none focus:border-emerald-500/40"
                     />
                   </label>
                 </div>
