@@ -112,7 +112,10 @@ function AdminMarketManagerPage() {
   };
 
   const addPlayer = async () => {
-    if (!newPlayer.name) return toast.error("Nome é obrigatório");
+    if (!newPlayer.name) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
     setIsActionLoading(true);
     try {
       // 1. Create player globally if needed (simplified for manual)
