@@ -61,16 +61,15 @@ export function useBetSlip() {
     localStorage.setItem("gf_bet_slip", JSON.stringify({ selections, idempotencyKey }));
   }, [selections, idempotencyKey]);
 
-
-  const hasSelection = useCallback((selectionId: string) => {
-    return selections.some(s => s.selectionId === selectionId);
-  }, [selections]);
-
   const generateIdempotencyKey = useCallback(() => {
     const key = crypto.randomUUID();
     setIdempotencyKey(key);
     return key;
   }, []);
+
+  const hasSelection = useCallback((selectionId: string) => {
+    return selections.some(s => s.selectionId === selectionId);
+  }, [selections]);
 
   const getSelectionByMarket = useCallback((marketId: string) => {
     return selections.find(s => s.marketId === marketId);
@@ -94,18 +93,20 @@ export function useBetSlip() {
     if (newSelection.displayedOdd <= 1.0) return;
 
     if (!idempotencyKey) {
-      generateIdempotencyKey();
+      const key = crypto.randomUUID();
+      setIdempotencyKey(key);
     }
 
     setSelections(prev => {
-
       const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
-        return prev.filter(s => s.selectionId !== newSelection.selectionId);
+        const next = prev.filter(s => s.selectionId !== newSelection.selectionId);
+        if (next.length === 0) setIdempotencyKey(null);
+        return next;
       }
       return [...filtered, newSelection];
     });
-  }, []);
+  }, [idempotencyKey]);
 
   const toggleSelection = useCallback((newSelection: BetSlipSelection) => {
     const exists = selections.find(s => s.selectionId === newSelection.selectionId);
@@ -123,15 +124,15 @@ export function useBetSlip() {
     selections,
     stake,
     setStake,
+    idempotencyKey,
+    generateIdempotencyKey,
     addSelection,
     removeSelection,
     toggleSelection,
     clearBetSlip,
     hasSelection,
     getSelectionByMarket,
-    selectionCount,
     previewTotalOdd,
-    totalOdd: previewTotalOdd,
-    clearSlip: clearBetSlip
+    selectionCount,
   };
 }
