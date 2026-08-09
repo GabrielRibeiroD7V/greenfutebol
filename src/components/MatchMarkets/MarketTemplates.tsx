@@ -74,7 +74,8 @@ export function SelectionButton({
       selectionName: selection.selection_name,
       displayedOdd: selection.odd,
       homeTeam: fixture.home_team_name,
-      awayTeam: fixture.away_team_name
+      awayTeam: fixture.away_team_name,
+      metadata: selection.metadata
     });
   };
 
