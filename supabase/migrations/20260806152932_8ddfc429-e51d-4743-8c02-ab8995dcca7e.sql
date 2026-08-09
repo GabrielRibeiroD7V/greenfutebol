@@ -177,7 +177,7 @@ BEGIN
     RAISE EXCEPTION 'MATCH_ALREADY_STARTED';
   END IF;
   IF EXISTS (SELECT 1 FROM _resolved GROUP BY market_id HAVING count(*) > 1) THEN
-    RAISE EXCEPTION 'INCOMPATIBLE_SELECTIONS' USING detail = 'mais de uma selecao no mesmo mercado';
+    RAISE EXCEPTION 'INCOMPATIBLE_SELECTIONS' USING detail = .multiplas selecoes permitidas.;
   END IF;
 
   SELECT jsonb_agg(jsonb_build_object('selection_id', sid, 'old_odd', eodd, 'new_odd', odd))
