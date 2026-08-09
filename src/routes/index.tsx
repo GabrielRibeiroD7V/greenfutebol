@@ -80,7 +80,10 @@ interface Fixture {
   away_score: number | null;
 }
 
-const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE", "IN_PLAY", "PAUSED"];
+const FUTURE_STATUSES = ["NS", "TBD", "SCHEDULED", "TIMED", "NOT_STARTED"];
+const FINISHED_STATUSES = ["FT", "AET", "PEN", "FINISHED"];
+const CANCELLED_STATUSES = ["CANC", "CANCELLED", "POSTPONED", "PST", "ABD", "ABANDONED"];
 const COMPETITION_CODES = ["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL"] as const;
 
 function FixturesSkeleton() {
