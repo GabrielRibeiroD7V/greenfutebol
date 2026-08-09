@@ -193,6 +193,22 @@ function AdminMarketManagerPage() {
     }
   };
 
+  const deleteMarket = async (marketId: string) => {
+    if (!confirm("Tem certeza que deseja excluir este mercado? Bilhetes vinculados podem impedir a exclusão.")) return;
+    try {
+      const { error } = await supabase
+        .from("fixture_markets")
+        .delete()
+        .eq("id", marketId);
+      if (error) throw error;
+      toast.success("Mercado excluído");
+      fetchData();
+    } catch (err: any) {
+      toast.error("Erro ao excluir: Possui tickets vinculados.");
+    }
+  };
+
+
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
