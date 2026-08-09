@@ -88,7 +88,7 @@ function AdminMarketManagerPage() {
 
       const selectionsData = template.selections.map((name, i) => ({
         market_id: market.id,
-        selection_key: template.keys[i],
+        selection_key: template.keys[i] || `OP${i+1}`,
         selection_name: name,
         odd: 1.90,
         sort_order: i,
