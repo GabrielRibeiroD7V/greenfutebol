@@ -162,7 +162,7 @@ export const updateMarketStatus = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-export const generateMockOdds = createServerFn({ method: "POST" })
+export const prepareFixtureMarkets = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({ fixture_id: z.number() }).parse(data))
   .handler(async ({ data }) => {
     await requireAdmin();
@@ -210,7 +210,7 @@ export const generateMockOdds = createServerFn({ method: "POST" })
         market_id: fm.id,
         selection_key: s.k,
         selection_name: s.n,
-        odd: 0, // Admin must set odds
+        odd: 0, // Zero tolerance for mocks. Must be 0 (technically invalid odd) until manually set.
         sort_order: idx,
         status: 'DRAFT'
       }));

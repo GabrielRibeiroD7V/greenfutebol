@@ -11,12 +11,23 @@ function AdminValidationPage() {
 
   const auditItems = [
     {
+      title: "Eliminação de Mocks (Fase 2I.1)",
+      status: "PASS",
+      items: [
+        "Auditoria de generateMockOdds: Renomeada para prepareFixtureMarkets (src/lib/admin.functions.ts)",
+        "Zero Tolerance for Mock Odds: A função agora define 'odd: 0' (inválida tecnicamente) e 'status: DRAFT'",
+        "Remoção de Placeholder: Nenhuma odd inventada, randômica ou IA é persistida no banco",
+        "Validação de Publicação: Botão 'Publicar' bloqueia mercados com odds < 1.01 no frontend",
+        "Segurança E2E: create_ticket_atomic obtém odds diretamente do banco, ignorando o client"
+      ]
+    },
+    {
       title: "Infraestrutura de Roteamento",
       status: "PASS",
       items: [
         "Admin Guard sem race condition: Verificado em src/routes/admin.route.tsx",
-        "Redirecionamento /admin -> /admin/mercados: Implementado em src/routes/admin/index.tsx",
-        "Limpeza de rotas duplicadas (.js): Concluída (bilhetes.js e bilhetes.$ticketId.js removidos)",
+        "Redirecionamento /admin -> /admin/validacao: Ajustado para priorizar auditoria",
+        "Limpeza de rotas duplicadas: Concluída",
         "Isolamento de Estado Admin: Layout segregado com flags de autorização explícitas"
       ]
     },
@@ -24,21 +35,21 @@ function AdminValidationPage() {
       title: "Auditoria de Bilhetes (Fase 2J.1)",
       status: "PASS",
       items: [
-        "Métricas Financeiras (Stake, Exposição): RPC pública.get_admin_tickets_summary verificada",
-        "Filtros Operacionais: Status, Período e Meio de Pagamento (Simulado/Real) funcionais",
-        "Integridade de Snapshot: Uso de odd_snapshot e option_label_snapshot para histórico",
+        "Métricas Financeiras: RPC get_admin_tickets_summary verificada",
+        "Filtros Operacionais: Status, Período e Meio de Pagamento funcionais",
+        "Integridade de Snapshot: Uso de odd_snapshot e label_snapshot",
         "Logs de Auditoria: Persistência em ticket_audit_logs via RPC atômica",
-        "Segurança RLS: Políticas de leitura restritas à role 'admin'"
+        "Segurança RLS: Políticas restritas à role 'admin'"
       ]
     },
     {
       title: "UX Premium Sportsbook",
       status: "PASS",
       items: [
-        "Background Branco (#FFFFFF) e Slate Borders (#E5E7EB) aplicados",
-        "Eliminação de 'Card-in-Card': Hierarquia por linhas e tipografia técnica",
-        "Densidade de Informação: Grid otimizado para visualização rápida de dados",
-        "Identidade Visual: Verde Esmeralda em acentos e estados ativos"
+        "Identidade Visual: Background Branco (#FFFFFF), Slate Borders (#E5E7EB)",
+        "Eliminação de Cards de IA: Hierarquia baseada em linhas e tipografia técnica",
+        "Densidade de Dados: Otimizada para gestão profissional de odds",
+        "Responsividade: Permanent compact sidebar mantida em dispositivos móveis"
       ]
     }
   ];

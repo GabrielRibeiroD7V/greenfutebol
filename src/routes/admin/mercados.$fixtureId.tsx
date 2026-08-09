@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { generateMockOdds, updateMarketSelection, updateMarketStatus } from "@/lib/admin.functions";
+import { prepareFixtureMarkets, updateMarketSelection, updateMarketStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
@@ -36,7 +36,7 @@ function AdminMarketManagerPage() {
   const handlePrepareMatch = async () => {
     setActionLoading(true);
     try {
-      await generateMockOdds({ data: { fixture_id: parseInt(fixtureId) } });
+      await prepareFixtureMarkets({ data: { fixture_id: parseInt(fixtureId) } });
       toast.success("Partida preparada com mercados em DRAFT.");
       fetchData();
     } catch (err: any) {
