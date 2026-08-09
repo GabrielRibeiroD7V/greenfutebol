@@ -246,7 +246,7 @@ function AdminTicketsPage() {
                 <div className="col-span-12 lg:col-span-2 flex flex-col items-end gap-1 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(t.status)}
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">
                       {t.status === 'PAID' ? 'Pago' : 
                        t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
                        t.status === 'PENDING_PAYMENT' ? 'Pendente Pag.' :
@@ -257,8 +257,8 @@ function AdminTicketsPage() {
                        t.status === 'CANCELLED' ? 'Cancelado' : t.status}
                     </span>
                   </div>
-                  <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest">
-                    {t.payment_mode === 'SIMULATED' ? 'Modo Simulado' : 'Transação Real'}
+                  <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">
+                    {t.payment_mode === 'SIMULATED' ? 'Simulado' : 'Real (Asaas)'}
                   </span>
                 </div>
               </div>
