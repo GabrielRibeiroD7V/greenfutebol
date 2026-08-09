@@ -41,8 +41,7 @@ function MatchDetails() {
             .from("fixture_markets")
             .select("*, fixture_market_selections(*)")
             .eq("fixture_id", parseInt(fixtureId))
-            .order("market_group")
-            .order("sort_order");
+            .order("market_group");
             
           setMarkets(marketsData || []);
         }
