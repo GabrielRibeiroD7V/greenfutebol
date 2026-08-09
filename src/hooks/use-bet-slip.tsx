@@ -88,14 +88,16 @@ export function useBetSlip() {
     setIdempotencyKey(null);
   }, []);
 
+  const resetIdempotency = useCallback(() => {
+    setIdempotencyKey(null);
+  }, []);
+
   const addSelection = useCallback((newSelection: BetSlipSelection) => {
     if (!newSelection.selectionId || !newSelection.marketId || newSelection.fixtureId <= 0) return;
     if (newSelection.displayedOdd <= 1.0) return;
 
-    if (!idempotencyKey) {
-      const key = crypto.randomUUID();
-      setIdempotencyKey(key);
-    }
+    // FASE 2C.1: Alteração manual invalida a tentativa anterior
+    setIdempotencyKey(null);
 
     setSelections(prev => {
       // Regra FASE 2C: Mesma partida e mesmo mercado substitui
@@ -103,14 +105,12 @@ export function useBetSlip() {
       
       // Se já estava selecionada exatamente essa opção, remove (toggle behavior)
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
-        const next = prev.filter(s => s.selectionId !== newSelection.selectionId);
-        if (next.length === 0) setIdempotencyKey(null);
-        return next;
+        return prev.filter(s => s.selectionId !== newSelection.selectionId);
       }
       
       return [...filtered, newSelection];
     });
-  }, [idempotencyKey]);
+  }, []);
 
   const toggleSelection = useCallback((newSelection: BetSlipSelection) => {
     const exists = selections.find(s => s.selectionId === newSelection.selectionId);
