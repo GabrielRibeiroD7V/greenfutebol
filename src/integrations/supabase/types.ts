@@ -875,6 +875,7 @@ export type Database = {
         Args: { p_idempotency_key: string; p_selections: Json; p_stake: number }
         Returns: Json
       }
+      get_admin_tickets_summary: { Args: { _since: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
