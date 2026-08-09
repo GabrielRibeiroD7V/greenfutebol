@@ -1,23 +1,7 @@
 /**
- * FASE 2G — CENTRAL DE PRECIFICAÇÃO DE ODDS
+ * GreenFutebol - Plataforma Premium de Futebol
  * 
- * OPERAÇÃO & PERFORMANCE (SHA: 4433c8ba-dc1a-4688-bb23-f2da4b177cb3)
- * 
- * 1. LIMPEZA E SEGURANÇA:
- *    - Homepage pública livre de artefatos técnicos e logs de auditoria.
- *    - RLS garante que apenas administradores acessem o painel de precificação.
- * 
- * 2. CENTRAL DE PRECIFICAÇÃO (/admin/mercados/$fixtureId):
- *    - Fluxo de trabalho otimizado: Preparar -> Precificar -> Salvar Rascunho -> Publicar.
- *    - Edição direta de odds em lote, sem necessidade de modais individuais.
- *    - Templates automáticos para Resultado Final, Dupla Chance, Gols, Escanteios e Cartões.
- * 
- * 3. INTEGRIDADE DOS DADOS:
- *    - Normalização automática de inputs numéricos (1,80 -> 1.80).
- *    - Validação de odds mínimas (> 1.00) e estados de mercado (DRAFT/OPEN).
- *    - Persistência garantida via Refresh e suporte a publicações parciais por mercado.
- * 
- * CLASSIFICAÇÃO: A — Central de Precificação pronta para operação diária.
+ * Uma interface tecnológica e minimalista para acompanhamento de jogos e mercados reais.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
