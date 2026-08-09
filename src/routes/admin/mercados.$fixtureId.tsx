@@ -30,20 +30,29 @@ export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
 });
 
-const MARKET_TEMPLATES = [
-  { id: "1X2", name: "Resultado Final", group: "RESULT", selections: ["Casa", "Empate", "Visitante"], keys: ["H", "D", "A"] },
-  { id: "DC", name: "Dupla Chance", group: "RESULT", selections: ["Casa ou Empate", "Casa ou Visitante", "Empate ou Visitante"], keys: ["1X", "12", "X2"] },
-  { id: "DNB", name: "Empate Anula", group: "RESULT", selections: ["Casa", "Visitante"], keys: ["H", "A"] },
-  { id: "OU", name: "Total de Gols", group: "GOALS", selections: ["Mais de 2.5", "Menos de 2.5"], keys: ["OVER", "UNDER"], line: 2.5 },
-  { id: "BTTS", name: "Ambas Marcam", group: "GOALS", selections: ["Sim", "Não"], keys: ["YES", "NO"] },
-  { id: "CS", name: "Placar Exato", group: "SCORE", selections: ["1 x 0", "0 x 0", "0 x 1"], keys: ["1:0", "0:0", "0:1"] },
-  { id: "CORNERS", name: "Escanteios", group: "CORNERS", selections: ["Mais de 9.5", "Menos de 9.5"], keys: ["OVER", "UNDER"], line: 9.5 },
-  { id: "CARDS", name: "Cartões", group: "CARDS", selections: ["Mais de 4.5", "Menos de 4.5"], keys: ["OVER", "UNDER"], line: 4.5 },
-  { id: "CUSTOM", name: "Mercado Personalizado", group: "CUSTOM", selections: ["Opção 1"], keys: ["OP1"] },
-  { id: "PLAYER_GOAL", name: "Jogador Marca Gol", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
-  { id: "PLAYER_CARDS", name: "Jogador Recebe Cartão", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
-  { id: "PLAYER_ASSIST", name: "Jogador Dá Assistência", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
-  { id: "PLAYER_SHOTS", name: "Finalizações do Jogador", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_SHOTS', hasLine: true },
+interface MarketTemplate {
+  id: string;
+  name: string;
+  group: string;
+  selections: string[];
+  keys: string[];
+  line?: number;
+  isPlayerMarket?: boolean;
+  playerMarketType?: string;
+}
+
+const MARKET_TEMPLATES: MarketTemplate[] = [
+  { id: "1X2", name: "Resultado Final", group: "PRINCIPAIS", selections: ["Casa", "Empate", "Visitante"], keys: ["H", "D", "A"] },
+  { id: "DC", name: "Dupla Chance", group: "PRINCIPAIS", selections: ["1X", "12", "X2"], keys: ["1X", "12", "X2"] },
+  { id: "DNB", name: "Empate Anula", group: "PRINCIPAIS", selections: ["Casa", "Visitante"], keys: ["H", "A"] },
+  { id: "BTTS", name: "Ambas Marcam", group: "PRINCIPAIS", selections: ["Sim", "Não"], keys: ["YES", "NO"] },
+  { id: "OU", name: "Total de Gols", group: "GOLS", selections: ["Mais de 0.5", "Menos de 0.5", "Mais de 1.5", "Menos de 1.5", "Mais de 2.5", "Menos de 2.5"], keys: ["OVER_0.5", "UNDER_0.5", "OVER_1.5", "UNDER_1.5", "OVER_2.5", "UNDER_2.5"] },
+  { id: "CS", name: "Placar Exato", group: "PLACAR", selections: ["1 x 0", "0 x 0", "0 x 1", "1 x 1", "2 x 0", "0 x 2", "2 x 1", "1 x 2", "2 x 2"], keys: ["1:0", "0:0", "0:1", "1:1", "2:0", "0:2", "2:1", "1:2", "2:2"] },
+  { id: "CORNERS", name: "Escanteios", group: "ESCANTEIOS", selections: ["Mais de 8.5", "Menos de 8.5", "Mais de 9.5", "Menos de 9.5"], keys: ["OVER_8.5", "UNDER_8.5", "OVER_9.5", "UNDER_9.5"] },
+  { id: "CARDS", name: "Cartões", group: "CARTÕES", selections: ["Mais de 3.5", "Menos de 3.5", "Mais de 4.5", "Menos de 4.5"], keys: ["OVER_3.5", "UNDER_3.5", "OVER_4.5", "UNDER_4.5"] },
+  { id: "PLAYER_GOAL", name: "Marcar Gol", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
+  { id: "PLAYER_CARDS", name: "Receber Cartão", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
+  { id: "PLAYER_ASSIST", name: "Dar Assistência", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
 ];
 
 function AdminMarketManagerPage() {
@@ -180,7 +189,7 @@ function AdminMarketManagerPage() {
     try {
       const marketData = {
         fixture_id: parseInt(fixtureId),
-        competition_code: fixture.league_id.toString(),
+        competition_code: fixture.league_id?.toString() || "",
         market_type: template.id,
         market_name: template.name,
         market_group: template.group,
@@ -239,7 +248,7 @@ function AdminMarketManagerPage() {
     try {
       const marketData = {
         fixture_id: parseInt(fixtureId),
-        competition_code: fixture.league_id.toString(),
+        competition_code: fixture.league_id?.toString() || "",
         market_type: template.id,
         market_name: template.name,
         market_group: template.group,
@@ -259,14 +268,28 @@ function AdminMarketManagerPage() {
 
       if (mError) throw mError;
 
-      const selectionsData = template.selections.map((name, i) => ({
-        market_id: market.id,
-        selection_key: template.keys[i] || `OP${i+1}`,
-        selection_name: name,
-        odd: 1.90,
-        sort_order: i,
-        status: "OPEN"
-      }));
+      const selectionsData = template.selections.map((name, i) => {
+        let metadata = {};
+        const key = template.keys[i] || `OP${i+1}`;
+        
+         if (template.id === 'OU' || template.id === 'CORNERS' || template.id === 'CARDS') {
+            const lineMatch = name.match(/(\d+\.\d+)/);
+            if (lineMatch && lineMatch[1]) metadata = { line: parseFloat(lineMatch[1]), type: key.includes('OVER') ? 'OVER' : 'UNDER' };
+         } else if (template.id === 'CS') {
+            const scoreMatch = key.match(/(\d+):(\d+)/);
+            if (scoreMatch && scoreMatch[1] && scoreMatch[2]) metadata = { home_score: parseInt(scoreMatch[1]), away_score: parseInt(scoreMatch[2]) };
+         }
+
+        return {
+          market_id: market.id,
+          selection_key: key,
+          selection_name: name,
+          odd: 1.00, // Initial invalid odd to force admin entry
+          sort_order: i,
+          status: "DRAFT", // Start as DRAFT
+          metadata
+        };
+      });
 
       const { error: sError } = await supabase
         .from("fixture_market_selections")
@@ -306,7 +329,10 @@ function AdminMarketManagerPage() {
     try {
       const { error } = await supabase
         .from("fixture_market_selections")
-        .update({ odd: val })
+        .update({ 
+          odd: val,
+          status: 'OPEN' // Auto open if odd is set
+        })
         .eq("id", selectionId);
       if (error) throw error;
       toast.success("Odd atualizada");
@@ -427,6 +453,25 @@ function AdminMarketManagerPage() {
             </div>
           </div>
         </header>
+
+        <div className="flex gap-4 mb-4">
+           <Button 
+             variant="outline"
+             className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[11px] h-14 rounded-2xl"
+             onClick={() => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
+                mainTemplates.forEach(t => createMarket(t));
+             }}
+           >
+             PREPARAR PARTIDA (Templates Principais)
+           </Button>
+           <Button 
+             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl"
+             onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
+           >
+             VER COMO USUÁRIO
+           </Button>
+        </div>
 
         <section className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
@@ -570,19 +615,24 @@ function AdminMarketManagerPage() {
             </div>
             
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-3">
-                {MARKET_TEMPLATES.filter(t => !t.isPlayerMarket).map(template => (
-                  <Button 
-                    key={template.id}
-                    disabled={isActionLoading}
-                    onClick={() => createMarket(template)}
-                    className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
-                  >
-                    <Plus size={16} className="text-zinc-600 group-hover:text-black" />
-                    <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
-                  </Button>
-                ))}
-              </div>
+              {['PRINCIPAIS', 'GOLS', 'PLACAR', 'ESCANTEIOS', 'CARTÕES'].map(group => (
+                <div key={group} className="space-y-2">
+                  <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{group}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {MARKET_TEMPLATES.filter(t => t.group === group).map(template => (
+                      <Button 
+                        key={template.id}
+                        disabled={isActionLoading}
+                        onClick={() => createMarket(template)}
+                        className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-3 rounded-2xl flex items-center gap-2 transition-all group justify-start px-4"
+                      >
+                        <Plus size={14} className="text-zinc-600 group-hover:text-black" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
               <div className="space-y-3">
                 <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Mercados de Jogadores</h4>
@@ -616,6 +666,32 @@ function AdminMarketManagerPage() {
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Settings2 size={14} /> Mercados Ativos ({markets.length})
             </h3>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                className="bg-zinc-900 border-white/10 text-white font-black uppercase text-[9px] rounded-xl h-9"
+                onClick={() => {
+                  const toOpen = markets.filter(m => m.status === 'DRAFT');
+                  if (toOpen.length === 0) return;
+                  toOpen.forEach(m => updateMarketStatus(m.id, 'OPEN'));
+                }}
+              >
+                Publicar Todos Rascunhos
+              </Button>
+              <Button 
+                variant="destructive"
+                size="sm"
+                className="font-black uppercase text-[9px] rounded-xl h-9"
+                onClick={() => {
+                  if (confirm("Suspender todos os mercados?")) {
+                    markets.forEach(m => updateMarketStatus(m.id, 'SUSPENDED'));
+                  }
+                }}
+              >
+                <PowerOff size={12} className="mr-2" /> Suspender Todos
+              </Button>
+            </div>
           </div>
           
           <div className="grid gap-6">
@@ -643,9 +719,12 @@ function AdminMarketManagerPage() {
                         onChange={(e) => updateMarketStatus(m.id, e.target.value)}
                         className={cn(
                           "bg-black border-white/10 text-[9px] font-black uppercase rounded-lg px-2 h-8 outline-none",
-                          m.status === 'OPEN' ? "text-emerald-500" : m.status === 'SUSPENDED' ? "text-amber-500" : "text-red-500"
+                          m.status === 'OPEN' ? "text-emerald-500" : 
+                          m.status === 'DRAFT' ? "text-zinc-500" :
+                          m.status === 'SUSPENDED' ? "text-amber-500" : "text-red-500"
                         )}
                       >
+                        <option value="DRAFT">Rascunho (DRAFT)</option>
                         <option value="OPEN">Aberto (OPEN)</option>
                         <option value="SUSPENDED">Suspenso (SUSPENDED)</option>
                         <option value="CLOSED">Fechado (CLOSED)</option>
@@ -674,7 +753,7 @@ function AdminMarketManagerPage() {
                               type="number" 
                               step="0.01"
                               defaultValue={s.odd.toFixed(2)}
-                              onBlur={(e) => updateSelectionOdd(s.id, e.target.value)}
+                              onBlur={(e) => updateSelectionOdd(s.id, e.target.value.replace(',', '.'))}
                               className="bg-zinc-900 border-white/5 text-center font-black text-emerald-500 text-lg h-12 rounded-xl focus:ring-emerald-500/20"
                             />
                             <div className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-800 border border-white/10 rounded-full shadow-lg">
@@ -726,6 +805,26 @@ function AdminMarketManagerPage() {
               ))
             )}
           </div>
+        </div>
+        
+        {/* Mobile Sticky Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 p-4 md:hidden flex gap-4 z-50">
+           <Button 
+             variant="outline"
+             className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[10px] h-12 rounded-xl"
+             onClick={() => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
+                mainTemplates.forEach(t => createMarket(t));
+             }}
+           >
+             PREPARAR
+           </Button>
+           <Button 
+             className="flex-1 bg-emerald-600 text-black font-black uppercase text-[10px] h-12 rounded-xl"
+             onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
+           >
+             VER JOGO
+           </Button>
         </div>
       </div>
     </div>

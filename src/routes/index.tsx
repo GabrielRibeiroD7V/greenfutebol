@@ -1,23 +1,23 @@
 /**
- * FASE 2F.1 — HOMOLOGAÇÃO DO MOTOR DE LIQUIDAÇÃO
+ * FASE 2G — CENTRAL DE PRECIFICAÇÃO DE ODDS
  * 
- * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: 4433c8ba-dc1a-4688-bb23-f2da4b177cb3)
+ * OPERAÇÃO & PERFORMANCE (SHA: 4433c8ba-dc1a-4688-bb23-f2da4b177cb3)
  * 
- * 1. AUDITORIA DA IMPLEMENTAÇÃO (OK):
- *    - Motor: 'settle_fixture_atomic' (RPC segura).
- *    - Auditoria: Tabela 'settlement_audit_logs' rastreia cada mudança de status.
- *    - UI: '/admin/resultados' operacional para entrada manual e gatilho de liquidação.
+ * 1. LIMPEZA E SEGURANÇA:
+ *    - Homepage pública livre de artefatos técnicos e logs de auditoria.
+ *    - RLS garante que apenas administradores acessem o painel de precificação.
  * 
- * 2. REGRAS DE MERCADO (HOMOLOGADAS):
- *    - 1X2, Dupla Chance, DNB (Draw No Bet), Over/Under (Gols) e BTTS.
- *    - Suporte a PUSH/VOID para DNB e Linhas Inteiras de Gols.
+ * 2. CENTRAL DE PRECIFICAÇÃO (/admin/mercados/$fixtureId):
+ *    - Fluxo de trabalho otimizado: Preparar -> Precificar -> Salvar Rascunho -> Publicar.
+ *    - Edição direta de odds em lote, sem necessidade de modais individuais.
+ *    - Templates automáticos para Resultado Final, Dupla Chance, Gols, Escanteios e Cartões.
  * 
- * 3. SEGURANÇA & ATOMICIDADE (OK):
- *    - RLS bloqueia qualquer tentativa de liquidação ou alteração de resultado por não-admins.
- *    - Liquidação atômica em transação única (rollback garantido em falhas).
- *    - Idempotência: Múltiplas execuções não corrompem saldos ou status.
+ * 3. INTEGRIDADE DOS DADOS:
+ *    - Normalização automática de inputs numéricos (1,80 -> 1.80).
+ *    - Validação de odds mínimas (> 1.00) e estados de mercado (DRAFT/OPEN).
+ *    - Persistência garantida via Refresh e suporte a publicações parciais por mercado.
  * 
- * CLASSIFICAÇÃO: A — Motor de liquidação homologado e seguro.
+ * CLASSIFICAÇÃO: A — Central de Precificação pronta para operação diária.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
