@@ -529,7 +529,6 @@ function Index() {
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <div
-            <div
               className="flex items-center gap-2 group cursor-pointer"
               onClick={() => navigate({ to: "/" })}
             >
