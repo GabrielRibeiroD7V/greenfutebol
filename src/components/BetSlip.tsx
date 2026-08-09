@@ -33,7 +33,7 @@ export function BetSlip({ isMobile }: { isMobile?: boolean }) {
           <Ticket size={18} />
           Bilhete
         </h3>
-        <span className="bg-black/20 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase">
+        <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase">
           {selections.length} {selections.length === 1 ? 'seleção' : 'seleções'}
         </span>
       </div>

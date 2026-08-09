@@ -513,7 +513,7 @@ function Index() {
                 <img
                   src={logoAsset.url}
                   alt="GreenFutebol"
-                  className="h-10 sm:h-12 w-auto relative z-10 brightness-100 drop-shadow-sm"
+                  className="h-12 sm:h-16 w-auto relative z-10 brightness-100 drop-shadow-sm"
                 />
               </div>
             </div>
@@ -800,7 +800,14 @@ function Index() {
                                   to="/jogo/$fixtureId"
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
-                                  <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm">
+                                  <div className={cn(
+                                    "rounded-xl border p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm",
+                                    FINISHED_STATUSES.includes(match.status) 
+                                      ? "bg-slate-50 border-slate-200 grayscale-[0.3]" 
+                                      : FUTURE_STATUSES.includes(match.status)
+                                        ? "bg-white border-emerald-100"
+                                        : "bg-white border-slate-200"
+                                  )}>
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
                                         <span className="text-[10px] font-black text-slate-900 whitespace-nowrap">
@@ -882,7 +889,7 @@ function Index() {
             <span className="flex items-center gap-2">
               <Ticket size={20} /> Bilhete
             </span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
+            <span className="bg-white/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
           </button>
         </div>
       )}

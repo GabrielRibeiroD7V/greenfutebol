@@ -68,51 +68,51 @@ function LoginComponent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] p-4 font-sans text-slate-200">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 font-sans text-slate-900">
       <div className="mb-8 flex flex-col items-center gap-4">
         <img 
           src={logoAsset.url} 
           alt="GreenFutebol" 
-          className="h-12 sm:h-16 w-auto brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
+          className="h-14 sm:h-16 w-auto" 
           onClick={() => navigate({ to: "/" })}
           style={{ cursor: 'pointer' }}
         />
       </div>
 
-      <Card className="w-full max-w-md border-emerald-500/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+      <Card className="w-full max-w-md border-slate-200 bg-white shadow-xl rounded-2xl">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold text-white">Bem-vindo de volta</CardTitle>
-          <CardDescription className="text-slate-400">
-            Acesse sua conta com seu telefone e senha
+          <CardTitle className="text-2xl font-black text-slate-900 italic uppercase tracking-tighter">Bem-vindo de volta</CardTitle>
+          <CardDescription className="text-slate-500 font-medium">
+            Acesse sua conta com seu e-mail ou telefone
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white/70">E-mail ou Telefone</Label>
+              <Label htmlFor="phone" className="text-slate-700 font-bold uppercase text-[10px] tracking-widest">E-mail ou Telefone</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500/50 w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600/50 w-4 h-4" />
                 <Input
                   id="phone"
                   type="text"
                   placeholder="Seu e-mail ou (00) 00000-0000"
                   value={phone.includes("@") ? phone : maskPhone(phone)}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white pl-10 focus:ring-emerald-500/50"
+                  className="bg-white border-slate-200 text-slate-900 pl-10 focus:ring-emerald-500"
                   required
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/70">Senha</Label>
+              <Label htmlFor="password" className="text-slate-700 font-bold uppercase text-[10px] tracking-widest">Senha</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500/50 w-4 h-4" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600/50 w-4 h-4" />
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white pl-10 focus:ring-emerald-500/50"
+                  className="bg-white border-slate-200 text-slate-900 pl-10 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -120,7 +120,7 @@ function LoginComponent() {
             <div className="text-right">
               <button 
                 type="button"
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="text-xs text-emerald-600 hover:text-emerald-500 font-bold transition-colors"
                 onClick={() => toast.info("Recuperação de senha estará disponível em breve.")}
               >
                 Esqueceu a senha?
@@ -130,17 +130,17 @@ function LoginComponent() {
           <CardFooter className="flex flex-col space-y-4">
             <Button 
               type="submit" 
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-6 shadow-[0_0_20px_rgba(5,150,105,0.3)]" 
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest py-6 shadow-md transition-all active:scale-[0.98]" 
               disabled={loading}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Entrar
             </Button>
-            <div className="text-center text-sm text-slate-400">
+            <div className="text-center text-sm text-slate-500">
               Não tem uma conta?{" "}
               <Button
                 variant="link"
-                className="h-auto p-0 text-emerald-400 hover:text-emerald-300 font-bold"
+                className="h-auto p-0 text-emerald-600 hover:text-emerald-500 font-black uppercase text-xs tracking-wider"
                 onClick={() => navigate({ to: "/cadastro", search: { redirect: redirectTo } })}
               >
                 Criar conta grátis
@@ -152,7 +152,7 @@ function LoginComponent() {
 
       <button 
         onClick={() => navigate({ to: "/" })}
-        className="mt-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
+        className="mt-8 flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-xs font-bold uppercase tracking-widest"
       >
         <ArrowLeft size={16} />
         Voltar para o início
