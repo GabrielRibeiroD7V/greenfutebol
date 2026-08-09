@@ -227,8 +227,8 @@ function AdminTicketsPage() {
                 </div>
 
                 <div className="col-span-4 lg:col-span-1 flex flex-col items-center justify-center">
-                  <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Tipo</span>
-                  <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full uppercase">
+                  <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Tipo</span>
+                  <span className="text-[9px] font-bold text-slate-700 bg-[#F6F7F7] px-2 py-0.5 rounded-[4px] border border-[#E5E7EB] uppercase">
                     {t.selection_count === 1 ? 'Simples' : 'Múltipla'}
                   </span>
                 </div>
