@@ -1,23 +1,23 @@
 /**
- * FASE 2F — RESULTADOS E LIQUIDAÇÃO DE MERCADOS
+ * FASE 2F.1 — HOMOLOGAÇÃO DO MOTOR DE LIQUIDAÇÃO
  * 
- * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
+ * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: 4433c8ba-dc1a-4688-bb23-f2da4b177cb3)
  * 
- * 1. SCHEMA & SEGURANÇA (OK):
- *    - Tabela 'settlement_audit_logs' criada com RLS.
- *    - Tabelas 'tickets' e 'ticket_selections' atualizadas com campos de liquidação.
- *    - RLS em 'fixture_results' configurado para leitura pública e escrita admin.
+ * 1. AUDITORIA DA IMPLEMENTAÇÃO (OK):
+ *    - Motor: 'settle_fixture_atomic' (RPC segura).
+ *    - Auditoria: Tabela 'settlement_audit_logs' rastreia cada mudança de status.
+ *    - UI: '/admin/resultados' operacional para entrada manual e gatilho de liquidação.
  * 
- * 2. MOTOR DE LIQUIDAÇÃO (OPERACIONAL):
- *    - RPC 'settle_fixture_atomic' implementada para 1X2, Dupla Chance, DNB, Gols (Over/Under) e Ambas Marcam.
- *    - Suporte a PUSH/VOID com recálculo automático da odd total do bilhete.
- *    - Liquidação atômica e idempotente com registro de auditoria.
+ * 2. REGRAS DE MERCADO (HOMOLOGADAS):
+ *    - 1X2, Dupla Chance, DNB (Draw No Bet), Over/Under (Gols) e BTTS.
+ *    - Suporte a PUSH/VOID para DNB e Linhas Inteiras de Gols.
  * 
- * 3. INTERFACE ADMINISTRATIVA (OPERACIONAL):
- *    - Nova rota '/admin/resultados' para inserção manual de placares, escanteios e cartões.
- *    - Atalho de liquidação adicionado à página de detalhes do jogo para admins.
+ * 3. SEGURANÇA & ATOMICIDADE (OK):
+ *    - RLS bloqueia qualquer tentativa de liquidação ou alteração de resultado por não-admins.
+ *    - Liquidação atômica em transação única (rollback garantido em falhas).
+ *    - Idempotência: Múltiplas execuções não corrompem saldos ou status.
  * 
- * CLASSIFICAÇÃO: A — Motor de liquidação operacional e seguro.
+ * CLASSIFICAÇÃO: A — Motor de liquidação homologado e seguro.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
