@@ -155,7 +155,7 @@ function AdminTicketsPage() {
               </Select>
 
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                <SelectTrigger className="w-full bg-white border-[#E5E7EB] font-bold text-[11px] h-10 rounded-[6px] uppercase tracking-wider">
                   <SelectValue placeholder="Período" />
                 </SelectTrigger>
                 <SelectContent>
