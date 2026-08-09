@@ -395,7 +395,7 @@ function Index() {
 
           // Filter for "available/future" games for fallback decision
           const futureFixtures = result.fixtures.filter(f => 
-            !["FT", "AET", "PEN", "CANC", "PST", "SUSP", "ABD", "INT"].includes(f.status)
+            FUTURE_STATUSES.includes(f.status) || LIVE_STATUSES.includes(f.status)
           );
 
           if (futureFixtures.length > 0) {
