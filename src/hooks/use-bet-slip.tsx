@@ -129,7 +129,7 @@ export function useBetSlip() {
 
   return {
     selections,
-    stake,
+    stake: stakeState,
     setStake,
     idempotencyKey,
     generateIdempotencyKey,
