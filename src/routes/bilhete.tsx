@@ -201,29 +201,48 @@ function BilhetePage() {
         </button>
       </header>
       
-      <div className="space-y-4">
-        {selections.map((s) => (
-          <div key={s.selectionId} className="bg-zinc-900 border border-white/5 p-4 rounded-2xl flex justify-between items-center group relative">
-            <div>
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{s.marketName}</span>
-              <p className="font-black text-base leading-tight">{s.selectionName}</p>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{s.fixtureName}</p>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <span className="text-[9px] text-zinc-600 font-black uppercase block">Odd</span>
-                <span className="font-black text-xl text-emerald-500 leading-none">{s.displayedOdd.toFixed(2)}</span>
-              </div>
-              <button 
-                onClick={() => removeSelection(s.selectionId)} 
-                className="p-2 hover:bg-white/5 rounded-full text-zinc-600 hover:text-red-500 transition-colors"
-              >
-                  <X size={18} />
-
-              </button>
-            </div>
+      {state === 'NEEDS_REVIEW' && (
+        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex gap-3 animate-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="shrink-0 text-amber-500" size={20} />
+          <div className="space-y-1">
+            <p className="text-sm font-black text-amber-500 uppercase tracking-tight">Atenção: As odds foram atualizadas</p>
+            <p className="text-xs text-zinc-400 font-medium">Alguns mercados no seu bilhete tiveram alteração de cotação. Verifique os novos valores abaixo antes de confirmar.</p>
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {selections.map((s) => {
+          const change = oddChanges.find(c => c.selection_id === s.selectionId);
+          return (
+            <div key={s.selectionId} className={`bg-zinc-900 border ${change ? 'border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-white/5'} p-4 rounded-2xl flex justify-between items-center group relative transition-all`}>
+              <div>
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{s.marketName}</span>
+                <p className="font-black text-base leading-tight">{s.selectionName}</p>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{s.fixtureName}</p>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <span className="text-[9px] text-zinc-600 font-black uppercase block">Odd</span>
+                  {change ? (
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-zinc-500 line-through font-bold">{s.displayedOdd.toFixed(2)}</span>
+                      <span className="font-black text-xl text-amber-500 leading-none">{change.new_odd.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <span className="font-black text-xl text-emerald-500 leading-none">{s.displayedOdd.toFixed(2)}</span>
+                  )}
+                </div>
+                <button 
+                  onClick={() => removeSelection(s.selectionId)} 
+                  className="p-2 hover:bg-white/5 rounded-full text-zinc-600 hover:text-red-500 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="bg-zinc-900 border border-emerald-500/20 p-6 rounded-3xl space-y-6 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
@@ -239,18 +258,24 @@ function BilhetePage() {
         </div>
         
         <div className="bg-zinc-950/50 border border-white/5 p-4 rounded-xl flex gap-3 text-zinc-400 text-[10px] font-bold uppercase leading-relaxed">
-          <AlertCircle className="shrink-0 text-emerald-500" size={16} />
-          As odds serão verificadas novamente na confirmação. O valor demonstrativo não será persistido.
+          <Info className="shrink-0 text-emerald-500" size={16} />
+          As odds são validadas em tempo real. O modo atual é demonstrativo.
         </div>
 
         <div className="space-y-3">
           <Button 
             onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-50"
+            disabled={state === 'SUBMITTING' || isInvalid}
+            className={`w-full h-14 font-black uppercase tracking-widest rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-50 transition-all ${
+              state === 'NEEDS_REVIEW' 
+                ? 'bg-amber-600 hover:bg-amber-500 text-white' 
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
           >
-            {isSubmitting ? (
+            {state === 'SUBMITTING' ? (
               <Loader2 className="animate-spin" />
+            ) : state === 'NEEDS_REVIEW' ? (
+              'Aceitar Novas Odds e Confirmar'
             ) : (
               'Confirmar Bilhete'
             )}
@@ -259,7 +284,6 @@ function BilhetePage() {
             Aposta mínima: R$ 5,00 • Modo Demonstrativo
           </p>
         </div>
-
       </div>
     </div>
   );
