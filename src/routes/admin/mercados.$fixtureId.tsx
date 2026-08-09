@@ -40,14 +40,22 @@ const MARKET_TEMPLATES = [
   { id: "CORNERS", name: "Escanteios", group: "CORNERS", selections: ["Mais de 9.5", "Menos de 9.5"], keys: ["OVER", "UNDER"], line: 9.5 },
   { id: "CARDS", name: "Cartões", group: "CARDS", selections: ["Mais de 4.5", "Menos de 4.5"], keys: ["OVER", "UNDER"], line: 4.5 },
   { id: "CUSTOM", name: "Mercado Personalizado", group: "CUSTOM", selections: ["Opção 1"], keys: ["OP1"] },
+  { id: "PLAYER_GOAL", name: "Jogador Marca Gol", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
+  { id: "PLAYER_CARDS", name: "Jogador Recebe Cartão", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
+  { id: "PLAYER_ASSIST", name: "Jogador Dá Assistência", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
+  { id: "PLAYER_SHOTS", name: "Finalizações do Jogador", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_SHOTS', hasLine: true },
 ];
 
 function AdminMarketManagerPage() {
   const { fixtureId } = useParams({ from: "/admin/mercados/$fixtureId" });
   const [fixture, setFixture] = useState<any>(null);
   const [markets, setMarkets] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isAddingPlayer, setIsAddingPlayer] = useState(false);
+  const [playerSearch, setPlayerSearch] = useState("");
+  const [newPlayer, setNewPlayer] = useState({ name: "", team_side: "HOME", shirt_number: "", position: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
