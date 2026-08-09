@@ -1,13 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useBetSlip } from "@/hooks/use-bet-slip";
+import { useBetSlip, BetSlipSelection } from "@/hooks/use-bet-slip";
 import { useAuth } from "@/hooks/use-auth";
-import { Ticket, AlertCircle, ArrowLeft, Trash2, CheckCircle2, Loader2, Info } from "lucide-react";
+import { Ticket, AlertCircle, ArrowLeft, Trash2, CheckCircle2, Loader2, Info, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createTicket } from "@/lib/tickets.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+type SubmissionState = 'IDLE' | 'READY' | 'SUBMITTING' | 'NEEDS_REVIEW' | 'SUCCESS';
+
+interface OddChange {
+  selection_id: string;
+  old_odd: number;
+  new_odd: number;
+}
 
 export const Route = createFileRoute("/bilhete")({
   component: BilhetePage,
@@ -21,13 +28,22 @@ function BilhetePage() {
     removeSelection, 
     clearBetSlip,
     idempotencyKey,
-    generateIdempotencyKey
+    generateIdempotencyKey,
+    addSelection
   } = useBetSlip();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [state, setState] = useState<SubmissionState>('IDLE');
   const [ticketResult, setTicketResult] = useState<any>(null);
+  const [oddChanges, setOddChanges] = useState<OddChange[]>([]);
+  const [unavailableSelectionIds, setUnavailableSelectionIds] = useState<string[]>([]);
+  
   const createTicketFn = useServerFn(createTicket);
+
+  const isInvalid = useMemo(() => {
+    return selections.length === 0 || unavailableSelectionIds.length > 0;
+  }, [selections, unavailableSelectionIds]);
 
   const handleConfirm = async () => {
     if (!isAuthenticated) {
@@ -35,16 +51,37 @@ function BilhetePage() {
       return;
     }
 
-    if (!idempotencyKey) {
-      toast.error("Erro interno: Chave de idempotência ausente.");
+    // Se houve mudança de odds, o usuário precisa aceitar primeiro (o botão muda)
+    if (state === 'NEEDS_REVIEW') {
+      // O usuário aceitou as novas odds, então aplicamos elas e geramos nova chave
+      oddChanges.forEach(change => {
+        const selection = selections.find(s => s.selectionId === change.selection_id);
+        if (selection) {
+          addSelection({ ...selection, displayedOdd: change.new_odd });
+        }
+      });
+      setOddChanges([]);
+      const newKey = generateIdempotencyKey();
+      
+      // Imediatamente tenta submeter com a nova chave e odds
+      submit(newKey);
       return;
     }
 
-    setIsSubmitting(true);
+    let currentKey = idempotencyKey;
+    if (!currentKey) {
+      currentKey = generateIdempotencyKey();
+    }
+
+    submit(currentKey);
+  };
+
+  const submit = async (key: string) => {
+    setState('SUBMITTING');
     try {
       const payload = {
         stake,
-        idempotency_key: idempotencyKey,
+        idempotency_key: key,
         selections: selections.map(s => ({
           selection_id: s.selectionId,
           expected_odd: s.displayedOdd
@@ -53,33 +90,47 @@ function BilhetePage() {
 
       const result = await createTicketFn({ data: payload });
       setTicketResult(result);
+      setState('SUCCESS');
       clearBetSlip();
       toast.success("Bilhete confirmado com sucesso!");
     } catch (error: any) {
       const msg = error.message || "";
+      console.error("Erro na criação do ticket:", error);
       
       if (msg.includes("UNAUTHORIZED")) {
+        setState('IDLE');
         toast.error("Sessão expirada. Por favor, faça login novamente.");
         navigate({ to: "/login", search: { redirect: "/bilhete" } });
       } else if (msg.includes("ODDS_CHANGED")) {
-        toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
-        // A RPC retorna a nova odd no corpo do erro PostgREST se configurada, 
-        // mas aqui forçamos o refetch ou a limpeza para que o usuário veja a nova odd.
-        generateIdempotencyKey(); // Nova tentativa exige nova chave
-      } else if (msg.includes("MARKET_UNAVAILABLE")) {
+        setState('NEEDS_REVIEW');
+        try {
+          // Extrai o JSON do detalhe do erro (PostgREST detail)
+          const detailMatch = msg.match(/detail = (\[.*\])/);
+          if (detailMatch) {
+            const changes = JSON.parse(detailMatch[1]) as OddChange[];
+            setOddChanges(changes);
+            toast.warning("Algumas odds mudaram. Revise antes de confirmar.");
+          } else {
+            toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
+          }
+        } catch (e) {
+          toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
+        }
+      } else if (msg.includes("MARKET_UNAVAILABLE") || msg.includes("SELECTION_UNAVAILABLE")) {
+        setState('IDLE');
         toast.error("Um ou mais mercados foram suspensos ou fechados.");
-        generateIdempotencyKey();
-      } else if (msg.includes("FIXTURE_METADATA_UNAVAILABLE")) {
-        toast.error("Esta partida ainda não está disponível para apostas.");
+        // Em um sistema real, poderíamos extrair qual ID falhou do detalhe
+        // Por ora, marcamos todos como suspeitos ou pedimos revisão
       } else if (msg.includes("MATCH_ALREADY_STARTED")) {
-        toast.error("Uma ou mais partidas já começaram.");
+        setState('IDLE');
+        toast.error("Uma ou mais partidas já começaram. Remova-as para continuar.");
       } else if (msg.includes("INVALID_STAKE")) {
+        setState('IDLE');
         toast.error("Valor da aposta inválido (Mínimo R$ 5,00).");
       } else {
+        setState('IDLE'); // Permite retry com a mesma chave
         toast.error(msg || "Erro ao confirmar bilhete.");
       }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -150,29 +201,48 @@ function BilhetePage() {
         </button>
       </header>
       
-      <div className="space-y-4">
-        {selections.map((s) => (
-          <div key={s.selectionId} className="bg-zinc-900 border border-white/5 p-4 rounded-2xl flex justify-between items-center group relative">
-            <div>
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{s.marketName}</span>
-              <p className="font-black text-base leading-tight">{s.selectionName}</p>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{s.fixtureName}</p>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <span className="text-[9px] text-zinc-600 font-black uppercase block">Odd</span>
-                <span className="font-black text-xl text-emerald-500 leading-none">{s.displayedOdd.toFixed(2)}</span>
-              </div>
-              <button 
-                onClick={() => removeSelection(s.selectionId)} 
-                className="p-2 hover:bg-white/5 rounded-full text-zinc-600 hover:text-red-500 transition-colors"
-              >
-                  <X size={18} />
-
-              </button>
-            </div>
+      {state === 'NEEDS_REVIEW' && (
+        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex gap-3 animate-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="shrink-0 text-amber-500" size={20} />
+          <div className="space-y-1">
+            <p className="text-sm font-black text-amber-500 uppercase tracking-tight">Atenção: As odds foram atualizadas</p>
+            <p className="text-xs text-zinc-400 font-medium">Alguns mercados no seu bilhete tiveram alteração de cotação. Verifique os novos valores abaixo antes de confirmar.</p>
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {selections.map((s) => {
+          const change = oddChanges.find(c => c.selection_id === s.selectionId);
+          return (
+            <div key={s.selectionId} className={`bg-zinc-900 border ${change ? 'border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-white/5'} p-4 rounded-2xl flex justify-between items-center group relative transition-all`}>
+              <div>
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{s.marketName}</span>
+                <p className="font-black text-base leading-tight">{s.selectionName}</p>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{s.fixtureName}</p>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <span className="text-[9px] text-zinc-600 font-black uppercase block">Odd</span>
+                  {change ? (
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-zinc-500 line-through font-bold">{s.displayedOdd.toFixed(2)}</span>
+                      <span className="font-black text-xl text-amber-500 leading-none">{change.new_odd.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <span className="font-black text-xl text-emerald-500 leading-none">{s.displayedOdd.toFixed(2)}</span>
+                  )}
+                </div>
+                <button 
+                  onClick={() => removeSelection(s.selectionId)} 
+                  className="p-2 hover:bg-white/5 rounded-full text-zinc-600 hover:text-red-500 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="bg-zinc-900 border border-emerald-500/20 p-6 rounded-3xl space-y-6 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
@@ -188,18 +258,24 @@ function BilhetePage() {
         </div>
         
         <div className="bg-zinc-950/50 border border-white/5 p-4 rounded-xl flex gap-3 text-zinc-400 text-[10px] font-bold uppercase leading-relaxed">
-          <AlertCircle className="shrink-0 text-emerald-500" size={16} />
-          As odds serão verificadas novamente na confirmação. O valor demonstrativo não será persistido.
+          <Info className="shrink-0 text-emerald-500" size={16} />
+          As odds são validadas em tempo real. O modo atual é demonstrativo.
         </div>
 
         <div className="space-y-3">
           <Button 
             onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-50"
+            disabled={state === 'SUBMITTING' || isInvalid}
+            className={`w-full h-14 font-black uppercase tracking-widest rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-50 transition-all ${
+              state === 'NEEDS_REVIEW' 
+                ? 'bg-amber-600 hover:bg-amber-500 text-white' 
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
           >
-            {isSubmitting ? (
+            {state === 'SUBMITTING' ? (
               <Loader2 className="animate-spin" />
+            ) : state === 'NEEDS_REVIEW' ? (
+              'Aceitar Novas Odds e Confirmar'
             ) : (
               'Confirmar Bilhete'
             )}
@@ -208,7 +284,6 @@ function BilhetePage() {
             Aposta mínima: R$ 5,00 • Modo Demonstrativo
           </p>
         </div>
-
       </div>
     </div>
   );
