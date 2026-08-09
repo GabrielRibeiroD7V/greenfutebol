@@ -452,6 +452,8 @@ function AdminMarketManagerPage() {
               </p>
             </div>
           </div>
+        </header>
+
         <div className="flex gap-4 mb-4">
            <Button 
              variant="outline"
