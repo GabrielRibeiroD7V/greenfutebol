@@ -108,7 +108,7 @@ function MeusBilhetesComponent() {
               onClick={() => setStatus(s)}
               className={cn(
                 "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
-                status === s ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                status === s ? "bg-emerald-600 border-emerald-400 text-white shadow-md" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
               )}
             >
               {s === 'ALL' ? 'Todos' : s === 'PENDING_PAYMENT' ? 'Iniciados' : s === 'WAITING_PAYMENT' ? 'Aguardando PIX' : s === 'PAID' ? 'Pagos' : 'Cancelados'}
@@ -118,10 +118,10 @@ function MeusBilhetesComponent() {
 
         <div className="grid gap-4">
           {tickets.length === 0 ? (
-            <div className="text-center p-12 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
-              <Ticket className="mx-auto h-12 w-12 text-slate-700 mb-4" />
-              <h3 className="text-lg font-bold text-white">Nenhum bilhete encontrado.</h3>
-              <p className="text-slate-500 mb-6">Suas apostas aparecerão aqui quando você confirmar um bilhete.</p>
+            <div className="text-center p-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <Ticket className="mx-auto h-12 w-12 text-slate-300 mb-4" />
+              <h3 className="text-lg font-bold text-slate-900">Nenhum bilhete encontrado.</h3>
+              <p className="text-slate-600 mb-6">Suas apostas aparecerão aqui quando você confirmar um bilhete.</p>
               <Button onClick={() => navigate({ to: "/" })} className="bg-emerald-600 hover:bg-emerald-500">Começar a Apostar</Button>
             </div>
           ) : (
@@ -129,8 +129,8 @@ function MeusBilhetesComponent() {
               <div 
                 key={t.id} 
                 className={cn(
-                  "bg-white/5 rounded-2xl border border-white/5 overflow-hidden transition-all duration-300",
-                  expandedTicketId === t.id ? "ring-1 ring-emerald-500/30" : "hover:border-white/10"
+                  "bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all duration-300 shadow-sm",
+                  expandedTicketId === t.id ? "ring-1 ring-emerald-500/30" : "hover:border-slate-300"
                 )}
               >
                 <div 
