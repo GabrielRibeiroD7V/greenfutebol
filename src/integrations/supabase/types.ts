@@ -799,6 +799,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      prepare_fixture_markets_batch: {
+        Args: { p_fixture_ids: number[] }
+        Returns: Json
+      }
       preview_fixture_settlement: {
         Args: { p_fixture_id: number }
         Returns: Json
