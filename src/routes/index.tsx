@@ -1,17 +1,13 @@
 /**
- * VALIDAÇÃO FINAL AUTENTICADA — MERCADO REAL → BETSLIP → TICKET
+ * FASE E.1 — DESTRAVAR AUTENTICAÇÃO DE HOMOLOGAÇÃO E COMPROVAR TICKET REAL
  * 
- * RELATÓRIO DE HOMOLOGAÇÃO (FASE E):
- * 1. SHA testado: [LATEST]
- * 2. Sessão: Tentativas de signUp/signIn via Playwright/UI retornaram falha de infraestrutura (AuthRetryableFetchError).
- * 3. Kickoff Real (554954): 2026-08-09 14:00:00+00.
- * 4. Valor Artificial Removido: Sim, restaurado para o valor real da fonte de dados original.
- * 5. IDs Reais: 554954 (Fixture), da1ac48d (Seleção Casa).
- * 6. Segurança RLS: Confirmado que 'tickets' e 'ticket_selections' bloqueiam INSERT/UPDATE direto do cliente.
- * 7. RPC create_ticket_atomic: Validada como autoridade única com suporte a Idempotência, ODDS_CHANGED e status.
- * 8. Erro 400 Residual: Classificado como Dívida Técnica sem impacto funcional (mercados via PostgREST).
+ * CONTEXTO CONFIRMADO
+ * A Fase E terminou como: B — Estrutura correta, mas homologação autenticada incompleta.
+ * Motivo: O ambiente de Preview/Sandbox não conseguiu estabelecer nova sessão autenticada.
+ * Foram observados: AuthRetryableFetchError, HTTP 500 durante cadastro/login automatizado.
+ * A fixture 554954 teve seu kickoff artificial removido e restaurado para: 2026-08-09 14:00:00+00.
  * 
- * CLASSIFICAÇÃO: B — Estrutura correta, mas homologação autenticada incompleta (bloqueio de infra de Auth no sandbox).
+ * OBJETIVO: Resolver SOMENTE a limitação de autenticação e comprovar o fluxo real.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
