@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -458,18 +458,23 @@ function AdminMarketManagerPage() {
            <Button 
              variant="outline"
              className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[11px] h-14 rounded-2xl"
-             onClick={() => {
-                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
-                mainTemplates.forEach(t => createMarket(t));
+             onClick={async () => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR' || t.group === 'ESCANTEIOS' || t.group === 'CARTÕES');
+                setIsActionLoading(true);
+                for (const t of mainTemplates) {
+                  await createMarket(t);
+                }
+                setIsActionLoading(false);
              }}
            >
              PREPARAR PARTIDA (Templates Principais)
            </Button>
            <Button 
-             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl"
+             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl flex items-center gap-2"
              onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
            >
-             VER COMO USUÁRIO
+              VER NO FRONTEND
+              <ExternalLink size={14} />
            </Button>
         </div>
 
@@ -671,10 +676,14 @@ function AdminMarketManagerPage() {
                 variant="outline"
                 size="sm"
                 className="bg-zinc-900 border-white/10 text-white font-black uppercase text-[9px] rounded-xl h-9"
-                onClick={() => {
+                onClick={async () => {
                   const toOpen = markets.filter(m => m.status === 'DRAFT');
                   if (toOpen.length === 0) return;
-                  toOpen.forEach(m => updateMarketStatus(m.id, 'OPEN'));
+                  setIsActionLoading(true);
+                  for (const m of toOpen) {
+                    await updateMarketStatus(m.id, 'OPEN');
+                  }
+                  setIsActionLoading(false);
                 }}
               >
                 Publicar Todos Rascunhos
@@ -683,9 +692,13 @@ function AdminMarketManagerPage() {
                 variant="destructive"
                 size="sm"
                 className="font-black uppercase text-[9px] rounded-xl h-9"
-                onClick={() => {
+                onClick={async () => {
                   if (confirm("Suspender todos os mercados?")) {
-                    markets.forEach(m => updateMarketStatus(m.id, 'SUSPENDED'));
+                    setIsActionLoading(true);
+                    for (const m of markets) {
+                      await updateMarketStatus(m.id, 'SUSPENDED');
+                    }
+                    setIsActionLoading(false);
                   }
                 }}
               >

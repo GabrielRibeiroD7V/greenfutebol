@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/public/sync-fixtures")({
           const body = await request.json();
           const { date, competition_code } = body;
           
-          const apiKey = process.env["API_FOOTBALL_KEY"];
+          const apiKey = process.env["FOOTBALL_DATA_API_TOKEN"] || process.env["API_FOOTBALL_KEY"];
           if (!apiKey) {
             return new Response("API_FOOTBALL_KEY not set", { status: 500 });
           }
