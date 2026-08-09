@@ -96,7 +96,7 @@ export function SelectionButton({
       {showLabel && (
         <span className={cn(
           "text-[10px] font-bold uppercase tracking-tight mb-1",
-          selected ? "text-emerald-100 bg-black/20 px-1.5 py-0.5 rounded" : "text-slate-500"
+          selected ? "text-emerald-100 bg-white/20 px-1.5 py-0.5 rounded" : "text-slate-500"
         )}>
           {selection.selection_name}
         </span>

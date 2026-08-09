@@ -889,7 +889,7 @@ function Index() {
             <span className="flex items-center gap-2">
               <Ticket size={20} /> Bilhete
             </span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
+            <span className="bg-white/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
           </button>
         </div>
       )}
