@@ -164,11 +164,12 @@ function Index() {
   // Sync state to URL
   useEffect(() => {
     navigate({
-      search: {
+      search: (prev) => ({
+        ...prev,
         tab: activeTab,
         comp: competitionCode,
         date: customDate || undefined,
-      },
+      }),
       replace: true,
     });
   }, [activeTab, competitionCode, customDate, navigate]);
