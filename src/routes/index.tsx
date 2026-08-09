@@ -1,36 +1,3 @@
-/**
- * GreenFutebol - Plataforma Premium de Futebol
- * 
- * RELATÓRIO DE AUDITORIA — ACESSO ADMINISTRATIVO
- * 
- * 1. ROTAS MAPEADAS:
- *    - /admin (src/routes/admin.route.tsx) -> Layout Guard
- *    - /admin/mercados (src/routes/admin/mercados.tsx)
- *    - /admin/mercados/$fixtureId (src/routes/admin/mercados.$fixtureId.tsx)
- *    - /admin/resultados (src/routes/admin/resultados.tsx)
- *    - /admin/bilhetes (src/routes/admin/bilhetes.tsx)
- * 
- * 2. IDENTIFICAÇÃO DO REDIRECT:
- *    - Arquivo: src/routes/admin.route.tsx (Linha 17-19)
- *    - Condição: if (!isLoading && (!isAuthenticated || profile?.role !== 'admin'))
- *    - Destino: navigate({ to: "/" })
- * 
- * 3. ANÁLISE TÉCNICA:
- *    - SESSÃO: Existe no navegador, mas o Guard falha na validação da Role.
- *    - ROLE NO BANCO: A tabela 'profiles' possui coluna 'role', mas o Guard 'has_role' (SQL) consulta a tabela 'user_roles'.
- *    - DIVERGÊNCIA: O frontend (src/hooks/use-auth.tsx) lê a role da tabela 'profiles'.
- *    - RESULTADO DO BANCO: Não existem registros na tabela 'public.user_roles' com role='admin'.
- * 
- * 4. CAUSA RAIZ:
- *    - O usuário autenticado não possui o registro necessário na tabela 'public.user_roles'. 
- *    - Mesmo que o perfil tenha role='admin', a função 'has_role' (usada em RLS) e o fluxo de segurança esperam a tabela de junção.
- * 
- * 5. RECOMENDAÇÃO:
- *    - Vincular o UID do usuário à tabela 'public.user_roles' com a role 'admin'.
- *    - Sincronizar 'profiles.role' com 'user_roles' para evitar inconsistência entre UI e RLS.
- * 
- * CLASSIFICAÇÃO: A — Usuário não possui role admin na tabela de segurança (user_roles).
- */
 
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
