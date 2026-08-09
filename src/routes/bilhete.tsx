@@ -84,7 +84,8 @@ function BilhetePage() {
         idempotency_key: key,
         selections: selections.map(s => ({
           selection_id: s.selectionId,
-          expected_odd: s.displayedOdd
+          expected_odd: s.displayedOdd,
+          metadata: s.metadata // Forward metadata (includes player_id for player markets)
         }))
       };
 
