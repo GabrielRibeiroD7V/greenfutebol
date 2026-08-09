@@ -615,19 +615,24 @@ function AdminMarketManagerPage() {
             </div>
             
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-3">
-                {MARKET_TEMPLATES.filter(t => !t.isPlayerMarket).map(template => (
-                  <Button 
-                    key={template.id}
-                    disabled={isActionLoading}
-                    onClick={() => createMarket(template)}
-                    className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
-                  >
-                    <Plus size={16} className="text-zinc-600 group-hover:text-black" />
-                    <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
-                  </Button>
-                ))}
-              </div>
+              {['PRINCIPAIS', 'GOLS', 'PLACAR', 'ESCANTEIOS', 'CARTÕES'].map(group => (
+                <div key={group} className="space-y-2">
+                  <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{group}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {MARKET_TEMPLATES.filter(t => t.group === group).map(template => (
+                      <Button 
+                        key={template.id}
+                        disabled={isActionLoading}
+                        onClick={() => createMarket(template)}
+                        className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-3 rounded-2xl flex items-center gap-2 transition-all group justify-start px-4"
+                      >
+                        <Plus size={14} className="text-zinc-600 group-hover:text-black" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
               <div className="space-y-3">
                 <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Mercados de Jogadores</h4>
