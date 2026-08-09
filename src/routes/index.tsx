@@ -392,14 +392,22 @@ function Index() {
           const result = await fetchDate(currentDate);
           finalPartial ||= result.partial;
 
-          if (result.fixtures.length > 0) {
+          // Filter for "available/future" games for fallback decision
+          const futureFixtures = result.fixtures.filter(f => 
+            !["FT", "AET", "PEN", "CANC", "PST", "SUSP", "ABD", "INT"].includes(f.status)
+          );
+
+          if (futureFixtures.length > 0) {
             foundFixtures = result.fixtures;
             break;
           }
 
-          if (activeTab === "live" || activeTab === "custom") break;
+          if (activeTab === "live" || activeTab === "custom") {
+            foundFixtures = result.fixtures;
+            break;
+          }
 
-          // If no results, try next day
+          // If no future results, try next day
           currentDate = getNextCGRDateString(currentDate);
           searchCount++;
 
