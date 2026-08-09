@@ -96,10 +96,133 @@ function AdminMarketManagerPage() {
       
       if (mError) throw mError;
       setMarkets(mData || []);
+
+      const { data: pData, error: pError } = await supabase
+        .from("fixture_players")
+        .select("*, players(*)")
+        .eq("fixture_id", parseInt(fixtureId));
+      
+      if (pError) throw pError;
+      setPlayers(pData || []);
     } catch (err: any) {
       toast.error("Erro ao carregar dados: " + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addPlayer = async () => {
+    if (!newPlayer.name) return toast.error("Nome é obrigatório");
+    setIsActionLoading(true);
+    try {
+      // 1. Create player globally if needed (simplified for manual)
+      const { data: player, error: pError } = await supabase
+        .from("players")
+        .insert({
+          name: newPlayer.name,
+          provider: 'MANUAL'
+        })
+        .select()
+        .single();
+      
+      if (pError) throw pError;
+
+      // 2. Link to fixture
+      const { error: fpError } = await supabase
+        .from("fixture_players")
+        .insert({
+          fixture_id: parseInt(fixtureId),
+          player_id: player.id,
+          team_side: newPlayer.team_side,
+          team_name: newPlayer.team_side === 'HOME' ? fixture.home_team_name : fixture.away_team_name,
+          shirt_number: newPlayer.shirt_number ? parseInt(newPlayer.shirt_number) : null,
+          position: newPlayer.position || null,
+          source: 'MANUAL',
+          status: 'AVAILABLE'
+        });
+      
+      if (fpError) throw fpError;
+
+      toast.success("Jogador adicionado");
+      setNewPlayer({ name: "", team_side: "HOME", shirt_number: "", position: "" });
+      setIsAddingPlayer(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const updatePlayerStatus = async (fpId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("fixture_players")
+        .update({ status })
+        .eq("id", fpId);
+      if (error) throw error;
+      toast.success("Status atualizado");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const addPlayerMarket = async (template: any, selectedPlayerIds: string[]) => {
+    if (selectedPlayerIds.length === 0) return toast.error("Selecione pelo menos um jogador");
+    setIsActionLoading(true);
+    try {
+      const marketData = {
+        fixture_id: parseInt(fixtureId),
+        competition_code: fixture.league_id.toString(),
+        market_type: template.id,
+        market_name: template.name,
+        market_group: template.group,
+        status: "DRAFT", // Manual player markets start as DRAFT
+        kickoff_at: fixture.kickoff_at,
+        home_team: fixture.home_team_name,
+        away_team: fixture.away_team_name,
+        period: "FULL_TIME"
+      };
+
+      const { data: market, error: mError } = await supabase
+        .from("fixture_markets")
+        .insert(marketData)
+        .select()
+        .single();
+
+      if (mError) throw mError;
+
+      const selections = selectedPlayerIds.map((pid, i) => {
+        const fp = players.find(p => p.player_id === pid);
+        return {
+          market_id: market.id,
+          selection_key: `PLAYER_${pid}`,
+          selection_name: fp.players.name,
+          odd: 1.90,
+          sort_order: i,
+          status: "OPEN",
+          metadata: {
+            player_id: pid,
+            player_name: fp.players.name,
+            team_side: fp.team_side,
+            player_market_type: template.playerMarketType
+          }
+        };
+      });
+
+      const { error: sError } = await supabase
+        .from("fixture_market_selections")
+        .insert(selections);
+      
+      if (sError) throw sError;
+
+      toast.success("Mercado de jogador criado em DRAFT");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
