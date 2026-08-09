@@ -18,6 +18,7 @@ export type BetSlipSelection = {
 export function useBetSlip() {
   const [selections, setSelections] = useState<BetSlipSelection[]>([]);
   const [stake, setStake] = useState<number>(10);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const isFirstMount = useRef(true);
 
   // Load from localStorage on mount
@@ -29,6 +30,7 @@ export function useBetSlip() {
       try {
         const parsed = JSON.parse(saved);
         const data = parsed.selections || [];
+        const savedKey = parsed.idempotencyKey || null;
         
         // Detect legacy format: id, fixture_id, market_id, selection_id
         const isLegacy = data.some((s: any) => 
@@ -38,11 +40,14 @@ export function useBetSlip() {
         if (isLegacy) {
           localStorage.removeItem("gf_bet_slip");
           setSelections([]);
+          setIdempotencyKey(null);
         } else {
           setSelections(data);
+          setIdempotencyKey(savedKey);
         }
       } catch (e) {
         setSelections([]);
+        setIdempotencyKey(null);
       }
     }
   }, []);
@@ -53,8 +58,14 @@ export function useBetSlip() {
       isFirstMount.current = false;
       return;
     }
-    localStorage.setItem("gf_bet_slip", JSON.stringify({ selections }));
-  }, [selections]);
+    localStorage.setItem("gf_bet_slip", JSON.stringify({ selections, idempotencyKey }));
+  }, [selections, idempotencyKey]);
+
+  const generateIdempotencyKey = useCallback(() => {
+    const key = crypto.randomUUID();
+    setIdempotencyKey(key);
+    return key;
+  }, []);
 
   const hasSelection = useCallback((selectionId: string) => {
     return selections.some(s => s.selectionId === selectionId);
@@ -65,25 +76,37 @@ export function useBetSlip() {
   }, [selections]);
 
   const removeSelection = useCallback((selectionId: string) => {
-    setSelections(prev => prev.filter(s => s.selectionId !== selectionId));
+    setSelections(prev => {
+      const next = prev.filter(s => s.selectionId !== selectionId);
+      if (next.length === 0) setIdempotencyKey(null);
+      return next;
+    });
   }, []);
 
   const clearBetSlip = useCallback(() => {
     setSelections([]);
+    setIdempotencyKey(null);
   }, []);
 
   const addSelection = useCallback((newSelection: BetSlipSelection) => {
     if (!newSelection.selectionId || !newSelection.marketId || newSelection.fixtureId <= 0) return;
     if (newSelection.displayedOdd <= 1.0) return;
 
+    if (!idempotencyKey) {
+      const key = crypto.randomUUID();
+      setIdempotencyKey(key);
+    }
+
     setSelections(prev => {
       const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
-        return prev.filter(s => s.selectionId !== newSelection.selectionId);
+        const next = prev.filter(s => s.selectionId !== newSelection.selectionId);
+        if (next.length === 0) setIdempotencyKey(null);
+        return next;
       }
       return [...filtered, newSelection];
     });
-  }, []);
+  }, [idempotencyKey]);
 
   const toggleSelection = useCallback((newSelection: BetSlipSelection) => {
     const exists = selections.find(s => s.selectionId === newSelection.selectionId);
@@ -101,15 +124,15 @@ export function useBetSlip() {
     selections,
     stake,
     setStake,
+    idempotencyKey,
+    generateIdempotencyKey,
     addSelection,
     removeSelection,
     toggleSelection,
     clearBetSlip,
     hasSelection,
     getSelectionByMarket,
-    selectionCount,
     previewTotalOdd,
-    totalOdd: previewTotalOdd,
-    clearSlip: clearBetSlip
+    selectionCount,
   };
 }
