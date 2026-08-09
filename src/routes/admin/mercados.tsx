@@ -64,7 +64,8 @@ function AdminFixtureListPage() {
         kickoff_at: f.kickoff_at,
         status_long: f.status,
         status_short: f.status,
-        market_count: marketCounts[f.provider_fixture_id] || 0
+        market_count: marketInfo[f.provider_fixture_id]?.count || 0,
+        has_players: marketInfo[f.provider_fixture_id]?.hasPlayers || false
       })) || [];
 
       setFixtures(formatted);
