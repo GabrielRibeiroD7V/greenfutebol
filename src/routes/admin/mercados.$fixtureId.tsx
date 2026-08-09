@@ -691,9 +691,13 @@ function AdminMarketManagerPage() {
                 variant="destructive"
                 size="sm"
                 className="font-black uppercase text-[9px] rounded-xl h-9"
-                onClick={() => {
+                onClick={async () => {
                   if (confirm("Suspender todos os mercados?")) {
-                    markets.forEach(m => updateMarketStatus(m.id, 'SUSPENDED'));
+                    setIsActionLoading(true);
+                    for (const m of markets) {
+                      await updateMarketStatus(m.id, 'SUSPENDED');
+                    }
+                    setIsActionLoading(false);
                   }
                 }}
               >
