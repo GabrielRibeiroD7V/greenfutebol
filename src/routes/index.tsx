@@ -801,7 +801,7 @@ function Index() {
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
                                     <div className={cn(
-                                      "border-b border-slate-100 p-3 sm:p-4 hover:bg-slate-50 transition-colors",
+                                      "border-b border-slate-100 p-3 sm:p-4 hover:bg-[#F6F7F7] transition-colors",
                                       FINISHED_STATUSES.includes(match.status) 
                                         ? "opacity-60 grayscale-[0.5]" 
                                         : "bg-white"
