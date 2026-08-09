@@ -83,37 +83,37 @@ function AdminTicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-white text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-5xl mx-auto">
         <button 
           onClick={() => navigate({ to: '/admin/bilhetes' })}
-          className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-black uppercase tracking-widest text-[10px] mb-6 transition-colors"
+          className="flex items-center gap-2 text-slate-400 hover:text-emerald-600 font-bold uppercase tracking-widest text-[9px] mb-6 transition-colors"
         >
           <ChevronLeft size={14} />
           Voltar para auditoria
         </button>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">{ticket.code}</span>
-              <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border", getStatusColor(ticket.status))}>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 border-b border-[#E5E7EB] pb-8">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold text-slate-900 tracking-tight uppercase">{ticket.code}</span>
+              <div className={cn("px-2 py-0.5 rounded-[4px] text-[9px] font-bold uppercase tracking-wider border", getStatusColor(ticket.status))}>
                 {ticket.status}
               </div>
             </div>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Hash size={12} className="text-emerald-600" />
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+              <Hash size={12} className="text-emerald-500" />
               ID: {ticket.id}
             </p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex gap-2">
              <Button 
                variant="outline" 
-               className="border-slate-200 text-slate-600 font-black uppercase text-[10px] tracking-widest"
+               className="border-[#E5E7EB] text-slate-600 font-bold uppercase text-[9px] tracking-widest h-9 px-4 rounded-[6px]"
                onClick={() => navigate({ to: '/admin/resultados' })}
              >
-               Ver Resultados
+               Liquidação Manual
              </Button>
           </div>
         </div>
