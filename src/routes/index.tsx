@@ -334,6 +334,7 @@ function Index() {
                 const { data, error: invokeError } = await withTimeout(
                   supabase.functions.invoke("get-football-fixtures", {
                     body: { date, competition_code: code },
+                    signal: AbortSignal.timeout(FIXTURES_REQUEST_TIMEOUT_MS),
                   }),
                   FIXTURES_REQUEST_TIMEOUT_MS,
                 );
