@@ -31,7 +31,6 @@ export function useBetSlip() {
         const parsed = JSON.parse(saved);
         const data = parsed.selections || [];
         const savedKey = parsed.idempotencyKey || null;
-
         
         // Detect legacy format: id, fixture_id, market_id, selection_id
         const isLegacy = data.some((s: any) => 
@@ -41,11 +40,14 @@ export function useBetSlip() {
         if (isLegacy) {
           localStorage.removeItem("gf_bet_slip");
           setSelections([]);
+          setIdempotencyKey(null);
         } else {
           setSelections(data);
+          setIdempotencyKey(savedKey);
         }
       } catch (e) {
         setSelections([]);
+        setIdempotencyKey(null);
       }
     }
   }, []);
@@ -56,8 +58,9 @@ export function useBetSlip() {
       isFirstMount.current = false;
       return;
     }
-    localStorage.setItem("gf_bet_slip", JSON.stringify({ selections }));
-  }, [selections]);
+    localStorage.setItem("gf_bet_slip", JSON.stringify({ selections, idempotencyKey }));
+  }, [selections, idempotencyKey]);
+
 
   const hasSelection = useCallback((selectionId: string) => {
     return selections.some(s => s.selectionId === selectionId);
