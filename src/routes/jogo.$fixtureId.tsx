@@ -35,12 +35,19 @@ function MatchDetails() {
           .from("fixture_markets")
           .select("*, fixture_market_selections(*)")
           .eq("fixture_id", parseInt(fixtureId))
-          .order("market_group");
+          .order("created_at", { ascending: true }); // Prefer insertion order or custom grouping later
           
         if (mError) {
           console.error("Error fetching markets:", mError);
         }
-        setMarkets(marketsData || []);
+        
+        // Custom Sort: Principais first, then goals, then others, then players
+        const sortedMarkets = (marketsData || []).sort((a, b) => {
+          const order: Record<string, number> = { 'RESULT': 1, 'GOALS': 2, 'SCORE': 3, 'CORNERS': 4, 'CARDS': 5, 'PLAYER': 10 };
+          return (order[a.market_group] || 99) - (order[b.market_group] || 99);
+        });
+
+        setMarkets(sortedMarkets);
 
         // Then fetch fixture details from Edge Function
         const { data: fixtureData, error: fError } = await supabase.functions.invoke("get-football-fixture", {
