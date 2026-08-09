@@ -134,7 +134,7 @@ function AdminTicketsPage() {
                 placeholder="Buscar por código, ID do bilhete..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"
+                className="pl-10 bg-white border-[#E5E7EB] text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500 rounded-[6px] text-xs h-10"
               />
             </div>
             
