@@ -234,11 +234,6 @@ function Index() {
       setReachedLimit(false);
 
       try {
-        const now = Date.now();
-        for (const [key, cached] of fixturesCacheRef.current) {
-          if (cached.expiresAt <= now) fixturesCacheRef.current.delete(key);
-        }
-
         let requestedDate: string;
         if (activeTab === "tomorrow") {
           requestedDate = getTomorrowCGRDateString();
@@ -248,6 +243,42 @@ function Index() {
           requestedDate = getCGRDateString(new Date());
         }
 
+        // 1. Tentar carregar da nossa tabela persistente 'fixtures'
+        const { data: dbFixtures, error: dbError } = await supabase
+          .from('fixtures')
+          .select('*')
+          .gte('kickoff_at', `${requestedDate}T00:00:00Z`)
+          .lte('kickoff_at', `${requestedDate}T23:59:59Z`)
+          .order('kickoff_at', { ascending: true });
+
+        if (!dbError && dbFixtures && dbFixtures.length > 0) {
+          const formatted = dbFixtures.map(f => ({
+            fixture_id: f.provider_fixture_id,
+            league_name: f.competition_name,
+            league_logo: null,
+            country: f.country,
+            home_team_name: f.home_team_name,
+            home_team_logo: f.home_team_crest,
+            away_team_name: f.away_team_name,
+            away_team_logo: f.away_team_crest,
+            kickoff_at: f.kickoff_at,
+            venue: f.venue,
+            status: f.status,
+            elapsed: null,
+            home_score: f.home_score,
+            away_score: f.away_score
+          }));
+
+          if (currentRequestId === requestIdRef.current) {
+            setFixtures(formatted);
+            setDisplayedDate(requestedDate);
+            setIsShowingNextAvailable(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // 2. Se não houver no banco, fallback para o fluxo original de cache/API
         let currentDate = requestedDate;
         let foundFixtures: Fixture[] = [];
         let searchCount = 0;
