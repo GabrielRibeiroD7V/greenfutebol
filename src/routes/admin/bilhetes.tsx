@@ -167,7 +167,7 @@ function AdminTicketsPage() {
               </Select>
 
               <Select value={paymentMode} onValueChange={setPaymentMode}>
-                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                <SelectTrigger className="w-full bg-white border-[#E5E7EB] font-bold text-[11px] h-10 rounded-[6px] uppercase tracking-wider">
                   <SelectValue placeholder="Pagamento" />
                 </SelectTrigger>
                 <SelectContent>
