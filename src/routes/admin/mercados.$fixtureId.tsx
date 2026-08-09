@@ -729,7 +729,8 @@ function AdminMarketManagerPage() {
         </div>
       </div>
     </div>
-  );
+}
+
 function PlayerMarketCreator({ template, players, isActionLoading, onConfirm }: any) {
   const [selected, setSelected] = useState<string[]>([]);
   
