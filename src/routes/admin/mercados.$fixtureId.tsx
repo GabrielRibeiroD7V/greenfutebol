@@ -143,20 +143,56 @@ function AdminMarketManagerPage() {
     }
   };
 
-  const deleteMarket = async (marketId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este mercado? Bilhetes vinculados podem impedir a exclusão.")) return;
+  const addSelection = async (marketId: string, name: string, key: string, metadata: any = {}) => {
     try {
       const { error } = await supabase
-        .from("fixture_markets")
-        .delete()
-        .eq("id", marketId);
+        .from("fixture_market_selections")
+        .insert({
+          market_id: marketId,
+          selection_name: name,
+          selection_key: key,
+          odd: 1.90,
+          status: "OPEN",
+          metadata
+        });
       if (error) throw error;
-      toast.success("Mercado excluído");
+      toast.success("Opção adicionada");
       fetchData();
     } catch (err: any) {
-      toast.error("Erro ao excluir: Possui tickets vinculados.");
+      toast.error(err.message);
     }
   };
+
+  const addScoreSelection = async (marketId: string) => {
+    const home = prompt("Gols Mandante:");
+    const away = prompt("Gols Visitante:");
+    if (home === null || away === null) return;
+    const name = `${home} x ${away}`;
+    const key = `${home}:${away}`;
+    const metadata = { home_score: parseInt(home), away_score: parseInt(away) };
+    addSelection(marketId, name, key, metadata);
+  };
+
+  const addLineSelection = async (market: any) => {
+    const line = prompt("Qual a linha? (Ex: 1.5)");
+    if (line === null) return;
+    const l = parseFloat(line);
+    
+    // For Over/Under we usually add both
+    try {
+      await supabase
+        .from("fixture_market_selections")
+        .insert([
+          { market_id: market.id, selection_name: `Mais de ${l}`, selection_key: `OVER_${l}`, odd: 1.90, status: "OPEN", metadata: { line: l, type: 'OVER' } },
+          { market_id: market.id, selection_name: `Menos de ${l}`, selection_key: `UNDER_${l}`, odd: 1.90, status: "OPEN", metadata: { line: l, type: 'UNDER' } }
+        ]);
+      toast.success("Linhas adicionadas");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
