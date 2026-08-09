@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, Outlet, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import { Loader2, ShieldCheck, Ticket, BarChart3, Settings } from "lucide-react";
+import { Loader2, ShieldCheck, Ticket, BarChart3, Settings, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
@@ -35,8 +35,9 @@ function AdminLayout() {
         <nav className="p-4 space-y-2">
           {[
             { label: 'Bilhetes', icon: Ticket, to: '/admin/bilhetes' },
-            { label: 'Mercados', icon: BarChart3, to: '/admin/mercados' },
-            { label: 'Voltar', icon: Settings, to: '/' },
+            { label: 'Resultados', icon: BarChart3, to: '/admin/resultados' },
+            { label: 'Mercados', icon: Settings, to: '/admin/mercados' },
+            { label: 'Voltar', icon: ArrowRightLeft, to: '/' },
           ].map((item) => (
             <button
               key={item.to}

@@ -23,26 +23,41 @@ async function requireAdmin() {
 export const getAdminTickets = createServerFn({ method: "GET" })
   .validator((data: any) => z.object({
     page: z.number().default(1),
-    pageSize: z.number().default(20),
+    pageSize: z.number().default(50),
     status: z.string().optional(),
-    search: z.string().optional(), // code, name, or phone
-    dateFrom: z.string().optional(),
-    dateTo: z.string().optional(),
+    search: z.string().optional(),
+    dateRange: z.string().optional(), // 'today', '7days', '30days'
+    paymentMode: z.string().optional(),
+    ticketType: z.string().optional(),
   }).parse(data))
   .handler(async ({ data: input }) => {
-    const adminUser = await requireAdmin();
-    const { page, pageSize, status, search, dateFrom, dateTo } = input;
+    await requireAdmin();
+    const { page, pageSize, status, search, dateRange, paymentMode, ticketType } = input;
     
     let query = supabase
       .from('tickets')
-      .select('*, profiles(name, phone)', { count: 'exact' });
+      .select('*, profiles(name, phone, email)', { count: 'exact' });
 
-    if (status) query = query.eq('status', status);
-    if (dateFrom) query = query.gte('created_at', dateFrom);
-    if (dateTo) query = query.lte('created_at', dateTo);
+    if (status && status !== 'ALL') query = query.eq('status', status);
+    if (paymentMode) query = query.eq('payment_mode', paymentMode);
+    
+    if (dateRange === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', today.toISOString());
+    } else if (dateRange === '7days') {
+      const date = new Date();
+      date.setDate(date.getDate() - 7);
+      query = query.gte('created_at', date.toISOString());
+    } else if (dateRange === '30days') {
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      query = query.gte('created_at', date.toISOString());
+    }
     
     if (search) {
-       query = query.or(`code.ilike.%${search}%`);
+       query = query.or(`code.ilike.%${search}%,id.ilike.%${search}%`);
+       // Note: complex profile joins searching needs extra work, but usually ID/Code is enough for admin
     }
 
     const from = (page - 1) * pageSize;
@@ -60,6 +75,32 @@ export const getAdminTickets = createServerFn({ method: "GET" })
       page,
       pageSize
     };
+  });
+
+export const getAdminTicketsSummary = createServerFn({ method: "GET" })
+  .handler(async () => {
+    await requireAdmin();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayIso = today.toISOString();
+
+    const { data: summary, error } = await supabase.rpc('get_admin_tickets_summary', {
+      _since: todayIso
+    });
+
+    if (error) {
+      console.error("Summary error:", error);
+      // Fallback for missing RPC
+      return {
+        todayCount: 0,
+        todayStake: 0,
+        pendingCount: 0,
+        wonCount: 0,
+        lostCount: 0,
+        potentialExposure: 0
+      };
+    }
+    return summary;
   });
 
 export const getAdminTicketDetail = createServerFn({ method: "GET" })

@@ -1,91 +1,77 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { getAdminTickets, getAdminTicketsSummary } from "@/lib/admin.functions";
-import { 
-  Loader2, Search, Ticket, User, Phone, Calendar, Clock, 
-  ChevronRight, Filter, ShieldCheck, RefreshCw, TrendingUp, 
-  CheckCircle2, XCircle, AlertCircle, Ban, ArrowRightLeft, CreditCard
-} from "lucide-react";
+import { Loader2, Search, Ticket, Clock, RefreshCw, TrendingUp, CheckCircle2, XCircle, AlertCircle, Ban, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/phone-utils";
 import { useDebounce } from "@/hooks/use-debounce";
-
 export const Route = createFileRoute("/admin/bilhetes")({
-  ssr: false,
-  component: AdminTicketsPage,
+    ssr: false,
+    component: AdminTicketsPage,
 });
-
 function AdminTicketsPage() {
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [summary, setSummary] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("ALL");
-  const [dateRange, setDateRange] = useState("ALL");
-  const [paymentMode, setPaymentMode] = useState("ALL");
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  
-  const debouncedSearch = useDebounce(search, 500);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    loadData();
-  }, [debouncedSearch, status, dateRange, paymentMode, page]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [ticketsData, summaryData] = await Promise.all([
-        getAdminTickets({ 
-          data: { 
-            search: debouncedSearch, 
-            status: status === 'ALL' ? undefined : status,
-            dateRange: dateRange === 'ALL' ? undefined : dateRange,
-            paymentMode: paymentMode === 'ALL' ? undefined : paymentMode,
-            page,
-            pageSize: 50
-          } 
-        }),
-        getAdminTicketsSummary()
-      ]);
-      
-      setTickets(ticketsData.tickets || []);
-      setTotalCount(ticketsData.totalCount || 0);
-      setSummary(summaryData);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'WON': return <CheckCircle2 size={16} className="text-emerald-500" />;
-      case 'LOST': return <XCircle size={16} className="text-red-500" />;
-      case 'VOID': return <Ban size={16} className="text-slate-400" />;
-      case 'CANCELLED': return <AlertCircle size={16} className="text-slate-400" />;
-      default: return <Clock size={16} className="text-amber-500" />;
-    }
-  };
-
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
+    const [tickets, setTickets] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [status, setStatus] = useState("ALL");
+    const [dateRange, setDateRange] = useState("ALL");
+    const [paymentMode, setPaymentMode] = useState("ALL");
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const debouncedSearch = useDebounce(search, 500);
+    const navigate = useNavigate();
+    useEffect(() => {
+        loadData();
+    }, [debouncedSearch, status, dateRange, paymentMode, page]);
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [ticketsData, summaryData] = await Promise.all([
+                getAdminTickets({
+                    data: {
+                        search: debouncedSearch,
+                        status: status === 'ALL' ? undefined : status,
+                        dateRange: dateRange === 'ALL' ? undefined : dateRange,
+                        paymentMode: paymentMode === 'ALL' ? undefined : paymentMode,
+                        page,
+                        pageSize: 50
+                    }
+                }),
+                getAdminTicketsSummary()
+            ]);
+            setTickets(ticketsData.tickets || []);
+            setTotalCount(ticketsData.totalCount || 0);
+            setSummary(summaryData);
+        }
+        catch (e) {
+            console.error(e);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'WON': return <CheckCircle2 size={16} className="text-emerald-500"/>;
+            case 'LOST': return <XCircle size={16} className="text-red-500"/>;
+            case 'VOID': return <Ban size={16} className="text-slate-400"/>;
+            case 'CANCELLED': return <AlertCircle size={16} className="text-slate-400"/>;
+            default: return <Clock size={16} className="text-amber-500"/>;
+        }
+    };
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    };
+    return (<div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
-              <Ticket size={28} />
+              <Ticket size={28}/>
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight italic">Auditório de Bilhetes</h1>
@@ -95,7 +81,7 @@ function AdminTicketsPage() {
           <div className="flex gap-2">
             <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm">Home</Button>
             <Button onClick={loadData} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 shadow-sm">
-              <RefreshCw size={16} className={cn("mr-2", loading && "animate-spin")} />
+              <RefreshCw size={16} className={cn("mr-2", loading && "animate-spin")}/>
               Atualizar
             </Button>
           </div>
@@ -110,38 +96,29 @@ function AdminTicketsPage() {
             { label: 'Ganhos', value: summary?.wonCount || 0, icon: CheckCircle2, color: 'emerald' },
             { label: 'Perdidos', value: summary?.lostCount || 0, icon: XCircle, color: 'red' },
             { label: 'Exposição Total', value: formatCurrency(summary?.potentialExposure || 0), icon: TrendingUp, color: 'slate' },
-          ].map((item, idx) => (
-            <div key={idx} className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3", 
-                item.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
+        ].map((item, idx) => (<div key={idx} className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3", item.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
                 item.color === 'amber' ? "bg-amber-50 text-amber-600" :
-                item.color === 'red' ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
-              )}>
-                <item.icon size={18} />
+                    item.color === 'red' ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600")}>
+                <item.icon size={18}/>
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
               <p className="text-lg font-black text-slate-900 leading-none">{item.value}</p>
-            </div>
-          ))}
+            </div>))}
         </div>
 
         {/* Filtros e Busca */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 mb-8 shadow-sm space-y-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input 
-                placeholder="Buscar por código, ID do bilhete..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"
-              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"/>
+              <Input placeholder="Buscar por código, ID do bilhete..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"/>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Status"/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todos Status</SelectItem>
@@ -156,7 +133,7 @@ function AdminTicketsPage() {
 
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
-                  <SelectValue placeholder="Período" />
+                  <SelectValue placeholder="Período"/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todo Período</SelectItem>
@@ -168,7 +145,7 @@ function AdminTicketsPage() {
 
               <Select value={paymentMode} onValueChange={setPaymentMode}>
                 <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
-                  <SelectValue placeholder="Pagamento" />
+                  <SelectValue placeholder="Pagamento"/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todos Meios</SelectItem>
@@ -181,19 +158,14 @@ function AdminTicketsPage() {
         </div>
 
         {/* Listagem */}
-        {loading && tickets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-emerald-600 w-10 h-10 mb-4" />
+        {loading && tickets.length === 0 ? (<div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="animate-spin text-emerald-600 w-10 h-10 mb-4"/>
             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Carregando auditoria...</p>
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="text-center p-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <Ticket className="mx-auto h-16 w-16 text-slate-200 mb-4" />
+          </div>) : tickets.length === 0 ? (<div className="text-center p-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <Ticket className="mx-auto h-16 w-16 text-slate-200 mb-4"/>
             <h3 className="text-xl font-bold text-slate-900 uppercase italic">Nenhum bilhete encontrado</h3>
             <p className="text-slate-500 mt-2 font-medium">Ajuste os filtros para encontrar registros específicos.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
+          </div>) : (<div className="space-y-4">
             <div className="bg-slate-200/50 rounded-xl p-3 grid grid-cols-12 gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest px-6 hidden lg:grid">
               <div className="col-span-2">Código / Data</div>
               <div className="col-span-3">Cliente / Contato</div>
@@ -203,12 +175,7 @@ function AdminTicketsPage() {
               <div className="col-span-2 text-right">Status</div>
             </div>
 
-            {tickets.map(t => (
-              <div 
-                key={t.id} 
-                onClick={() => navigate({ to: `/admin/bilhetes/${t.id}` })}
-                className="bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 grid grid-cols-12 gap-4 items-center cursor-pointer hover:border-emerald-300 transition-all shadow-sm group"
-              >
+            {tickets.map(t => (<div key={t.id} onClick={() => navigate({ to: `/admin/bilhetes/${t.id}` })} className="bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 grid grid-cols-12 gap-4 items-center cursor-pointer hover:border-emerald-300 transition-all shadow-sm group">
                 <div className="col-span-6 lg:col-span-2 space-y-1">
                   <span className="text-sm font-black text-emerald-600 tracking-tighter group-hover:underline">{t.code}</span>
                   <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold italic">
@@ -247,50 +214,35 @@ function AdminTicketsPage() {
                   <div className="flex items-center gap-2">
                     {getStatusIcon(t.status)}
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
-                      {t.status === 'PAID' ? 'Pago' : 
-                       t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
-                       t.status === 'PENDING_PAYMENT' ? 'Pendente Pag.' :
-                       t.status === 'WON' ? 'Ganho' :
-                       t.status === 'LOST' ? 'Perdido' :
-                       t.status === 'VOID' ? 'Anulado' :
-                       t.status === 'CONFIRMED' ? 'Confirmado' :
-                       t.status === 'CANCELLED' ? 'Cancelado' : t.status}
+                      {t.status === 'PAID' ? 'Pago' :
+                    t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
+                        t.status === 'PENDING_PAYMENT' ? 'Pendente Pag.' :
+                            t.status === 'WON' ? 'Ganho' :
+                                t.status === 'LOST' ? 'Perdido' :
+                                    t.status === 'VOID' ? 'Anulado' :
+                                        t.status === 'CONFIRMED' ? 'Confirmado' :
+                                            t.status === 'CANCELLED' ? 'Cancelado' : t.status}
                     </span>
                   </div>
                   <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest">
                     {t.payment_mode === 'SIMULATED' ? 'Modo Simulado' : 'Transação Real'}
                   </span>
                 </div>
-              </div>
-            ))}
+              </div>))}
 
             {/* Paginação Simples */}
             <div className="flex items-center justify-between py-6">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total: {totalCount} bilhetes</span>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  disabled={page === 1} 
-                  onClick={() => setPage(p => p - 1)}
-                  className="text-xs font-black uppercase tracking-widest border-slate-200"
-                >
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="text-xs font-black uppercase tracking-widest border-slate-200">
                   Anterior
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  disabled={tickets.length < 50} 
-                  onClick={() => setPage(p => p + 1)}
-                  className="text-xs font-black uppercase tracking-widest border-slate-200"
-                >
+                <Button variant="outline" size="sm" disabled={tickets.length < 50} onClick={() => setPage(p => p + 1)} className="text-xs font-black uppercase tracking-widest border-slate-200">
                   Próxima
                 </Button>
               </div>
             </div>
-          </div>
-        )}
+          </div>)}
       </div>
-    </div>
-  );
+    </div>);
 }
