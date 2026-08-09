@@ -158,25 +158,25 @@ function AdminFixtureListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black uppercase tracking-tighter text-emerald-500">Gestão de Mercados</h1>
-            <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">Painel Administrativo • GreenFutebol</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-emerald-600 italic">Gestão de Mercados</h1>
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Painel Administrativo • GreenFutebol</p>
           </div>
           <div className="flex items-center gap-3">
             <Button 
               onClick={() => navigate({ to: "/" })} 
               variant="outline" 
-              className="border-white/10 text-zinc-400 hover:bg-white/5 font-black uppercase text-[10px]"
+              className="border-slate-200 text-slate-500 hover:bg-slate-100 font-black uppercase text-[10px] shadow-sm"
             >
               Voltar ao Site
             </Button>
             <Button 
               onClick={handleSync} 
               disabled={syncing || loading}
-              className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[10px]"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] shadow-md transition-all active:scale-[0.98]"
             >
               <RefreshCw size={14} className={cn("mr-2", syncing && "animate-spin")} />
               {syncing ? "Sincronizando..." : "Sincronizar"}
@@ -184,59 +184,59 @@ function AdminFixtureListPage() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-zinc-900/50 border border-white/5 p-6 rounded-3xl backdrop-blur-md">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Buscar Time</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Buscar Time</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <Input 
                 placeholder="Ex: Grêmio..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-black border-white/10 pl-10 h-12 rounded-xl focus:ring-emerald-500/20"
+                className="bg-white border-slate-200 pl-10 h-12 rounded-xl focus:ring-emerald-500"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Data</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Data</label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <Input 
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="bg-black border-white/10 pl-10 h-12 rounded-xl focus:ring-emerald-500/20"
+                className="bg-white border-slate-200 pl-10 h-12 rounded-xl focus:ring-emerald-500"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Competição</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Competição</label>
             <div className="relative">
-              <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+              <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <Input 
                 placeholder="Ex: Brasileirão..." 
                 value={competitionFilter}
                 onChange={(e) => setCompetitionFilter(e.target.value)}
-                className="bg-black border-white/10 pl-10 h-12 rounded-xl focus:ring-emerald-500/20"
+                className="bg-white border-slate-200 pl-10 h-12 rounded-xl focus:ring-emerald-500"
               />
             </div>
           </div>
         </section>
 
-        <div className="bg-zinc-900/50 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-md">
-          <div className="p-4 border-b border-white/5 bg-zinc-900/80 flex items-center justify-between">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Partidas Disponíveis</h3>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full font-black uppercase">
+        <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Partidas Disponíveis</h3>
+            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-black uppercase">
               {filteredFixtures.length} Encontradas
             </span>
           </div>
 
           {filteredFixtures.length > 0 && (
-            <div className="p-4 bg-zinc-900/80 border-b border-white/5 flex items-center gap-4">
+            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-4">
               <Button 
                 onClick={toggleAll}
                 variant="outline" 
-                className="border-white/10 text-zinc-400 hover:bg-white/5 font-black uppercase text-[10px] h-8"
+                className="border-slate-200 text-slate-600 hover:bg-slate-100 font-black uppercase text-[10px] h-8 shadow-sm"
               >
                 {selectedFixtures.length === filteredFixtures.length ? "Desmarcar Todos" : "Selecionar Todos"}
               </Button>
@@ -244,7 +244,7 @@ function AdminFixtureListPage() {
                 <Button 
                   onClick={prepareBatchMarkets}
                   disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[10px] h-8"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] h-8 shadow-md"
                 >
                   Preparar Mercados ({selectedFixtures.length})
                 </Button>
@@ -252,48 +252,48 @@ function AdminFixtureListPage() {
             </div>
           )}
           
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-slate-100">
             {loading && !syncing ? (
               <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-50">
-                <Loader2 className="animate-spin text-emerald-500" size={32} />
-                <p className="text-[10px] font-black uppercase tracking-widest">Carregando...</p>
+                <Loader2 className="animate-spin text-emerald-600" size={32} />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Carregando...</p>
               </div>
             ) : filteredFixtures.length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-30">
-                <AlertCircle size={32} />
-                <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma partida encontrada no banco</p>
-                <p className="text-[8px] font-bold uppercase tracking-[0.2em]">Clique em Sincronizar para buscar do provedor</p>
+              <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
+                <AlertCircle size={32} className="text-slate-300" />
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nenhuma partida encontrada no banco</p>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em]">Clique em Sincronizar para buscar do provedor</p>
               </div>
             ) : (
               filteredFixtures.map(f => (
                 <div key={f.fixture_id} className={cn(
-                  "p-4 md:p-6 hover:bg-white/5 transition-colors group flex items-start gap-4",
-                  selectedFixtures.includes(f.fixture_id) && "bg-emerald-500/5"
+                  "p-4 md:p-6 hover:bg-slate-50 transition-colors group flex items-start gap-4",
+                  selectedFixtures.includes(f.fixture_id) && "bg-emerald-50"
                 )}>
                   <div className="pt-2">
                     <input 
                       type="checkbox" 
                       checked={selectedFixtures.includes(f.fixture_id)}
                       onChange={() => toggleSelection(f.fixture_id)}
-                      className="w-5 h-5 rounded border-white/10 bg-black text-emerald-500 focus:ring-emerald-500/20 cursor-pointer"
+                      className="w-5 h-5 rounded border-slate-300 bg-white text-emerald-600 focus:ring-emerald-500 cursor-pointer shadow-sm"
                     />
                   </div>
                   <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-black uppercase bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+                        <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-500 px-2 py-0.5 rounded shadow-xs">
                           {f.league_name}
                         </span>
-                        <span className="text-[9px] font-black uppercase text-zinc-600">
+                        <span className="text-[9px] font-black uppercase text-slate-400">
                           ID: {f.fixture_id}
                         </span>
                         {f.market_count > 0 && (
-                          <span className="text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
+                          <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
                             {f.market_count} Mercados
                           </span>
                         )}
                         {f.has_players && (
-                          <span className="text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                          <span className="text-[9px] font-black uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200 flex items-center gap-1">
                             <Users size={10} /> Jogadores
                           </span>
                         )}
@@ -301,37 +301,37 @@ function AdminFixtureListPage() {
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3">
                           <img src={f.home_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
-                          <span className="text-lg font-black uppercase tracking-tighter italic">{f.home_team_name}</span>
+                          <span className="text-lg font-black uppercase tracking-tighter italic text-slate-900">{f.home_team_name}</span>
                         </div>
-                        <span className="text-zinc-700 font-black italic">VS</span>
+                        <span className="text-slate-300 font-black italic text-xs">VS</span>
                         <div className="flex items-center gap-3">
                           <img src={f.away_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
-                          <span className="text-lg font-black uppercase tracking-tighter italic">{f.away_team_name}</span>
+                          <span className="text-lg font-black uppercase tracking-tighter italic text-slate-900">{f.away_team_name}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-6">
                       <div className="text-right space-y-1">
-                        <p className="text-xs font-black uppercase text-zinc-300">{formatDate(f.kickoff_at)}</p>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{formatTime(f.kickoff_at)}</p>
+                        <p className="text-xs font-black uppercase text-slate-700">{formatDate(f.kickoff_at)}</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{formatTime(f.kickoff_at)}</p>
                       </div>
-                      <div className="text-right space-y-1">
+                      <div className="text-right space-y-1 min-w-[100px]">
                         <span className={cn(
                           "text-[9px] font-black uppercase px-2 py-0.5 rounded block text-center",
-                          f.status_short === 'FT' ? "bg-red-500/10 text-red-500" : 
-                          f.status_short === 'NS' ? "bg-emerald-500/10 text-emerald-500" :
-                          "bg-amber-500/10 text-amber-500"
+                          f.status_short === 'FT' ? "bg-red-100 text-red-700" : 
+                          f.status_short === 'NS' ? "bg-emerald-100 text-emerald-700" :
+                          "bg-amber-100 text-amber-700"
                         )}>
                           {f.status_long}
                         </span>
-                        <span className="text-[8px] font-bold text-zinc-600 uppercase block text-center mt-1">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase block text-center mt-1">
                           {f.market_count > 0 ? "Em Preparação" : "Sem Mercados"}
                         </span>
                       </div>
                       <Button 
                         onClick={() => navigate({ to: `/admin/mercados/${f.fixture_id}` })}
-                        className="bg-zinc-800 hover:bg-emerald-600 text-white font-black uppercase text-[10px] h-12 px-6 rounded-xl group-hover:bg-emerald-600 transition-colors"
+                        className="bg-white border border-slate-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-slate-900 font-black uppercase text-[10px] h-12 px-6 rounded-xl transition-all shadow-sm"
                       >
                         Gerenciar
                         <ChevronRight size={16} className="ml-2" />
