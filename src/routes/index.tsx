@@ -131,19 +131,15 @@ function Index() {
   const { selections } = useBetSlip();
   const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "live" | "custom">("today");
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [upcomingFixtures, setUpcomingFixtures] = useState<Fixture[]>([]);
-  const [upcomingDate, setUpcomingDate] = useState<string | null>(null);
   const [isPartial, setIsPartial] = useState(false);
   const [displayedDate, setDisplayedDate] = useState<string | null>(null);
-  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false); // Legacy flag
+  const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
   const [competitionCode, setCompetitionCode] = useState<
     "BSA" | "PL" | "CL" | "BL1" | "PD" | "SA" | "FL1" | "DED" | "ELC" | "PPL" | "ALL"
   >("ALL");
   const [isLoading, setIsLoading] = useState(true);
-  const [isSearchingUpcoming, setIsSearchingUpcoming] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [upcomingError, setUpcomingError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [customDate, setCustomDate] = useState("");
@@ -204,26 +200,30 @@ function Index() {
     const currentRequestId = ++requestIdRef.current;
 
     const fetchFixtures = async () => {
-      if (activeTab === "custom" && !isValidIsoDate(customDate)) {
-        if (currentRequestId === requestIdRef.current) {
-          setFixtures([]);
-          setUpcomingFixtures([]);
-          setUpcomingDate(null);
-          setIsLoading(false);
+      if (activeTab === "custom") {
+        if (!isValidIsoDate(customDate)) {
+          if (currentRequestId === requestIdRef.current) {
+            setFixtures([]);
+            setDisplayedDate(null);
+            setIsShowingNextAvailable(false);
+            setReachedLimit(false);
+            setIsLoading(false);
+          }
+          return;
         }
-        return;
       }
 
       setIsLoading(true);
-      setIsSearchingUpcoming(false);
       setError(null);
-      setUpcomingError(null);
       setIsPartial(false);
-      setFixtures([]);
-      setUpcomingFixtures([]);
-      setUpcomingDate(null);
+      setReachedLimit(false);
 
       try {
+        const now = Date.now();
+        for (const [key, cached] of fixturesCacheRef.current) {
+          if (cached.expiresAt <= now) fixturesCacheRef.current.delete(key);
+        }
+
         let requestedDate: string;
         if (activeTab === "tomorrow") {
           requestedDate = getTomorrowCGRDateString();
@@ -233,17 +233,23 @@ function Index() {
           requestedDate = getCGRDateString(new Date());
         }
 
-        const fetchDate = async (date: string, isLiveSearch = false) => {
+        let currentDate = requestedDate;
+        let foundFixtures: Fixture[] = [];
+        let searchCount = 0;
+        const maxSearchDays = FUTURE_SEARCH_LIMIT;
+        let finalPartial = false;
+
+        const fetchDate = async (date: string, publishProgress = true) => {
           const codes = competitionCode === "ALL" ? COMPETITION_CODES : [competitionCode];
-          let dateFixtures: Fixture[] = [];
+          const progressiveFixtures: Fixture[] = [];
           let partial = false;
-          let successful = 0;
-          let lastErr: any = null;
+          let successfulRequests = 0;
+          let lastRequestError: unknown = null;
 
           await Promise.all(codes.map(async (code) => {
             if (currentRequestId !== requestIdRef.current) return;
             try {
-              const cacheKey = `${code}:${date}:${isLiveSearch ? "live" : "all"}`;
+              const cacheKey = `${code}:${date}:${activeTab === "live" ? "live" : "all"}`;
               const cached = fixturesCacheRef.current.get(cacheKey);
               let results: Fixture[];
               let responsePartial = false;
@@ -264,73 +270,93 @@ function Index() {
                 fixturesCacheRef.current.set(cacheKey, {
                   fixtures: results,
                   partial: responsePartial,
-                  expiresAt: Date.now() + (isLiveSearch ? 30_000 : 5 * 60_000),
+                  expiresAt: Date.now() + (activeTab === "live" ? 30_000 : 5 * 60_000),
                 });
+                while (fixturesCacheRef.current.size > 100) {
+                  const oldestKey = fixturesCacheRef.current.keys().next().value;
+                  if (!oldestKey) break;
+                  fixturesCacheRef.current.delete(oldestKey);
+                }
               }
-              successful++;
-              if (isLiveSearch) {
-                results = results.filter(f => LIVE_STATUSES.includes(f.status));
+
+              successfulRequests++;
+
+              if (activeTab === "live") {
+                results = results.filter((fixture) => LIVE_STATUSES.includes(fixture.status));
               }
-              dateFixtures.push(...results);
               partial ||= responsePartial;
-            } catch (e) {
+              progressiveFixtures.push(...results);
+
+              if (
+                publishProgress &&
+                results.length > 0 &&
+                currentRequestId === requestIdRef.current
+              ) {
+                const unique = Array.from(
+                  new Map(progressiveFixtures.map((fixture) => [fixture.fixture_id, fixture])).values(),
+                ).sort(
+                  (a, b) =>
+                    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+                );
+                setFixtures(unique);
+                setDisplayedDate(date);
+                setIsShowingNextAvailable(date !== requestedDate);
+                setIsLoading(false);
+              }
+            } catch (requestError) {
               partial = true;
-              lastErr = e;
+              lastRequestError = requestError;
+              console.error(`Erro ao consultar ${code}:`, requestError);
             }
           }));
 
-          if (successful === 0 && lastErr) throw lastErr;
-          return { fixtures: dateFixtures, partial };
+          if (successfulRequests === 0 && lastRequestError) throw lastRequestError;
+
+          return { fixtures: progressiveFixtures, partial };
         };
 
-        // 1. Fetch main data
-        const mainResult = await fetchDate(requestedDate, activeTab === "live");
-        if (currentRequestId !== requestIdRef.current) return;
+        // Sequence search loop
+        while (searchCount < maxSearchDays) {
+          const result = await fetchDate(currentDate);
+          finalPartial ||= result.partial;
 
-        const sortedMain = mainResult.fixtures.sort(
-          (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
-        );
-        
-        // Remove duplicates
-        const uniqueMain = Array.from(new Map(sortedMain.map(f => [f.fixture_id, f])).values());
-        
-        setFixtures(uniqueMain);
-        setIsPartial(mainResult.partial);
-        setDisplayedDate(requestedDate);
-        setIsLoading(false);
-
-        // 2. Fallback logic for "Aba Hoje" only
-        if (activeTab === "today" && uniqueMain.length === 0) {
-          setIsSearchingUpcoming(true);
-          let currentSearchDate = getNextCGRDateString(requestedDate);
-          let searchCount = 0;
-          
-          while (searchCount < 14) {
-            if (currentRequestId !== requestIdRef.current) return;
-            try {
-              const upResult = await fetchDate(currentSearchDate);
-              if (upResult.fixtures.length > 0) {
-                const sortedUp = upResult.fixtures.sort(
-                  (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
-                );
-                const uniqueUp = Array.from(new Map(sortedUp.map(f => [f.fixture_id, f])).values());
-                setUpcomingFixtures(uniqueUp);
-                setUpcomingDate(currentSearchDate);
-                break;
-              }
-            } catch (e) {
-              setUpcomingError("Não foi possível localizar os próximos jogos.");
-              break;
-            }
-            currentSearchDate = getNextCGRDateString(currentSearchDate);
-            searchCount++;
+          if (result.fixtures.length > 0) {
+            foundFixtures = result.fixtures;
+            break;
           }
-          setIsSearchingUpcoming(false);
+
+          if (activeTab === "live" || activeTab === "custom") break;
+
+          // If no results, try next day
+          currentDate = getNextCGRDateString(currentDate);
+          searchCount++;
+
+          if (searchCount >= maxSearchDays) {
+            setReachedLimit(true);
+          }
         }
 
-      } catch (err) {
+        if (currentRequestId !== requestIdRef.current) return;
+
+        foundFixtures.sort(
+          (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+        );
+
+        setFixtures(foundFixtures);
+        setDisplayedDate(currentDate);
+        setIsShowingNextAvailable(currentDate !== requestedDate);
+        setIsPartial(finalPartial);
+
+        if ((activeTab === "today" || activeTab === "tomorrow") && foundFixtures.length > 0) {
+          const prefetchDate = addCalendarDays(currentDate, 1);
+          void fetchDate(prefetchDate, false).catch(() => undefined);
+        }
+      } catch (err: unknown) {
+        if (currentRequestId !== requestIdRef.current) return;
+        console.error("Erro ao buscar jogos:", err);
+        setError(getFixturesErrorMessage(err));
+      } finally {
         if (currentRequestId === requestIdRef.current) {
-          setError(getFixturesErrorMessage(err));
           setIsLoading(false);
         }
       }
@@ -339,28 +365,32 @@ function Index() {
     fetchFixtures();
   }, [activeTab, customDate, competitionCode, retryCount]);
 
-  const groupData = (data: Fixture[]) => {
+  const groupedFixtures = useMemo(() => {
     const search = normalizeText(deferredSearchQuery);
     const filtered = search
-      ? data.filter(
+      ? fixtures.filter(
           (f) =>
             normalizeText(f.home_team_name).includes(search) ||
             normalizeText(f.away_team_name).includes(search) ||
             normalizeText(f.league_name).includes(search) ||
             normalizeText(f.country).includes(search),
         )
-      : data;
+      : fixtures;
 
+    // First, group by Date (YYYY-MM-DD)
     const dateGroups: Record<
       string,
       Record<string, { name: string; country: string; logo: string | null; matches: Fixture[] }>
     > = {};
 
     filtered.forEach((f) => {
+      // Get the date in the local timezone for grouping
       const dateKey = getCGRDateString(new Date(f.kickoff_at));
+
       if (!dateGroups[dateKey]) {
         dateGroups[dateKey] = {};
       }
+
       const leagueKey = `${f.country}-${f.league_name}`;
       if (!dateGroups[dateKey][leagueKey]) {
         dateGroups[dateKey][leagueKey] = {
@@ -373,16 +403,14 @@ function Index() {
       dateGroups[dateKey][leagueKey].matches.push(f);
     });
 
+    // Convert to sorted array structure
     return Object.entries(dateGroups)
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
       .map(([date, leagues]) => ({
         date,
         leagues: Object.values(leagues).sort((a, b) => a.name.localeCompare(b.name)),
       }));
-  };
-
-  const groupedFixtures = useMemo(() => groupData(fixtures), [fixtures, deferredSearchQuery]);
-  const groupedUpcoming = useMemo(() => groupData(upcomingFixtures), [upcomingFixtures, deferredSearchQuery]);
+  }, [fixtures, deferredSearchQuery]);
 
   const formatGroupHeader = (dateStr: string) => {
     // Adicionar T12:00:00 para evitar problemas de timezone ao criar o objeto Date apenas da data
@@ -674,279 +702,135 @@ function Index() {
                   Atualizar
                 </button>
               </div>
+            ) : groupedFixtures.length === 0 ? (
+              <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
+                <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
+                  {isPartial
+                    ? "Algumas competições não puderam ser atualizadas. Tente novamente."
+                    : reachedLimit
+                      ? "Sem jogos para este filtro nos próximos 14 dias"
+                      : "Nenhum jogo encontrado"}
+                </p>
+              </div>
             ) : (
               <div className="space-y-6">
-                {/* 1. Estado Principal (Hoje Vazio ou Resultados Atuais) */}
-                {fixtures.length === 0 ? (
-                  <div className="bg-white/5 border border-white/5 rounded-2xl p-12 text-center space-y-4 backdrop-blur-sm">
-                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
-                      {activeTab === "today" 
-                        ? "Nenhum jogo encontrado hoje." 
-                        : "Nenhum jogo encontrado para esta data ou filtro."}
+                {isPartial && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                    Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
+                  </div>
+                )}
+                {isShowingNextAvailable && displayedDate && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                    <Info size={16} className="shrink-0" />
+                    <p className="font-bold text-[10px] uppercase tracking-widest">
+                      Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.
+                      Data: {formatDateBR(displayedDate)}
                     </p>
                   </div>
-                ) : (
-                  <>
-                    {isPartial && (
-                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
-                        Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
-                      </div>
-                    )}
-                    
-                    {groupedFixtures.map((dateGroup) => (
-                      <div key={dateGroup.date} className="space-y-4">
-                        <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
-                          <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
-                            {formatGroupHeader(dateGroup.date)}
-                          </span>
-                        </div>
-
-                        <div className="space-y-3">
-                          {dateGroup.leagues.map((league) => (
-                            <div
-                              key={`${dateGroup.date}-${league.country}-${league.name}`}
-                              className="space-y-2"
-                            >
-                              <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
-                                {league.logo ? (
-                                  <img
-                                    src={league.logo}
-                                    alt={league.name}
-                                    className="w-4 h-4 object-contain brightness-125"
-                                  />
-                                ) : (
-                                  <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
-                                    ⚽
-                                  </div>
-                                )}
-                                <div className="min-w-0">
-                                  <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
-                                  <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 gap-2">
-                                {league.matches.map((match) => (
-                                  <div key={match.fixture_id} className="relative group">
-                                    <Link
-                                      to="/jogo/$fixtureId"
-                                      params={{ fixtureId: String(match.fixture_id) }}
-                                    >
-                                      <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
-                                        <div className="flex items-center justify-between gap-4">
-                                          <div className="flex flex-col min-w-[60px]">
-                                            <span className="text-[10px] font-black text-white whitespace-nowrap">
-                                              {formatFixtureDateTime(match.kickoff_at)}
-                                            </span>
-                                            <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
-                                              {getStatusDisplay(match.status, match.elapsed)}
-                                            </span>
-                                            {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
-                                          </div>
-
-                                          <div className="flex-1 flex flex-col gap-2">
-                                            <div className="flex items-center justify-between gap-2">
-                                              <div className="flex items-center gap-2 min-w-0">
-                                                {match.home_team_logo && (
-                                                  <img
-                                                    src={match.home_team_logo}
-                                                    className="w-4 h-4 object-contain"
-                                                  />
-                                                )}
-                                                <span className="text-xs font-bold text-slate-200 truncate">
-                                                  {match.home_team_name}
-                                                </span>
-                                              </div>
-                                              <span className="text-xs font-black text-white">
-                                                {match.home_score ?? 0}
-                                              </span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-2">
-                                              <div className="flex items-center gap-2 min-w-0">
-                                                {match.away_team_logo && (
-                                                  <img
-                                                    src={match.away_team_logo}
-                                                    className="w-4 h-4 object-contain"
-                                                  />
-                                                )}
-                                                <span className="text-xs font-bold text-slate-200 truncate">
-                                                  {match.away_team_name}
-                                                </span>
-                                              </div>
-                                              <span className="text-xs font-black text-white">
-                                                {match.away_score ?? 0}
-                                              </span>
-                                            </div>
-                                          </div>
-
-                                          <div className="hidden sm:flex items-center gap-2">
-                                            <ChevronRight size={16} className="text-slate-700" />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </Link>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </>
                 )}
 
-                {/* 2. Seção de Próximos Jogos (Independente) */}
-                {activeTab === "today" && fixtures.length === 0 && (
-                  <div className="pt-8 border-t border-white/5 space-y-6">
-                    {isSearchingUpcoming ? (
-                      <div className="flex flex-col items-center justify-center py-10 space-y-4">
-                        <Zap className="w-8 h-8 text-emerald-500 animate-pulse" />
-                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">
-                          Procurando os próximos jogos...
-                        </p>
-                      </div>
-                    ) : upcomingFixtures.length > 0 && upcomingDate ? (
-                      <div className="space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl">
-                          <div className="space-y-1">
-                            <h2 className="text-emerald-500 font-black uppercase tracking-[0.3em] text-xs">
-                              PRÓXIMOS JOGOS
-                            </h2>
-                            <p className="text-white font-black text-lg">
-                              {new Intl.DateTimeFormat("pt-BR", {
-                                weekday: "long",
-                                day: "numeric",
-                                month: "long",
-                              }).format(new Date(upcomingDate + "T12:00:00"))}
-                            </p>
+                {groupedFixtures.map((dateGroup) => (
+                  <div key={dateGroup.date} className="space-y-4">
+                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
+                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                        {formatGroupHeader(dateGroup.date)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {dateGroup.leagues.map((league) => (
+                        <div
+                          key={`${dateGroup.date}-${league.country}-${league.name}`}
+                          className="space-y-2"
+                        >
+                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                            {league.logo ? (
+                              <img
+                                src={league.logo}
+                                alt={league.name}
+                                className="w-4 h-4 object-contain brightness-125"
+                              />
+                            ) : (
+                              <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
+                                ⚽
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => {
-                              setCustomDate(upcomingDate);
-                              setActiveTab("custom");
-                              setUpcomingFixtures([]);
-                              setUpcomingDate(null);
-                            }}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                          >
-                            Ver jogos desta data
-                          </button>
-                        </div>
 
-                        <div className="space-y-4">
-                          {groupedUpcoming.map((dateGroup) => (
-                            <div key={dateGroup.date} className="space-y-4">
-                              <div className="space-y-3">
-                                {dateGroup.leagues.map((league) => (
-                                  <div
-                                    key={`upcoming-${dateGroup.date}-${league.country}-${league.name}`}
-                                    className="space-y-2"
-                                  >
-                                    <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
-                                      {league.logo ? (
-                                        <img
-                                          src={league.logo}
-                                          alt={league.name}
-                                          className="w-4 h-4 object-contain brightness-125"
-                                        />
-                                      ) : (
-                                        <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
-                                          ⚽
+                          <div className="grid grid-cols-1 gap-2">
+                            {league.matches.map((match) => (
+                              <div key={match.fixture_id} className="relative group">
+                                <Link
+                                  to="/jogo/$fixtureId"
+                                  params={{ fixtureId: String(match.fixture_id) }}
+                                >
+                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div className="flex flex-col min-w-[60px]">
+                                        <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                          {formatFixtureDateTime(match.kickoff_at)}
+                                        </span>
+                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
+                                          {getStatusDisplay(match.status, match.elapsed)}
+                                        </span>
+                                        {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
+                                      </div>
+
+                                      <div className="flex-1 flex flex-col gap-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            {match.home_team_logo && (
+                                              <img
+                                                src={match.home_team_logo}
+                                                className="w-4 h-4 object-contain"
+                                              />
+                                            )}
+                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              {match.home_team_name}
+                                            </span>
+                                          </div>
+                                          <span className="text-xs font-black text-white">
+                                            {match.home_score ?? 0}
+                                          </span>
                                         </div>
-                                      )}
-                                      <div className="min-w-0">
-                                        <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
-                                        <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            {match.away_team_logo && (
+                                              <img
+                                                src={match.away_team_logo}
+                                                className="w-4 h-4 object-contain"
+                                              />
+                                            )}
+                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              {match.away_team_name}
+                                            </span>
+                                          </div>
+                                          <span className="text-xs font-black text-white">
+                                            {match.away_score ?? 0}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      <div className="hidden sm:flex items-center gap-2">
+                                        <ChevronRight size={16} className="text-slate-700" />
                                       </div>
                                     </div>
-
-                                    <div className="grid grid-cols-1 gap-2">
-                                      {league.matches.map((match) => (
-                                        <div key={`upcoming-${match.fixture_id}`} className="relative group">
-                                          <Link
-                                            to="/jogo/$fixtureId"
-                                            params={{ fixtureId: String(match.fixture_id) }}
-                                          >
-                                            <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
-                                              <div className="flex items-center justify-between gap-4">
-                                                <div className="flex flex-col min-w-[60px]">
-                                                  <span className="text-[10px] font-black text-white whitespace-nowrap">
-                                                    {formatFixtureDateTime(match.kickoff_at)}
-                                                  </span>
-                                                  <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status))}>
-                                                    {getStatusDisplay(match.status, match.elapsed)}
-                                                  </span>
-                                                </div>
-
-                                                <div className="flex-1 flex flex-col gap-2">
-                                                  <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                      {match.home_team_logo && (
-                                                        <img
-                                                          src={match.home_team_logo}
-                                                          className="w-4 h-4 object-contain"
-                                                        />
-                                                      )}
-                                                      <span className="text-xs font-bold text-slate-200 truncate">
-                                                        {match.home_team_name}
-                                                      </span>
-                                                    </div>
-                                                    <span className="text-xs font-black text-white">
-                                                      {match.home_score ?? 0}
-                                                    </span>
-                                                  </div>
-                                                  <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2 min-w-0">
-                                                      {match.away_team_logo && (
-                                                        <img
-                                                          src={match.away_team_logo}
-                                                          className="w-4 h-4 object-contain"
-                                                        />
-                                                      )}
-                                                      <span className="text-xs font-bold text-slate-200 truncate">
-                                                        {match.away_team_name}
-                                                      </span>
-                                                    </div>
-                                                    <span className="text-xs font-black text-white">
-                                                      {match.away_score ?? 0}
-                                                    </span>
-                                                  </div>
-                                                </div>
-                                                <div className="hidden sm:flex items-center gap-2">
-                                                  <ChevronRight size={16} className="text-slate-700" />
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </Link>
-                                        </div>
-                                      ))}
-                                    </div>
                                   </div>
-                                ))}
+                                </Link>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : upcomingError ? (
-                      <div className="py-10 text-center">
-                        <p className="text-amber-500/60 font-black uppercase tracking-widest text-[10px]">
-                          {upcomingError}
-                        </p>
-                      </div>
-                    ) : !isSearchingUpcoming ? (
-                      <div className="py-10 text-center">
-                        <p className="text-slate-600 font-black uppercase tracking-widest text-[10px]">
-                          Nenhum próximo jogo encontrado nos próximos 14 dias.
-                        </p>
-                      </div>
-                    ) : null}
+                      ))}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
-
           </div>
         </main>
 
