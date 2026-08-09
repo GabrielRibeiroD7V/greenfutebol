@@ -800,10 +800,10 @@ function Index() {
                                   to="/jogo/$fixtureId"
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
-                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                  <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm">
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                        <span className="text-[10px] font-black text-slate-900 whitespace-nowrap">
                                           {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
                                         <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
@@ -821,11 +821,11 @@ function Index() {
                                                 className="w-4 h-4 object-contain"
                                               />
                                             )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              <span className="text-xs font-bold text-slate-800 truncate">
                                               {match.home_team_name}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">
+                                            <span className="text-xs font-black text-slate-900">
                                             {match.home_score ?? 0}
                                           </span>
                                         </div>
@@ -837,7 +837,7 @@ function Index() {
                                                 className="w-4 h-4 object-contain"
                                               />
                                             )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                            <span className="text-xs font-bold text-slate-800 truncate">
                                               {match.away_team_name}
                                             </span>
                                           </div>
