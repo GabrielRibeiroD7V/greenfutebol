@@ -608,7 +608,7 @@ function Index() {
         {/* Sidebar Esquerda: Ligas e Favoritos */}
         <aside
           className={cn(
-            "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
+            "bg-white border-r border-slate-100 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
             "w-[110px] sm:w-[130px] lg:w-64",
           )}
         >
@@ -639,8 +639,8 @@ function Index() {
                     className={cn(
                       "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       competitionCode === league.id
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white",
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
                     <league.icon
@@ -648,8 +648,8 @@ function Index() {
                       className={cn(
                         "lg:w-4 lg:h-4",
                         competitionCode === league.id
-                          ? "text-emerald-500"
-                          : "text-slate-500 group-hover:text-emerald-500",
+                          ? "text-emerald-600"
+                          : "text-slate-400 group-hover:text-emerald-600",
                       )}
                     />
                     <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
