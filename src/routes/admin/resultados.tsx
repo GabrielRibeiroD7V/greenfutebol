@@ -119,12 +119,13 @@ function AdminResultsPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('settle_fixture_atomic', {
-        _fixture_id: selectedFixture.provider_fixture_id,
-        _admin_id: user?.id
-      });
+        _fixture_id: Number(selectedFixture.provider_fixture_id),
+        _admin_id: user?.id || undefined
+      } as any);
 
       if (error) throw error;
-      toast.success(`Liquidação concluída! ${data.settled_count} seleções processadas.`);
+      const result = data as any;
+      toast.success(`Liquidação concluída! ${result?.settled_count || 0} seleções processadas.`);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
