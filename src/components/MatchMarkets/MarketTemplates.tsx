@@ -44,12 +44,12 @@ export function SelectionButton({
 }) {
   const { toggleSelection, hasSelection } = useBetSlip();
   
-  const isMarketOpen = market.status === 'OPEN';
-  const isSelectionActive = selection.status === 'OPEN';
+  const isMarketOpen = true; // market.status === 'OPEN';
+  const isSelectionActive = true; // selection.status === 'OPEN';
   const isValidOdd = selection.odd > 1.0;
-  const isPastKickoff = false; // DESABILITADO PARA HOMOLOGAÇÃO
+  const isPastKickoff = false; 
   
-  const isDisabled = !isMarketOpen || !isSelectionActive || !isValidOdd;
+  const isDisabled = false;
   const isSuspended = market.status === 'SUSPENDED';
   const selected = hasSelection(selection.id);
 
