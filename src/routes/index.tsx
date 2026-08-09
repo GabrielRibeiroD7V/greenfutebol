@@ -558,26 +558,26 @@ function Index() {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:relative md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
               <input
                 type="text"
                 placeholder="Buscar jogo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-white placeholder:text-white/20 transition-all outline-none"
+                className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">
+                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
                     Saldo
                   </span>
-                  <span className="text-sm font-black text-white">R$ 0,00</span>
+                  <span className="text-sm font-black text-slate-900">R$ 0,00</span>
                 </div>
                 <div
-                  className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 cursor-pointer"
                   onClick={() => navigate({ to: "/meus-bilhetes" })}
                 >
                   {(profile?.name || "U").charAt(0).toUpperCase()}
@@ -587,7 +587,7 @@ function Index() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate({ to: "/login" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-300 hover:text-white transition-all uppercase tracking-widest"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-emerald-600 transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
