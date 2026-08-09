@@ -242,57 +242,109 @@ function AdminFixtureListPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma partida para os filtros aplicados</p>
               </div>
             ) : (
-              filteredFixtures.map(f => (
-                <div key={f.fixture_id} className="p-4 md:p-6 hover:bg-white/5 transition-colors group">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-black uppercase bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
-                          {f.league_name}
-                        </span>
-                        <span className="text-[9px] font-black uppercase text-zinc-600">
-                          ID: {f.fixture_id}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3">
-                          <img src={f.home_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
-                          <span className="text-lg font-black uppercase tracking-tighter italic">{f.home_team_name}</span>
-                        </div>
-                        <span className="text-zinc-700 font-black italic">VS</span>
-                        <div className="flex items-center gap-3">
-                          <img src={f.away_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
-                          <span className="text-lg font-black uppercase tracking-tighter italic">{f.away_team_name}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="text-right space-y-1">
-                        <p className="text-xs font-black uppercase text-zinc-300">{formatDate(f.kickoff_at)}</p>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{formatTime(f.kickoff_at)}</p>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <span className={cn(
-                          "text-[9px] font-black uppercase px-2 py-0.5 rounded block text-center",
-                          f.status_short === 'FT' ? "bg-red-500/10 text-red-500" : 
-                          f.status_short === 'NS' ? "bg-emerald-500/10 text-emerald-500" :
-                          "bg-amber-500/10 text-amber-500"
-                        )}>
-                          {f.status_long}
-                        </span>
-                      </div>
-                      <Button 
-                        onClick={() => navigate({ to: `/admin/mercados/${f.fixture_id}` })}
-                        className="bg-zinc-800 hover:bg-emerald-600 text-white font-black uppercase text-[10px] h-12 px-6 rounded-xl group-hover:bg-emerald-600 transition-colors"
-                      >
-                        Gerenciar Mercados
-                        <ChevronRight size={16} className="ml-2" />
-                      </Button>
-                    </div>
+              <div className="p-4 bg-zinc-900/80 border-b border-white/5 flex items-center gap-4">
+                <Button 
+                  onClick={toggleAll}
+                  variant="outline" 
+                  className="border-white/10 text-zinc-400 hover:bg-white/5 font-black uppercase text-[10px] h-8"
+                >
+                  {selectedFixtures.length === filteredFixtures.length ? "Desmarcar Todos" : "Selecionar Todos"}
+                </Button>
+                {selectedFixtures.length > 0 && (
+                  <Button 
+                    onClick={prepareBatchMarkets}
+                    disabled={loading}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[10px] h-8"
+                  >
+                    Preparar Mercados ({selectedFixtures.length})
+                  </Button>
+                )}
+              </div>
+              
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-50">
+                    <Loader2 className="animate-spin text-emerald-500" size={32} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Processando...</p>
                   </div>
-                </div>
-              ))
+                ) : filteredFixtures.length === 0 ? (
+                  <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-30">
+                    <AlertCircle size={32} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma partida para os filtros aplicados</p>
+                  </div>
+                ) : (
+                  filteredFixtures.map(f => (
+                    <div key={f.fixture_id} className={cn(
+                      "p-4 md:p-6 hover:bg-white/5 transition-colors group flex items-start gap-4",
+                      selectedFixtures.includes(f.fixture_id) && "bg-emerald-500/5"
+                    )}>
+                      <div className="pt-2">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedFixtures.includes(f.fixture_id)}
+                          onChange={() => toggleSelection(f.fixture_id)}
+                          className="w-5 h-5 rounded border-white/10 bg-black text-emerald-500 focus:ring-emerald-500/20 cursor-pointer"
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-black uppercase bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+                              {f.league_name}
+                            </span>
+                            <span className="text-[9px] font-black uppercase text-zinc-600">
+                              ID: {f.fixture_id}
+                            </span>
+                            {f.market_count > 0 && (
+                              <span className="text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
+                                {f.market_count} Mercados
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-3">
+                              <img src={f.home_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
+                              <span className="text-lg font-black uppercase tracking-tighter italic">{f.home_team_name}</span>
+                            </div>
+                            <span className="text-zinc-700 font-black italic">VS</span>
+                            <div className="flex items-center gap-3">
+                              <img src={f.away_team_logo} className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-opacity" alt="" />
+                              <span className="text-lg font-black uppercase tracking-tighter italic">{f.away_team_name}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                          <div className="text-right space-y-1">
+                            <p className="text-xs font-black uppercase text-zinc-300">{formatDate(f.kickoff_at)}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{formatTime(f.kickoff_at)}</p>
+                          </div>
+                          <div className="text-right space-y-1">
+                            <span className={cn(
+                              "text-[9px] font-black uppercase px-2 py-0.5 rounded block text-center",
+                              f.status_short === 'FT' ? "bg-red-500/10 text-red-500" : 
+                              f.status_short === 'NS' ? "bg-emerald-500/10 text-emerald-500" :
+                              "bg-amber-500/10 text-amber-500"
+                            )}>
+                              {f.status_long}
+                            </span>
+                            <span className="text-[8px] font-bold text-zinc-600 uppercase block text-center mt-1">
+                              {f.market_count > 0 ? "Em Preparação" : "Sem Mercados"}
+                            </span>
+                          </div>
+                          <Button 
+                            onClick={() => navigate({ to: `/admin/mercados/${f.fixture_id}` })}
+                            className="bg-zinc-800 hover:bg-emerald-600 text-white font-black uppercase text-[10px] h-12 px-6 rounded-xl group-hover:bg-emerald-600 transition-colors"
+                          >
+                            Gerenciar
+                            <ChevronRight size={16} className="ml-2" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
         </div>
