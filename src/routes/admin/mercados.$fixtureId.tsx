@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
