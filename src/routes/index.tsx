@@ -721,22 +721,22 @@ function Index() {
             {isLoading ? (
               <FixturesSkeleton />
             ) : error ? (
-              <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center space-y-3 shadow-sm">
+              <div className="bg-red-50 border border-red-100 p-8 text-center space-y-3">
                 <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-                <h3 className="text-slate-900 font-black uppercase tracking-widest text-sm">
+                <h3 className="text-slate-900 font-bold uppercase tracking-widest text-sm">
                   Erro de Conexão
                 </h3>
                 <p className="text-slate-600 text-xs">{error}</p>
                 <button
                   onClick={() => setRetryCount((value) => value + 1)}
-                  className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all"
+                  className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-[6px] text-[10px] font-bold uppercase transition-all"
                 >
                   Atualizar
                 </button>
               </div>
             ) : groupedFixtures.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-20 text-center space-y-4 shadow-sm">
-                <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
+              <div className="py-20 text-center space-y-4">
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
                   {isPartial
                     ? "Algumas competições não puderam ser atualizadas. Tente novamente."
                     : reachedLimit
@@ -747,12 +747,12 @@ function Index() {
             ) : (
               <div className="space-y-6">
                 {isPartial && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-700 shadow-sm">
+                  <div className="border-l-2 border-amber-400 bg-amber-50 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-700">
                     Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
                   </div>
                 )}
                 {isShowingNextAvailable && displayedDate && (
-                  <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 text-emerald-700 shadow-sm">
+                  <div className="bg-emerald-50 border-l-2 border-emerald-600 p-4 flex items-center gap-3 text-emerald-700">
                     <Info size={16} className="shrink-0" />
                     <p className="font-bold text-[10px] uppercase tracking-widest">
                       Não há mais jogos disponíveis nesta data. Exibindo os próximos jogos.
@@ -764,7 +764,7 @@ function Index() {
                 {groupedFixtures.map((dateGroup) => (
                   <div key={dateGroup.date} className="space-y-4">
                     <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-600">
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
+                      <span className="text-[11px] font-bold text-slate-900 uppercase tracking-[0.2em]">
                         {formatGroupHeader(dateGroup.date)}
                       </span>
                     </div>
@@ -775,7 +775,7 @@ function Index() {
                           key={`${dateGroup.date}-${league.country}-${league.name}`}
                           className="space-y-2"
                         >
-                          <div className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-sm">
+                          <div className="flex items-center gap-2 px-2 py-1.5 border-b border-[#E5E7EB]">
                             {league.logo ? (
                               <img
                                 src={league.logo}
@@ -788,8 +788,8 @@ function Index() {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-900">{league.name}</span>
-                              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
+                              <span className="block truncate text-[10px] font-bold uppercase tracking-widest text-slate-900">{league.name}</span>
+                              <span className="block text-[8px] font-medium uppercase tracking-wider text-slate-500">{league.country}</span>
                             </div>
                           </div>
 
@@ -800,20 +800,18 @@ function Index() {
                                   to="/jogo/$fixtureId"
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
-                                  <div className={cn(
-                                    "rounded-xl border p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm",
-                                    FINISHED_STATUSES.includes(match.status) 
-                                      ? "bg-slate-50 border-slate-200 grayscale-[0.3]" 
-                                      : FUTURE_STATUSES.includes(match.status)
-                                        ? "bg-white border-emerald-100"
-                                        : "bg-white border-slate-200"
-                                  )}>
+                                    <div className={cn(
+                                      "border-b border-slate-100 p-3 sm:p-4 hover:bg-slate-50 transition-colors",
+                                      FINISHED_STATUSES.includes(match.status) 
+                                        ? "opacity-60 grayscale-[0.5]" 
+                                        : "bg-white"
+                                    )}>
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[10px] font-black text-slate-900 whitespace-nowrap">
+                                        <span className="text-[10px] font-bold text-slate-900 whitespace-nowrap">
                                           {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
-                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
+                                        <span className={cn("mt-1 w-fit rounded-[4px] border px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
                                         </span>
                                         {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
@@ -832,7 +830,7 @@ function Index() {
                                               {match.home_team_name}
                                             </span>
                                           </div>
-                                            <span className="text-xs font-black text-slate-900">
+                                            <span className="text-xs font-bold text-slate-900">
                                             {match.home_score ?? 0}
                                           </span>
                                         </div>
