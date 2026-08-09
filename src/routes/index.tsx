@@ -528,14 +528,7 @@ function Index() {
       <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
-            <button
-              aria-label={isMenuOpen ? "Fechar menu" : "Menu"}
-              aria-expanded={isMenuOpen}
-              className="p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <Menu size={24} />
-            </button>
+            <div
             <div
               className="flex items-center gap-2 group cursor-pointer"
               onClick={() => navigate({ to: "/" })}
