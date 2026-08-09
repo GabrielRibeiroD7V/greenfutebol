@@ -428,24 +428,186 @@ function AdminMarketManagerPage() {
           </div>
         </header>
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <LayoutGrid size={14} /> Adicionar Novo Mercado
-            </h3>
+        <section className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Users size={14} /> Jogadores da Partida
+              </h3>
+              <Dialog open={isAddingPlayer} onOpenChange={setIsAddingPlayer}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase text-[9px] rounded-full h-8 px-4">
+                    <UserPlus size={14} className="mr-2" /> Adicionar Jogador
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-zinc-900 border-white/5 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="uppercase font-black italic text-emerald-500">Novo Jogador</DialogTitle>
+                    <DialogDescription className="text-zinc-500 uppercase text-[9px] font-black tracking-widest">Cadastro manual para esta fixture</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-zinc-400">Nome do Jogador</Label>
+                      <Input 
+                        value={newPlayer.name} 
+                        onChange={e => setNewPlayer({...newPlayer, name: e.target.value})}
+                        className="bg-black border-white/5"
+                        placeholder="Ex: Matheus Pereira"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-black text-zinc-400">Time</Label>
+                        <Select value={newPlayer.team_side} onValueChange={v => setNewPlayer({...newPlayer, team_side: v})}>
+                          <SelectTrigger className="bg-black border-white/5">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-900 border-white/5 text-white">
+                            <SelectItem value="HOME">Mandante ({fixture?.home_team_name})</SelectItem>
+                            <SelectItem value="AWAY">Visitante ({fixture?.away_team_name})</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-black text-zinc-400">Nº Camisa (Opcional)</Label>
+                        <Input 
+                          type="number"
+                          value={newPlayer.shirt_number} 
+                          onChange={e => setNewPlayer({...newPlayer, shirt_number: e.target.value})}
+                          className="bg-black border-white/5"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-zinc-400">Posição (Opcional)</Label>
+                      <Input 
+                        value={newPlayer.position} 
+                        onChange={e => setNewPlayer({...newPlayer, position: e.target.value})}
+                        className="bg-black border-white/5"
+                        placeholder="Ex: Meia-Atacante"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      disabled={isActionLoading} 
+                      onClick={addPlayer}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase w-full py-6 rounded-2xl"
+                    >
+                      Salvar Jogador
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="bg-zinc-900/30 border border-white/5 rounded-3xl p-4 min-h-[300px] flex flex-col gap-4">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <Input 
+                  placeholder="BUSCAR JOGADOR..." 
+                  value={playerSearch}
+                  onChange={e => setPlayerSearch(e.target.value)}
+                  className="bg-black border-white/5 pl-10 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                />
+              </div>
+
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {['HOME', 'AWAY'].map(side => {
+                  const sidePlayers = players.filter(p => p.team_side === side && 
+                    (playerSearch === "" || p.players.name.toLowerCase().includes(playerSearch.toLowerCase()))
+                  );
+                  return (
+                    <div key={side} className="space-y-2">
+                      <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest border-b border-white/5 pb-2">
+                        {side === 'HOME' ? fixture?.home_team_name : fixture?.away_team_name} ({sidePlayers.length})
+                      </h4>
+                      {sidePlayers.length === 0 ? (
+                        <p className="text-[9px] text-zinc-700 font-black italic text-center py-4">Nenhum jogador cadastrado</p>
+                      ) : (
+                        <div className="grid gap-2">
+                          {sidePlayers.map(p => (
+                            <div key={p.id} className="bg-black/40 border border-white/5 p-3 rounded-xl flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-[10px] font-black text-emerald-500">
+                                  {p.shirt_number || '?' }
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black uppercase">{p.players.name}</p>
+                                  <p className="text-[8px] text-zinc-600 font-bold uppercase">{p.position || 'N/A'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => updatePlayerStatus(p.id, p.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE')}
+                                  className={cn(
+                                    "h-7 px-2 rounded-lg text-[8px] font-black uppercase",
+                                    p.status === 'AVAILABLE' ? "text-emerald-500 hover:text-emerald-400 bg-emerald-500/5" : "text-red-500 hover:text-red-400 bg-red-500/5"
+                                  )}
+                                >
+                                  {p.status === 'AVAILABLE' ? <ShieldCheck size={12} className="mr-1" /> : <ShieldAlert size={12} className="mr-1" />}
+                                  {p.status === 'AVAILABLE' ? 'ATIVO' : 'INATIVO'}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {MARKET_TEMPLATES.map(template => (
-              <Button 
-                key={template.id}
-                disabled={isActionLoading}
-                onClick={() => createMarket(template)}
-                className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
-              >
-                <Plus size={16} className="text-zinc-600 group-hover:text-black" />
-                <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
-              </Button>
-            ))}
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <LayoutGrid size={14} /> Adicionar Novo Mercado
+              </h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-3">
+                {MARKET_TEMPLATES.filter(t => !t.isPlayerMarket).map(template => (
+                  <Button 
+                    key={template.id}
+                    disabled={isActionLoading}
+                    onClick={() => createMarket(template)}
+                    className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
+                  >
+                    <Plus size={16} className="text-zinc-600 group-hover:text-black" />
+                    <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
+                  </Button>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Mercados de Jogadores</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {MARKET_TEMPLATES.filter(t => t.isPlayerMarket).map(template => (
+                    <Dialog key={template.id}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-emerald-500/5 hover:bg-emerald-500 border border-emerald-500/20 text-emerald-500 hover:text-black h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
+                        >
+                          <Users size={16} />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">{template.name}</span>
+                        </Button>
+                      </DialogTrigger>
+                      <PlayerMarketCreator 
+                        template={template} 
+                        players={players} 
+                        isActionLoading={isActionLoading} 
+                        onConfirm={(ids) => addPlayerMarket(template, ids)}
+                      />
+                    </Dialog>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
