@@ -239,8 +239,8 @@ function AdminTicketsPage() {
                 </div>
 
                 <div className="col-span-4 lg:col-span-2 text-right">
-                  <span className="text-sm font-black text-emerald-600 block">{formatCurrency(t.potential_return)}</span>
-                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter block">{t.selection_count} seleções</span>
+                  <span className="text-[11px] font-bold text-emerald-600 block">{formatCurrency(t.potential_return)}</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter block">{t.selection_count} seleções</span>
                 </div>
 
                 <div className="col-span-12 lg:col-span-2 flex flex-col items-end gap-1 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
