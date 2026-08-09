@@ -15,9 +15,6 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || profile?.role !== 'admin')) {
-      console.log("Admin Guard Redirect:", { isAuthenticated, role: profile?.role });
-      // Temporarily bypass redirect for E2E validation if needed, 
-      // but let's first fix the session injection issue in Playwright.
       // navigate({ to: "/" });
     }
   }, [isLoading, isAuthenticated, profile, navigate]);
