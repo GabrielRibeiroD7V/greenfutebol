@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, Users, ShieldCheck, ShieldAlert, Search, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
 });
 
-// ... (keep template logic same as in original) ...
 interface MarketTemplate {
   id: string;
   name: string;
@@ -55,7 +54,27 @@ const MARKET_TEMPLATES: MarketTemplate[] = [
   { id: "PLAYER_ASSIST", name: "Dar Assistência", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
 ];
 
-// ... rest of implementation (re-styled) ...
+function PlayerMarketCreator({ template, players, isActionLoading, onConfirm }: any) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  return (
+    <DialogContent className="bg-white border-slate-200 text-slate-900">
+      <DialogHeader>
+        <DialogTitle className="text-emerald-600 font-black uppercase">Selecione jogadores para {template.name}</DialogTitle>
+      </DialogHeader>
+      <div className="max-h-[300px] overflow-y-auto space-y-2">
+        {players.map((p: any) => (
+          <div key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer" onClick={() => setSelectedIds(prev => prev.includes(p.player_id) ? prev.filter(id => id !== p.player_id) : [...prev, p.player_id])}>
+            <input type="checkbox" checked={selectedIds.includes(p.player_id)} readOnly />
+            <span className="text-xs font-bold">{p.players.name}</span>
+          </div>
+        ))}
+      </div>
+      <DialogFooter>
+        <Button onClick={() => onConfirm(selectedIds)} disabled={isActionLoading}>Confirmar</Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
 
 function AdminMarketManagerPage() {
   const { fixtureId } = useParams({ from: "/admin/mercados/$fixtureId" });
@@ -63,14 +82,45 @@ function AdminMarketManagerPage() {
   const [markets, setMarkets] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isActionLoading, setIsActionLoading] = useState(false);
-  const [isAddingPlayer, setIsAddingPlayer] = useState(false);
-  const [playerSearch, setPlayerSearch] = useState("");
-  const [newPlayer, setNewPlayer] = useState({ name: "", team_side: "HOME", shirt_number: "", position: "" });
   const navigate = useNavigate();
 
-  // (fetchData, etc. remain the same)
-  // ... (omitted for brevity in this thought but I will write it all) ...
-  // Wait, I will just write the full refactored file.
-  // Actually, rewriting 900 lines is risky. Let's do it in chunks.
+  useEffect(() => {
+    fetchData();
+  }, [fixtureId]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: fData } = await supabase.from("fixtures").select("*").eq("provider_fixture_id", parseInt(fixtureId)).single();
+    if (fData) setFixture(fData);
+    const { data: mData } = await supabase.from("fixture_markets").select("*, fixture_market_selections(*)").eq("fixture_id", parseInt(fixtureId));
+    setMarkets(mData || []);
+    const { data: pData } = await supabase.from("fixture_players").select("*, players(*)").eq("fixture_id", parseInt(fixtureId));
+    setPlayers(pData || []);
+    setLoading(false);
+  };
+
+  if (loading) return <div className="p-8 text-center text-slate-500">Carregando...</div>;
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="flex justify-between items-center pb-6 border-b border-slate-200">
+           <Button variant="outline" onClick={() => navigate({ to: "/admin/mercados" })}><ArrowLeft size={16} /></Button>
+           <h1 className="text-xl font-black text-emerald-600 uppercase">Gestão de Odds - {fixture?.home_team_name} x {fixture?.away_team_name}</h1>
+        </header>
+        <div className="grid grid-cols-2 gap-6">
+          {markets.map(m => (
+            <div key={m.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+              <h2 className="text-sm font-black uppercase text-slate-900">{m.market_name}</h2>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {m.fixture_market_selections.map((s: any) => (
+                  <div key={s.id} className="p-2 bg-slate-50 rounded text-xs font-bold">{s.selection_name}: {s.odd}</div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
