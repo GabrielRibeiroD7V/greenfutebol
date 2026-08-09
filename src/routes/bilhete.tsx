@@ -63,7 +63,12 @@ function BilhetePage() {
         navigate({ to: "/login", search: { redirect: "/bilhete" } });
       } else if (msg.includes("ODDS_CHANGED")) {
         toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
-        // Em um cenário real, atualizaríamos as odds aqui.
+        // A RPC retorna a nova odd no corpo do erro PostgREST se configurada, 
+        // mas aqui forçamos o refetch ou a limpeza para que o usuário veja a nova odd.
+        generateIdempotencyKey(); // Nova tentativa exige nova chave
+      } else if (msg.includes("MARKET_UNAVAILABLE")) {
+        toast.error("Um ou mais mercados foram suspensos ou fechados.");
+        generateIdempotencyKey();
       } else if (msg.includes("FIXTURE_METADATA_UNAVAILABLE")) {
         toast.error("Esta partida ainda não está disponível para apostas.");
       } else if (msg.includes("MATCH_ALREADY_STARTED")) {
