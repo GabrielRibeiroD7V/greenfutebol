@@ -678,15 +678,15 @@ function Index() {
                     className={cn(
                       "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       activeTab === tab.id
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white",
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
                     <tab.icon
                       size={14}
                       className={cn(
                         "lg:w-4 lg:h-4",
-                        activeTab === tab.id ? "text-emerald-500" : "text-slate-500 group-hover:text-emerald-500"
+                        activeTab === tab.id ? "text-emerald-600" : "text-slate-400 group-hover:text-emerald-600"
                       )}
                     />
                     <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
@@ -704,7 +704,7 @@ function Index() {
                         setCustomDate(event.target.value);
                         setActiveTab("custom");
                       }}
-                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-white/10 bg-white/5 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-300 outline-none focus:border-emerald-500/40"
+                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-slate-200 bg-slate-50 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-700 outline-none focus:border-emerald-500/40"
                     />
                   </label>
                 </div>
@@ -714,7 +714,7 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="flex-1 overflow-y-auto no-scrollbar bg-[#050505] p-2 sm:p-4">
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-slate-50 p-2 sm:p-4">
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Banner e Filtros Mobile Removidos - Substituídos pela sidebar fixa */}
             
