@@ -98,12 +98,16 @@ export function useBetSlip() {
     }
 
     setSelections(prev => {
-      const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
+      // Regra FASE 2C: Mesma partida e mesmo mercado substitui
+      const filtered = prev.filter(s => !(s.fixtureId === newSelection.fixtureId && s.marketId === newSelection.marketId));
+      
+      // Se já estava selecionada exatamente essa opção, remove (toggle behavior)
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
         const next = prev.filter(s => s.selectionId !== newSelection.selectionId);
         if (next.length === 0) setIdempotencyKey(null);
         return next;
       }
+      
       return [...filtered, newSelection];
     });
   }, [idempotencyKey]);
