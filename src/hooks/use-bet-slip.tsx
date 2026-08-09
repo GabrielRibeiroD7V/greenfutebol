@@ -104,15 +104,18 @@ export function useBetSlip() {
     setIdempotencyKey(null);
 
     setSelections(prev => {
-      // Regra FASE 2C: Mesma partida e mesmo mercado substitui
-      const filtered = prev.filter(s => !(s.fixtureId === newSelection.fixtureId && s.marketId === newSelection.marketId));
+      // REGRA CORREÇÃO FUNCIONAL: Nenhuma substituição automática.
+      // Apenas toggle exato por selectionId.
       
-      // Se já estava selecionada exatamente essa opção, remove (toggle behavior)
-      if (prev.some(s => s.selectionId === newSelection.selectionId)) {
+      const isDuplicate = prev.some(s => s.selectionId === newSelection.selectionId);
+      
+      if (isDuplicate) {
+        // Toggle: Se já existe exatamente essa seleção, remove.
         return prev.filter(s => s.selectionId !== newSelection.selectionId);
       }
       
-      return [...filtered, newSelection];
+      // Caso contrário, adiciona ao bilhete sem remover outras da mesma fixture/market.
+      return [...prev, newSelection];
     });
   }, []);
 
