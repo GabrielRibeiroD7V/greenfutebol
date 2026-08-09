@@ -30,19 +30,25 @@ function MatchDetails() {
   useEffect(() => {
     const fetchMatchData = async () => {
       try {
-        const { data: fixtureData } = await supabase.functions.invoke("get-football-fixture", {
+        const { data: fixtureData, error: fError } = await supabase.functions.invoke("get-football-fixture", {
           body: { fixture_id: parseInt(fixtureId) }
         });
         
+        console.log("Fixture data:", fixtureData);
+        if (fError) console.error("Fixture error:", fError);
+
         if (fixtureData?.fixture) {
           setFixture(fixtureData.fixture);
           
-          const { data: marketsData } = await supabase
+          console.log("Fetching markets for fixture_id:", parseInt(fixtureId));
+          const { data: marketsData, error: mError } = await supabase
             .from("fixture_markets")
             .select("*, fixture_market_selections(*)")
             .eq("fixture_id", parseInt(fixtureId))
             .order("market_group");
             
+          console.log("Markets data from DB:", marketsData);
+          if (mError) console.error("Markets error:", mError);
           setMarkets(marketsData || []);
         }
       } catch (err) {
