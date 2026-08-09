@@ -93,8 +93,12 @@ function AdminTicketsPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate({ to: "/admin/validacao" })} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">
+              <ShieldCheck size={14} className="mr-2" />
+              Validação
+            </Button>
             <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-[#E5E7EB] hover:bg-slate-50 text-slate-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">Home</Button>
-            <Button onClick={loadData} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">
+            <Button onClick={loadData} variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">
               <RefreshCw size={14} className={cn("mr-2", loading && "animate-spin")} />
               Atualizar
             </Button>

@@ -62,6 +62,7 @@ function AdminLayout() {
             { label: 'Bilhetes', icon: Ticket, to: '/admin/bilhetes' },
             { label: 'Resultados', icon: BarChart3, to: '/admin/resultados' },
             { label: 'Mercados', icon: Settings, to: '/admin/mercados' },
+            { label: 'Validação', icon: ShieldCheck, to: '/admin/validacao' },
             { label: 'Voltar', icon: ArrowRightLeft, to: '/' },
           ].map((item) => {
             const isActive = window.location.pathname.startsWith(item.to);
