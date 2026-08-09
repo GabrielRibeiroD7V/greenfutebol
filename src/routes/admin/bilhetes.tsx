@@ -217,12 +217,12 @@ function AdminTicketsPage() {
                 </div>
 
                 <div className="col-span-6 lg:col-span-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 border border-slate-200">
+                  <div className="w-7 h-7 rounded-[4px] bg-slate-50 flex items-center justify-center text-[9px] font-bold text-slate-500 border border-[#E5E7EB]">
                     {(t.profiles?.name || "U").charAt(0).toUpperCase()}
                   </div>
                   <div className="space-y-0.5 min-w-0">
-                    <span className="text-xs font-black text-slate-900 block truncate">{t.profiles?.name || "Anônimo"}</span>
-                    <span className="text-[10px] text-slate-500 font-bold block truncate">{t.profiles?.phone ? maskPhone(t.profiles.phone) : (t.profiles?.email || "-")}</span>
+                    <span className="text-[11px] font-bold text-slate-900 block truncate uppercase">{t.profiles?.name || "Anônimo"}</span>
+                    <span className="text-[9px] text-slate-400 font-bold block truncate uppercase tracking-tighter">{t.profiles?.phone ? maskPhone(t.profiles.phone) : (t.profiles?.email || "-")}</span>
                   </div>
                 </div>
 
