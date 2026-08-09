@@ -210,7 +210,7 @@ export const prepareFixtureMarkets = createServerFn({ method: "POST" })
         market_id: fm.id,
         selection_key: s.k,
         selection_name: s.n,
-        odd: null, // Zero tolerance for mocks. Must be NULL until manually set.
+        odd: 0, // Zero tolerance for mocks. Must be 0 (technically invalid odd) until manually set.
         sort_order: idx,
         status: 'DRAFT'
       }));
