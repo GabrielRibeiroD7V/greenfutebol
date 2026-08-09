@@ -642,6 +642,32 @@ function AdminMarketManagerPage() {
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Settings2 size={14} /> Mercados Ativos ({markets.length})
             </h3>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                className="bg-zinc-900 border-white/10 text-white font-black uppercase text-[9px] rounded-xl h-9"
+                onClick={() => {
+                  const toOpen = markets.filter(m => m.status === 'DRAFT');
+                  if (toOpen.length === 0) return;
+                  toOpen.forEach(m => updateMarketStatus(m.id, 'OPEN'));
+                }}
+              >
+                Publicar Todos Rascunhos
+              </Button>
+              <Button 
+                variant="destructive"
+                size="sm"
+                className="font-black uppercase text-[9px] rounded-xl h-9"
+                onClick={() => {
+                  if (confirm("Suspender todos os mercados?")) {
+                    markets.forEach(m => updateMarketStatus(m.id, 'SUSPENDED'));
+                  }
+                }}
+              >
+                <PowerOff size={12} className="mr-2" /> Suspender Todos
+              </Button>
+            </div>
           </div>
           
           <div className="grid gap-6">
