@@ -36,7 +36,7 @@ function AdminMarketManagerPage() {
   const handlePrepareMatch = async () => {
     setActionLoading(true);
     try {
-      await generateMockOdds({ fixture_id: parseInt(fixtureId) });
+      await generateMockOdds({ data: { fixture_id: parseInt(fixtureId) } });
       toast.success("Partida preparada com mercados em DRAFT.");
       fetchData();
     } catch (err: any) {
@@ -49,7 +49,7 @@ function AdminMarketManagerPage() {
   const handleUpdateOdd = async (selectionId: string, odd: number) => {
     if (odd < 1.01) return;
     try {
-      await updateMarketSelection({ selectionId, odd, action: 'UPDATE_ODD' });
+      await updateMarketSelection({ data: { selectionId, odd, action: 'UPDATE_ODD' } });
       toast.success("Odd atualizada");
       fetchData();
     } catch (err: any) {
@@ -70,10 +70,10 @@ function AdminMarketManagerPage() {
     try {
       // Step 1: Update selections to OPEN
       for (const s of market.fixture_market_selections) {
-        await updateMarketSelection({ selectionId: s.id, status: 'OPEN', action: 'PUBLISH' });
+        await updateMarketSelection({ data: { selectionId: s.id, status: 'OPEN', action: 'PUBLISH' } });
       }
       // Step 2: Update market to OPEN
-      await updateMarketStatus({ marketId, status: 'OPEN' });
+      await updateMarketStatus({ data: { marketId, status: 'OPEN' } });
       
       toast.success("Mercado publicado com sucesso!");
       fetchData();
