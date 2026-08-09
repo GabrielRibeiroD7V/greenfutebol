@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Clock, Loader2, Info, ShieldAlert, Plus, Calendar, MapPin, Trophy } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Clock, Loader2, Calendar, MapPin, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
+import { MarketRenderer } from "@/components/MatchMarkets/MarketRenderer";
 
 export const Route = createFileRoute("/jogo/$fixtureId")({
   component: MatchDetails,
