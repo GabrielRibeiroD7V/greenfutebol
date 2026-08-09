@@ -497,11 +497,11 @@ function Index() {
 
   return (
     <div
-      className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]"
+      className="min-h-screen bg-background flex flex-col font-sans text-foreground overflow-x-hidden w-full max-w-[100vw]"
       data-testid="main-container"
     >
       {/* Header Fixo e Denso */}
-      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
+      <header className="bg-white border-b border-border text-foreground shadow-sm sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <div
@@ -513,7 +513,7 @@ function Index() {
                 <img
                   src={logoAsset.url}
                   alt="GreenFutebol"
-                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]"
+                  className="h-10 sm:h-12 w-auto relative z-10 brightness-100 drop-shadow-sm"
                 />
               </div>
             </div>
