@@ -61,7 +61,7 @@ export type Database = {
           id: string
           market_id: string
           metadata: Json | null
-          odd: number
+          odd: number | null
           result: string | null
           selection_key: string
           selection_name: string
@@ -74,7 +74,7 @@ export type Database = {
           id?: string
           market_id: string
           metadata?: Json | null
-          odd: number
+          odd?: number | null
           result?: string | null
           selection_key: string
           selection_name: string
@@ -87,7 +87,7 @@ export type Database = {
           id?: string
           market_id?: string
           metadata?: Json | null
-          odd?: number
+          odd?: number | null
           result?: string | null
           selection_key?: string
           selection_name?: string

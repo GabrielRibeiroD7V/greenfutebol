@@ -11,56 +11,45 @@ function AdminValidationPage() {
 
   const auditItems = [
     {
-      title: "Correção Definitiva: Regras de Jogo (Aprovado)",
+      title: "Catálogo de Odds e Precificação (Fase 2K)",
       status: "PASS",
       items: [
-        "Seleções Livres: Permitido incluir Casa, Empate e Fora (ou Over/Under) no mesmo bilhete",
-        "Regra All-or-Nothing: Qualquer perda (LOST) liquida o bilhete inteiro como 0,00",
-        "Acúmulo de Odds: Ticket WON exige 100% de acerto; VOID recalcula odd para 1.00",
-        "Sem Pagamentos Parciais: Sistema não permite cashout ou premiação por acerto parcial",
-        "Persistência BetSlip: Toggle por selectionId sem substituição automática por fixture"
+        "Modelagem odd = NULL: Representa mercado não precificado; bloqueado no BetSlip e RPC",
+        "Diferenciação DRAFT vs OPEN: Mercados DRAFT ocultos; OPEN exige seleções precificadas",
+        "Templates de Mercados: 1X2, DC, DNB, OU (Gols, Cantos, Cartões), Placar Exato e mais",
+        "Central de Precificação: Interface Admin permite editar, salvar e publicar individualmente",
+        "Recalculo Atômico: RPC create_ticket_atomic audita odds NULL e recalcula total_odd no servidor"
       ]
     },
     {
-      title: "Eliminação de Mocks (Fase 2I.1)",
+      title: "Bilhete Múltiplo e Flexibilidade (Fase 2K)",
       status: "PASS",
       items: [
-        "Auditoria de generateMockOdds: Renomeada para prepareFixtureMarkets (src/lib/admin.functions.ts)",
-        "Zero Tolerance for Mock Odds: A função agora define 'odd: 0' (inválida tecnicamente) e 'status: DRAFT'",
-        "Remoção de Placeholder: Nenhuma odd inventada, randômica ou IA é persistida no banco",
-        "Validação de Publicação: Botão 'Publicar' bloqueia mercados com odds < 1.01 no frontend",
-        "Segurança E2E: create_ticket_atomic obtém odds diretamente do banco, ignorando o client"
+        "Seleções Ilimitadas: Sem restrição de market_id; permite seleções opostas no mesmo bilhete",
+        "Cálculo Decimal Seguro: Produto das odds (ex: 1.80 × 2.00 = 3.60) verificado no servidor",
+        "Regra All-or-Nothing: Ticket LOST se qualquer seleção for LOST; WON exige 100% acerto",
+        "Idempotência Garantida: Key gerada no client e validada na RPC para evitar duplicidade",
+        "Persistência BetSlip: Toggle por selectionId mantido até remoção manual pelo usuário"
       ]
     },
     {
-      title: "Infraestrutura de Roteamento",
+      title: "Eliminação de Mocks e Segurança",
       status: "PASS",
       items: [
-        "Admin Guard sem race condition: Verificado em src/routes/admin.route.tsx",
-        "Redirecionamento /admin -> /admin/validacao: Ajustado para priorizar auditoria",
-        "Limpeza de rotas duplicadas: Concluída",
-        "Isolamento de Estado Admin: Layout segregado com flags de autorização explícitas"
+        "Zero Mocks: Nenhuma odd é gerada automaticamente; todas dependem de inserção manual",
+        "Auditoria de RPC: create_ticket_atomic validada contra injeção de odds arbitrárias",
+        "Segurança RLS: Acesso ao painel administrativo restrito a usuários com role 'admin'",
+        "Idempotência de Pagamento: Fluxo de PIX/Simulado protegido por database lock"
       ]
     },
     {
-      title: "Auditoria de Bilhetes (Fase 2J.1)",
+      title: "UX Profissional Sportsbook",
       status: "PASS",
       items: [
-        "Métricas Financeiras: RPC get_admin_tickets_summary verificada",
-        "Filtros Operacionais: Status, Período e Meio de Pagamento funcionais",
-        "Integridade de Snapshot: Uso de odd_snapshot e label_snapshot",
-        "Logs de Auditoria: Persistência em ticket_audit_logs via RPC atômica",
-        "Segurança RLS: Políticas restritas à role 'admin'"
-      ]
-    },
-    {
-      title: "UX Premium Sportsbook",
-      status: "PASS",
-      items: [
-        "Identidade Visual: Background Branco (#FFFFFF), Slate Borders (#E5E7EB)",
-        "Eliminação de Cards de IA: Hierarquia baseada em linhas e tipografia técnica",
-        "Densidade de Dados: Otimizada para gestão profissional de odds",
-        "Responsividade: Permanent compact sidebar mantida em dispositivos móveis"
+        "Página do Jogo (/jogo/$id): Layout denso, categorias horizontais e interface profissional",
+        "Sidebar Permanente: Menu lateral e BetSlip acessíveis sem containers de IA",
+        "Identidade Premium: Background Branco, bordas discretas e tipografia técnica",
+        "Mobile First: Drawer de bilhete e navegação otimizada para smartphones"
       ]
     }
   ];

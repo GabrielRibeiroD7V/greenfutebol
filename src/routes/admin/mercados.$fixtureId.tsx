@@ -46,10 +46,17 @@ function AdminMarketManagerPage() {
     }
   };
 
-  const handleUpdateOdd = async (selectionId: string, odd: number) => {
-    if (odd < 1.01) return;
+  const handleUpdateOdd = async (selectionId: string, odd: string) => {
+    const numericOdd = parseFloat(odd);
+    if (odd !== "" && (isNaN(numericOdd) || numericOdd < 1.01)) return;
     try {
-      await updateMarketSelection({ data: { selectionId, odd, action: 'UPDATE_ODD' } });
+      await updateMarketSelection({ 
+        data: { 
+          selectionId, 
+          odd: odd === "" ? null : numericOdd, 
+          action: 'UPDATE_ODD' 
+        } 
+      });
       toast.success("Odd atualizada");
       fetchData();
     } catch (err: any) {
@@ -151,7 +158,7 @@ function AdminMarketManagerPage() {
                             type="number" 
                             step="0.01" 
                             defaultValue={s.odd}
-                            onBlur={(e) => handleUpdateOdd(s.id, parseFloat(e.target.value))}
+                            onBlur={(e) => handleUpdateOdd(s.id, e.target.value)}
                             className="bg-slate-50 border-slate-200 h-9 text-center font-black text-xs rounded-lg"
                           />
                         </div>
