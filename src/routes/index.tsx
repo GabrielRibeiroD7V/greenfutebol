@@ -840,7 +840,7 @@ function Index() {
                                         <span className="text-[10px] font-black text-white whitespace-nowrap">
                                           {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
-                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
+                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
                                         </span>
                                         {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
