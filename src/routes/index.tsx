@@ -1,5 +1,3 @@
-
-
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef, useDeferredValue } from "react";
 import {
@@ -82,7 +80,10 @@ interface Fixture {
   away_score: number | null;
 }
 
-const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE", "IN_PLAY", "PAUSED"];
+const FUTURE_STATUSES = ["NS", "TBD", "SCHEDULED", "TIMED", "NOT_STARTED"];
+const FINISHED_STATUSES = ["FT", "AET", "PEN", "FINISHED"];
+const CANCELLED_STATUSES = ["CANC", "CANCELLED", "POSTPONED", "PST", "ABD", "ABANDONED"];
 const COMPETITION_CODES = ["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL"] as const;
 
 function FixturesSkeleton() {
@@ -260,6 +261,7 @@ function Index() {
       setReachedLimit(false);
 
       try {
+        // 1. Tentar carregar da nossa tabela persistente 'fixtures' (Removido temporariamente para priorizar fallback de API)
         let requestedDate: string;
         if (activeTab === "tomorrow") {
           requestedDate = getTomorrowCGRDateString();
@@ -269,42 +271,7 @@ function Index() {
           requestedDate = getCGRDateString(new Date());
         }
 
-        // 1. Tentar carregar da nossa tabela persistente 'fixtures'
-        const { data: dbFixtures, error: dbError } = await supabase
-          .from('fixtures')
-          .select('*')
-          .gte('kickoff_at', `${requestedDate}T00:00:00Z`)
-          .lte('kickoff_at', `${requestedDate}T23:59:59Z`)
-          .order('kickoff_at', { ascending: true });
-
-        if (!dbError && dbFixtures && dbFixtures.length > 0) {
-          const formatted: Fixture[] = dbFixtures.map(f => ({
-            fixture_id: Number(f.provider_fixture_id),
-            league_name: f.competition_name || "Competição",
-            league_logo: null,
-            country: f.country || "Internacional",
-            home_team_name: f.home_team_name,
-            home_team_logo: f.home_team_crest,
-            away_team_name: f.away_team_name,
-            away_team_logo: f.away_team_crest,
-            kickoff_at: f.kickoff_at,
-            venue: f.venue,
-            status: f.status,
-            elapsed: null,
-            home_score: f.home_score,
-            away_score: f.away_score
-          }));
-
-          if (currentRequestId === requestIdRef.current) {
-            setFixtures(formatted);
-            setDisplayedDate(requestedDate);
-            setIsShowingNextAvailable(false);
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        // 2. Se não houver no banco, fallback para o fluxo original de cache/API
+        // 2. Fluxo original de cache/API com suporte a fallback sequencial
         let currentDate = requestedDate;
         let foundFixtures: Fixture[] = [];
         let searchCount = 0;
@@ -333,6 +300,7 @@ function Index() {
                 const { data, error: invokeError } = await withTimeout(
                   supabase.functions.invoke("get-football-fixtures", {
                     body: { date, competition_code: code },
+                    signal: AbortSignal.timeout(FIXTURES_REQUEST_TIMEOUT_MS),
                   }),
                   FIXTURES_REQUEST_TIMEOUT_MS,
                 );
@@ -394,7 +362,7 @@ function Index() {
 
           // Filter for "available/future" games for fallback decision
           const futureFixtures = result.fixtures.filter(f => 
-            !["FT", "AET", "PEN", "CANC", "PST", "SUSP", "ABD", "INT"].includes(f.status)
+            FUTURE_STATUSES.includes(f.status) || LIVE_STATUSES.includes(f.status)
           );
 
           if (futureFixtures.length > 0) {
@@ -838,7 +806,7 @@ function Index() {
                                         <span className="text-[10px] font-black text-white whitespace-nowrap">
                                           {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
-                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
+                                        <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
                                         </span>
                                         {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
