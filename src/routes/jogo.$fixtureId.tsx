@@ -80,7 +80,9 @@ function MatchDetails() {
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>;
   if (!fixture) return <div className="min-h-screen bg-black text-white p-8">Partida não encontrada</div>;
 
-  const isStarted = new Date(fixture.kickoff_at) <= new Date();
+  const isStarted = markets.length > 0 && markets[0].kickoff_at 
+    ? new Date(markets[0].kickoff_at) <= new Date() 
+    : (fixture ? new Date(fixture.kickoff_at) <= new Date() : false);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col lg:flex-row">

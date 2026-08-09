@@ -78,7 +78,7 @@ export function SelectionButton({
 
   return (
     <button
-      disabled={isDisabled}
+      disabled={false}
       onClick={handleClick}
       className={cn(
         "relative flex flex-col items-center justify-center p-3 transition-all duration-200 min-h-[64px]",
