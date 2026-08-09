@@ -103,12 +103,20 @@ function MatchDetails() {
             </div>
           </div>
           {isAdmin && (
-            <button 
-              onClick={() => navigate({ to: `/admin/mercados/${fixture.fixture_id}` })}
-              className="text-[10px] font-black uppercase text-zinc-500 hover:text-emerald-500 underline"
-            >
-              Gerenciar mercados
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => navigate({ to: `/admin/resultados` })}
+                className="text-[10px] font-black uppercase text-emerald-500 hover:text-emerald-400 underline"
+              >
+                Liquidar
+              </button>
+              <button 
+                onClick={() => navigate({ to: `/admin/mercados/${fixture.fixture_id}` })}
+                className="text-[10px] font-black uppercase text-zinc-500 hover:text-emerald-500 underline"
+              >
+                Gerenciar mercados
+              </button>
+            </div>
           )}
         </header>
 

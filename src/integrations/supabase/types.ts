@@ -890,7 +890,9 @@ export type Database = {
         Args: { p_fixture_id: number }
         Returns: Json
       }
-      settle_fixture_atomic: { Args: { p_fixture_id: number }; Returns: Json }
+      settle_fixture_atomic:
+        | { Args: { _admin_id?: string; _fixture_id: number }; Returns: Json }
+        | { Args: { p_fixture_id: number }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"

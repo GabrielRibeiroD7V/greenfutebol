@@ -1,21 +1,23 @@
 /**
- * FASE 2E.1 — HOMOLOGAÇÃO END-TO-END DOS MERCADOS DE JOGADORES
+ * FASE 2F — RESULTADOS E LIQUIDAÇÃO DE MERCADOS
  * 
  * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
  * 
  * 1. SCHEMA & SEGURANÇA (OK):
- *    - Tabelas 'players' e 'fixture_players' com RLS ativo.
- *    - Constraints de unicidade garantindo integridade.
+ *    - Tabela 'settlement_audit_logs' criada com RLS.
+ *    - Tabelas 'tickets' e 'ticket_selections' atualizadas com campos de liquidação.
+ *    - RLS em 'fixture_results' configurado para leitura pública e escrita admin.
  * 
- * 2. FLUXO TRANSACIONAL (RESOLVIDO):
- *    - A RPC 'create_ticket_atomic' e a tabela 'ticket_selections' agora suportam 'metadata JSONB'.
- *    - Os metadados do jogador (player_id, name) são persistidos no momento da aposta.
+ * 2. MOTOR DE LIQUIDAÇÃO (OPERACIONAL):
+ *    - RPC 'settle_fixture_atomic' implementada para 1X2, Dupla Chance, DNB, Gols (Over/Under) e Ambas Marcam.
+ *    - Suporte a PUSH/VOID com recálculo automático da odd total do bilhete.
+ *    - Liquidação atômica e idempotente com registro de auditoria.
  * 
- * 3. INFRAESTRUTURA (CONCLUÍDO):
- *    - Homologação end-to-end realizada com sucesso.
- *    - Snapshot de metadados validado no banco de dados.
+ * 3. INTERFACE ADMINISTRATIVA (OPERACIONAL):
+ *    - Nova rota '/admin/resultados' para inserção manual de placares, escanteios e cartões.
+ *    - Atalho de liquidação adicionado à página de detalhes do jogo para admins.
  * 
- * CLASSIFICAÇÃO: A — Mercado de jogador seguro e homologado.
+ * CLASSIFICAÇÃO: A — Motor de liquidação operacional e seguro.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
