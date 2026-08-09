@@ -60,6 +60,7 @@ export type Database = {
           created_at: string
           id: string
           market_id: string
+          metadata: Json | null
           odd: number
           result: string | null
           selection_key: string
@@ -72,6 +73,7 @@ export type Database = {
           created_at?: string
           id?: string
           market_id: string
+          metadata?: Json | null
           odd: number
           result?: string | null
           selection_key: string
@@ -84,6 +86,7 @@ export type Database = {
           created_at?: string
           id?: string
           market_id?: string
+          metadata?: Json | null
           odd?: number
           result?: string | null
           selection_key?: string
