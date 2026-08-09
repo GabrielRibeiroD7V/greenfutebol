@@ -88,7 +88,7 @@ function MatchDetails() {
           </div>
           {isAdmin && (
             <button 
-              onClick={() => navigate({ to: `/admin/odds`, search: { fixture_id: fixture.fixture_id } })}
+              onClick={() => navigate({ to: `/admin/mercados/${fixture.fixture_id}` })}
               className="text-[10px] font-black uppercase text-zinc-500 hover:text-emerald-500 underline"
             >
               Gerenciar mercados
