@@ -458,9 +458,13 @@ function AdminMarketManagerPage() {
            <Button 
              variant="outline"
              className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[11px] h-14 rounded-2xl"
-             onClick={() => {
-                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
-                mainTemplates.forEach(t => createMarket(t));
+             onClick={async () => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR' || t.group === 'ESCANTEIOS' || t.group === 'CARTÕES');
+                setIsActionLoading(true);
+                for (const t of mainTemplates) {
+                  await createMarket(t);
+                }
+                setIsActionLoading(false);
              }}
            >
              PREPARAR PARTIDA (Templates Principais)
