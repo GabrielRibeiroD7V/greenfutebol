@@ -841,7 +841,7 @@ function Index() {
                                               {match.away_team_name}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">
+                                          <span className="text-xs font-black text-slate-900">
                                             {match.away_score ?? 0}
                                           </span>
                                         </div>
@@ -867,7 +867,7 @@ function Index() {
         </main>
 
         {/* Bilhete Lateral Desktop */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l border-white/5 p-4 overflow-y-auto no-scrollbar bg-[#080808]">
+        <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-100 p-4 overflow-y-auto no-scrollbar bg-white">
           <BetSlip />
         </aside>
       </div>
@@ -889,10 +889,10 @@ function Index() {
 
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm">
+          <div className="absolute bottom-0 w-full max-h-[90vh] bg-white rounded-t-3xl border-t border-slate-200 flex flex-col shadow-2xl">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900 uppercase tracking-widest">
                 Seu Bilhete
               </span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400">
@@ -906,7 +906,7 @@ function Index() {
         </div>
       )}
 
-      <footer className="py-6 border-t border-white/5 text-center bg-black">
+      <footer className="py-6 border-t border-slate-100 text-center bg-white">
         <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">
           &copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE
         </span>
