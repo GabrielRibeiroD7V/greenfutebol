@@ -730,4 +730,50 @@ function AdminMarketManagerPage() {
       </div>
     </div>
   );
+function PlayerMarketCreator({ template, players, isActionLoading, onConfirm }: any) {
+  const [selected, setSelected] = useState<string[]>([]);
+  
+  return (
+    <DialogContent className="bg-zinc-900 border-white/5 text-white max-w-md">
+      <DialogHeader>
+        <DialogTitle className="uppercase font-black italic text-emerald-500">{template.name}</DialogTitle>
+        <DialogDescription className="text-zinc-500 uppercase text-[9px] font-black tracking-widest">Selecione os jogadores e defina as odds</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+        {['HOME', 'AWAY'].map(side => (
+          <div key={side} className="space-y-2">
+            <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest border-b border-white/5 pb-2">
+              {side === 'HOME' ? 'Mandante' : 'Visitante'}
+            </h4>
+            <div className="grid gap-2">
+              {players.filter((p: any) => p.team_side === side && p.status === 'AVAILABLE').map((p: any) => (
+                <div key={p.id} className="flex items-center space-x-3 bg-black/40 p-3 rounded-xl border border-white/5">
+                  <Checkbox 
+                    id={`p-${p.player_id}`} 
+                    checked={selected.includes(p.player_id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) setSelected([...selected, p.player_id]);
+                      else setSelected(selected.filter(id => id !== p.player_id));
+                    }}
+                  />
+                  <Label htmlFor={`p-${p.player_id}`} className="text-[10px] font-black uppercase flex-1 cursor-pointer">
+                    {p.players.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <DialogFooter>
+        <Button 
+          disabled={isActionLoading || selected.length === 0}
+          onClick={() => onConfirm(selected)}
+          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase w-full py-6 rounded-2xl"
+        >
+          Criar Mercado ({selected.length})
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
 }
