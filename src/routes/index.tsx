@@ -633,7 +633,7 @@ function Index() {
         <aside
           className={cn(
             "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
-            isMenuOpen ? "w-64 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static" : "w-0 lg:w-64",
+            "w-[110px] sm:w-[130px] lg:w-64",
           )}
         >
           <div className="p-4 space-y-6">
