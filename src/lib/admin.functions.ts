@@ -40,7 +40,6 @@ export const getAdminTickets = createServerFn({ method: "GET" })
 
     if (status && status !== 'ALL') query = query.eq('status', status);
     if (paymentMode) query = query.eq('payment_mode', paymentMode);
-    if (ticketType) query = query.eq('ticket_type', ticketType);
     
     if (dateRange === 'today') {
       const today = new Date();
