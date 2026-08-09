@@ -268,14 +268,28 @@ function AdminMarketManagerPage() {
 
       if (mError) throw mError;
 
-      const selectionsData = template.selections.map((name, i) => ({
-        market_id: market.id,
-        selection_key: template.keys[i] || `OP${i+1}`,
-        selection_name: name,
-        odd: 1.90,
-        sort_order: i,
-        status: "OPEN"
-      }));
+      const selectionsData = template.selections.map((name, i) => {
+        let metadata = {};
+        const key = template.keys[i] || `OP${i+1}`;
+        
+        if (template.id === 'OU' || template.id === 'CORNERS' || template.id === 'CARDS') {
+           const lineMatch = name.match(/(\d+\.\d+)/);
+           if (lineMatch) metadata = { line: parseFloat(lineMatch[1]), type: key.includes('OVER') ? 'OVER' : 'UNDER' };
+        } else if (template.id === 'CS') {
+           const scoreMatch = key.match(/(\d+):(\d+)/);
+           if (scoreMatch) metadata = { home_score: parseInt(scoreMatch[1]), away_score: parseInt(scoreMatch[2]) };
+        }
+
+        return {
+          market_id: market.id,
+          selection_key: key,
+          selection_name: name,
+          odd: 1.00, // Initial invalid odd to force admin entry
+          sort_order: i,
+          status: "DRAFT", // Start as DRAFT
+          metadata
+        };
+      });
 
       const { error: sError } = await supabase
         .from("fixture_market_selections")
