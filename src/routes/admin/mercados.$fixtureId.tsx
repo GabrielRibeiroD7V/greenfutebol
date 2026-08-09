@@ -172,7 +172,10 @@ function AdminMarketManagerPage() {
   };
 
   const addPlayerMarket = async (template: any, selectedPlayerIds: string[]) => {
-    if (selectedPlayerIds.length === 0) return toast.error("Selecione pelo menos um jogador");
+    if (selectedPlayerIds.length === 0) {
+      toast.error("Selecione pelo menos um jogador");
+      return;
+    }
     setIsActionLoading(true);
     try {
       const marketData = {
