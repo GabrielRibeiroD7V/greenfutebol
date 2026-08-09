@@ -1,3 +1,19 @@
+/**
+ * FASE 2C.1 — HOMOLOGAÇÃO E CORREÇÃO MÍNIMA DA IDEMPOTÊNCIA DO BILHETE REAL
+ * 
+ * STATUS DA AUDITORIA:
+ * 1. Onde a idempotency_key é criada: use-bet-slip.tsx (generateIdempotencyKey).
+ * 2. Onde fica armazenada: LocalStorage (gf_bet_slip) e estado React.
+ * 3. Quando é reutilizada: Em retentativas técnicas (erro de rede/timeout) se o estado do bilhete não mudou.
+ * 4. Quando é descartada: 
+ *    - Manualmente ao alterar o bilhete (add/remove/stake).
+ *    - Após sucesso na criação do ticket.
+ *    - Após ODDS_CHANGED (gera-se nova chave APÓS o aceite explícito do usuário).
+ * 5. Comportamento em refresh: Persiste via LocalStorage.
+ * 6. Duplo clique: Bloqueado pelo estado 'SUBMITTING' no frontend.
+ * 
+ * CLASSIFICAÇÃO: A — Fluxo mercado → BetSlip → ticket homologado e idempotente.
+ */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef, useDeferredValue } from "react";
 import {
