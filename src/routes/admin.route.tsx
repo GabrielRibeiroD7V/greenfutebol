@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, Outlet, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import { Loader2, ShieldCheck, Ticket, BarChart3, Settings } from "lucide-react";
+import { Loader2, ShieldCheck, Ticket, BarChart3, Settings, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
