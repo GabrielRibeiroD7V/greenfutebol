@@ -35,12 +35,14 @@ export function SelectionButton({
   selection,
   market,
   fixture,
-  className
+  className,
+  showLabel = true
 }: {
   selection: Selection;
   market: Market;
   fixture: FixtureMetadata;
   className?: string;
+  showLabel?: boolean;
 }) {
   const { toggleSelection, hasSelection } = useBetSlip();
   
