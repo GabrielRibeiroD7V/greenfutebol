@@ -92,12 +92,14 @@ export function SelectionButton({
         className
       )}
     >
-      <span className={cn(
-        "text-[10px] font-bold uppercase tracking-tight mb-1",
-        selected ? "text-emerald-500 bg-black/40 px-1.5 py-0.5 rounded" : "text-zinc-500"
-      )}>
-        {selection.selection_name}
-      </span>
+      {showLabel && (
+        <span className={cn(
+          "text-[10px] font-bold uppercase tracking-tight mb-1",
+          selected ? "text-emerald-500 bg-black/40 px-1.5 py-0.5 rounded" : "text-zinc-500"
+        )}>
+          {selection.selection_name}
+        </span>
+      )}
       <div className="flex items-center gap-1.5">
         {isSuspended ? (
           <Lock size={12} className="text-amber-500" />
