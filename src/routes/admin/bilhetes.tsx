@@ -207,12 +207,12 @@ function AdminTicketsPage() {
               <div 
                 key={t.id} 
                 onClick={() => navigate({ to: `/admin/bilhetes/${t.id}` })}
-                className="bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 grid grid-cols-12 gap-4 items-center cursor-pointer hover:border-emerald-300 transition-all shadow-sm group"
+                className="bg-white border-b border-[#E5E7EB] p-4 lg:p-6 grid grid-cols-12 gap-4 items-center cursor-pointer hover:bg-[#F6F7F7] transition-all group last:border-b-0"
               >
                 <div className="col-span-6 lg:col-span-2 space-y-1">
-                  <span className="text-sm font-black text-emerald-600 tracking-tighter group-hover:underline">{t.code}</span>
-                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold italic">
-                    {new Date(t.created_at).toLocaleDateString('pt-BR')} - {new Date(t.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  <span className="text-xs font-bold text-emerald-600 tracking-tighter group-hover:underline uppercase">{t.code}</span>
+                  <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold">
+                    {new Date(t.created_at).toLocaleDateString('pt-BR')} {new Date(t.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
 
