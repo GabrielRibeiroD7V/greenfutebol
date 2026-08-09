@@ -528,8 +528,8 @@ function Index() {
               className={cn(
                 "pb-5 pt-5 transition-all border-b-2",
                 competitionCode === "ALL"
-                  ? "text-emerald-500 border-emerald-500"
-                  : "text-slate-400 border-transparent hover:text-white",
+                  ? "text-emerald-600 border-emerald-600"
+                  : "text-slate-500 border-transparent hover:text-emerald-600",
               )}
             >
               Futebol
@@ -542,15 +542,15 @@ function Index() {
               className={cn(
                 "pb-5 pt-5 transition-all border-b-2",
                 activeTab === "live"
-                  ? "text-emerald-500 border-emerald-500"
-                  : "text-slate-400 border-transparent hover:text-white",
+                  ? "text-emerald-600 border-emerald-600"
+                  : "text-slate-500 border-transparent hover:text-emerald-600",
               )}
             >
               Ao Vivo
             </button>
             <button
               onClick={() => navigate({ to: "/meus-bilhetes" })}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-slate-500 hover:text-emerald-600 transition-colors"
             >
               Minhas Apostas
             </button>
