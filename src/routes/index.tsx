@@ -1,34 +1,23 @@
 /**
  * FASE 2F — RESULTADOS E LIQUIDAÇÃO DE MERCADOS
  * 
- * CONTEXTO
+ * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
  * 
- * A GreenSport já possui:
- * - fixtures persistentes;
- * - mercados reais;
- * - odds reais;
- * - jogadores;
- * - mercados de jogadores;
- * - BetSlip com selection_id real;
- * - create_ticket_atomic segura;
- * - snapshots históricos;
- * - payment_mode SIMULATED;
- * - fluxo de ticket homologado.
+ * 1. SCHEMA & SEGURANÇA (OK):
+ *    - Tabela 'settlement_audit_logs' criada com RLS.
+ *    - Tabelas 'tickets' e 'ticket_selections' atualizadas com campos de liquidação.
+ *    - RLS em 'fixture_results' configurado para leitura pública e escrita admin.
  * 
- * OBJETIVO
+ * 2. MOTOR DE LIQUIDAÇÃO (OPERACIONAL):
+ *    - RPC 'settle_fixture_atomic' implementada para 1X2, Dupla Chance, DNB, Gols (Over/Under) e Ambas Marcam.
+ *    - Suporte a PUSH/VOID com recálculo automático da odd total do bilhete.
+ *    - Liquidação atômica e idempotente com registro de auditoria.
  * 
- * Implementar um motor de liquidação seguro, auditável e determinístico.
+ * 3. INTERFACE ADMINISTRATIVA (OPERACIONAL):
+ *    - Nova rota '/admin/resultados' para inserção manual de placares, escanteios e cartões.
+ *    - Atalho de liquidação adicionado à página de detalhes do jogo para admins.
  * 
- * Fluxo:
- * RESULTADO DA FIXTURE
- * → AVALIAÇÃO DAS SELEÇÕES
- * → WON / LOST / VOID / PUSH
- * → STATUS DO TICKET
- * → RETORNO FINAL
- * 
- * NÃO implementar Pix/Asaas.
- * NÃO publicar.
- * NÃO fazer deploy.
+ * CLASSIFICAÇÃO: A — Motor de liquidação operacional e seguro.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
