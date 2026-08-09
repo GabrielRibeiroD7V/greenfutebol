@@ -814,7 +814,7 @@ function Index() {
                                         <span className={cn("mt-1 w-fit rounded-[4px] border px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
                                         </span>
-                                        {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-600">{match.venue}</span>}
+                                        {match.venue && <span className="mt-1 max-w-[150px] truncate text-[8px] font-medium text-slate-400">{match.venue}</span>}
                                       </div>
 
                                       <div className="flex-1 flex flex-col gap-2">
