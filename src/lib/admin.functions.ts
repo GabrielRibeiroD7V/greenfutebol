@@ -57,7 +57,6 @@ export const getAdminTickets = createServerFn({ method: "GET" })
     
     if (search) {
        query = query.or(`code.ilike.%${search}%,id.ilike.%${search}%`);
-       // Note: complex profile joins searching needs extra work, but usually ID/Code is enough for admin
     }
 
     const from = (page - 1) * pageSize;
@@ -90,7 +89,6 @@ export const getAdminTicketsSummary = createServerFn({ method: "GET" })
 
     if (error) {
       console.error("Summary error:", error);
-      // Fallback for missing RPC
       return {
         todayCount: 0,
         todayStake: 0,
@@ -123,12 +121,12 @@ export const getAdminTicketDetail = createServerFn({ method: "GET" })
 export const updateMarketSelection = createServerFn({ method: "POST" })
   .validator((data: any) => z.object({
     selectionId: z.string().uuid(),
-    odd: z.number().min(1.01).optional(),
+    odd: z.number().min(1.01).nullable().optional(),
     status: z.string().optional(),
     action: z.string()
   }).parse(data))
   .handler(async ({ data: input }) => {
-    const adminUser = await requireAdmin();
+    await requireAdmin();
     const { selectionId, odd, status } = input;
 
     const updates: any = { updated_at: new Date().toISOString() };
@@ -168,7 +166,6 @@ export const prepareFixtureMarkets = createServerFn({ method: "POST" })
     await requireAdmin();
     const { fixture_id } = data;
 
-    // Get competition code
     const { data: fixture } = await supabase
       .from('fixtures')
       .select('competition_code')
@@ -177,16 +174,40 @@ export const prepareFixtureMarkets = createServerFn({ method: "POST" })
     
     const compCode = fixture?.competition_code || 'DEMO';
 
-    // Market templates for homologation
     const templates = [
+      // --- PRINCIPAIS ---
       { type: '1X2', name: 'Resultado Final', group: 'RESULT', selections: [{ k: 'H', n: 'Casa' }, { k: 'D', n: 'Empate' }, { k: 'A', n: 'Fora' }] },
       { type: 'DC', name: 'Dupla Chance', group: 'RESULT', selections: [{ k: '1X', n: '1X' }, { k: '12', n: '12' }, { k: 'X2', n: 'X2' }] },
       { type: 'DNB', name: 'Empate Anula', group: 'RESULT', selections: [{ k: 'H', n: 'Casa' }, { k: 'A', n: 'Fora' }] },
-      { type: 'BTTS', name: 'Ambas Marcam', group: 'RESULT', selections: [{ k: 'YES', n: 'Sim' }, { k: 'NO', n: 'Não' }] },
+      
+      // --- GOLS ---
+      { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 0.5, selections: [{ k: 'OVER', n: 'Mais de 0.5' }, { k: 'UNDER', n: 'Menos de 0.5' }] },
       { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 1.5, selections: [{ k: 'OVER', n: 'Mais de 1.5' }, { k: 'UNDER', n: 'Menos de 1.5' }] },
       { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 2.5, selections: [{ k: 'OVER', n: 'Mais de 2.5' }, { k: 'UNDER', n: 'Menos de 2.5' }] },
-      { type: 'CS', name: 'Placar Exato', group: 'SCORE', selections: [{ k: '0:0', n: '0 x 0' }, { k: '1:0', n: '1 x 0' }, { k: '0:1', n: '0 x 1' }, { k: '1:1', n: '1 x 1' }, { k: '2:1', n: '2 x 1' }] },
-      { type: 'OU', name: 'Escanteios', group: 'CORNERS', line: 8.5, selections: [{ k: 'OVER', n: 'Mais de 8.5' }, { k: 'UNDER', n: 'Menos de 8.5' }] },
+      { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 3.5, selections: [{ k: 'OVER', n: 'Mais de 3.5' }, { k: 'UNDER', n: 'Menos de 3.5' }] },
+      { type: 'BTTS', name: 'Ambas Marcam', group: 'GOALS', selections: [{ k: 'YES', n: 'Sim' }, { k: 'NO', n: 'Não' }] },
+      
+      // --- PRIMEIRO TEMPO ---
+      { type: '1X2_1H', name: 'Resultado 1º Tempo', group: 'HT', selections: [{ k: 'H', n: 'Casa' }, { k: 'D', n: 'Empate' }, { k: 'A', n: 'Fora' }] },
+      { type: 'OU_1H', name: 'Total de Gols 1º Tempo', group: 'HT', line: 0.5, selections: [{ k: 'OVER', n: 'Mais de 0.5' }, { k: 'UNDER', n: 'Menos de 0.5' }] },
+      
+      // --- ESCANTEIOS ---
+      { type: 'OU_CORNERS', name: 'Total de Escanteios', group: 'CORNERS', line: 8.5, selections: [{ k: 'OVER', n: 'Mais de 8.5' }, { k: 'UNDER', n: 'Menos de 8.5' }] },
+      { type: 'OU_CORNERS', name: 'Total de Escanteios', group: 'CORNERS', line: 9.5, selections: [{ k: 'OVER', n: 'Mais de 9.5' }, { k: 'UNDER', n: 'Menos de 9.5' }] },
+      
+      // --- CARTÕES ---
+      { type: 'OU_CARDS', name: 'Total de Cartões', group: 'CARDS', line: 3.5, selections: [{ k: 'OVER', n: 'Mais de 3.5' }, { k: 'UNDER', n: 'Menos de 3.5' }] },
+      { type: 'OU_CARDS', name: 'Total de Cartões', group: 'CARDS', line: 4.5, selections: [{ k: 'OVER', n: 'Mais de 4.5' }, { k: 'UNDER', n: 'Menos de 4.5' }] },
+
+      // --- PLACAR ---
+      { 
+        type: 'CS', name: 'Placar Exato', group: 'SCORE', 
+        selections: [
+          { k: '0:0', n: '0 x 0' }, { k: '1:0', n: '1 x 0' }, { k: '0:1', n: '0 x 1' }, 
+          { k: '1:1', n: '1 x 1' }, { k: '2:0', n: '2 x 0' }, { k: '0:2', n: '0 x 2' },
+          { k: '2:1', n: '2 x 1' }, { k: '1:2', n: '1 x 2' }, { k: '2:2', n: '2 x 2' }
+        ] 
+      },
     ];
 
     for (const t of templates) {
@@ -210,7 +231,7 @@ export const prepareFixtureMarkets = createServerFn({ method: "POST" })
         market_id: fm.id,
         selection_key: s.k,
         selection_name: s.n,
-        odd: 0, // Zero tolerance for mocks. Must be 0 (technically invalid odd) until manually set.
+        odd: null, // As per requirement: NULL means not priced yet.
         sort_order: idx,
         status: 'DRAFT'
       }));
