@@ -846,7 +846,7 @@ function Index() {
                                               {match.away_team_name}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black text-slate-900">
+                                          <span className="text-xs font-bold text-slate-900">
                                             {match.away_score ?? 0}
                                           </span>
                                         </div>
