@@ -162,7 +162,8 @@ function BilhetePage() {
                 onClick={() => removeSelection(s.selectionId)} 
                 className="p-2 hover:bg-white/5 rounded-full text-zinc-600 hover:text-red-500 transition-colors"
               >
-                <X size={18} />
+                  <X size={18} />
+
               </button>
             </div>
           </div>

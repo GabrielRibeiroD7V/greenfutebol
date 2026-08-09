@@ -277,9 +277,10 @@ function MeusBilhetesComponent() {
                           </div>
                           {(t.status === 'PENDING_PAYMENT' || t.status === 'WAITING_PAYMENT') && (
                             <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest border border-white/10 px-2 py-0.5 rounded">
-                              Aguardando Pagamento (Simulado)
+                              Simulado (Aguardando)
                             </span>
                           )}
+
 
                         </div>
 
