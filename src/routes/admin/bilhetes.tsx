@@ -266,7 +266,7 @@ function AdminTicketsPage() {
 
             {/* Paginação Simples */}
             <div className="flex items-center justify-between py-6">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total: {totalCount} bilhetes</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total: {totalCount} registros</span>
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
