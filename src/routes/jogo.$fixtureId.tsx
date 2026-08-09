@@ -44,7 +44,7 @@ function MatchDetails() {
           const { data: marketsData, error: mError } = await supabase
             .from("fixture_markets")
             .select("*, fixture_market_selections(*)")
-            .eq("fixture_id", parseInt(fixtureId))
+            .eq("fixture_id", fixtureId)
             .order("market_group");
             
           console.log("Markets data from DB:", marketsData);
