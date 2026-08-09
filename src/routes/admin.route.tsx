@@ -15,7 +15,7 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || profile?.role !== 'admin')) {
-      // navigate({ to: "/" });
+      navigate({ to: "/" });
     }
   }, [isLoading, isAuthenticated, profile, navigate]);
 
