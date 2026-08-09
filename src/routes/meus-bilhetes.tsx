@@ -77,7 +77,8 @@ function MeusBilhetesComponent() {
     switch (status) {
       case 'WON': return 'text-emerald-500';
       case 'LOST': return 'text-red-500';
-      case 'VOID': return 'text-slate-400';
+      case 'VOID':
+      case 'PUSH': return 'text-slate-400';
       case 'CANCELLED': return 'text-slate-500';
       default: return 'text-amber-500';
     }
