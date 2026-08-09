@@ -156,6 +156,7 @@ function MeusBilhetesComponent() {
                            t.status === 'WON' ? 'Ganho' :
                            t.status === 'LOST' ? 'Perdido' :
                            t.status === 'VOID' ? 'Anulado' :
+                           t.status === 'PUSH' ? 'Devolvido (Push)' :
                            t.status === 'CANCELLED' ? 'Cancelado' : t.status}
 
                         </span>
@@ -261,7 +262,8 @@ function MeusBilhetesComponent() {
                                     {sel.status === 'PENDING' ? 'Pendente' : 
                                      sel.status === 'WON' ? 'Vencedora' :
                                      sel.status === 'LOST' ? 'Perdida' :
-                                     sel.status === 'VOID' ? 'Anulada' : sel.status}
+                                     sel.status === 'VOID' ? 'Anulada' : 
+                                     sel.status === 'PUSH' ? 'Push' : sel.status}
                                   </span>
                                 </div>
                               </div>
