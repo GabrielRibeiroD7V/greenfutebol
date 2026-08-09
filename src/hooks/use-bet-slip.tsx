@@ -17,8 +17,13 @@ export type BetSlipSelection = {
 
 export function useBetSlip() {
   const [selections, setSelections] = useState<BetSlipSelection[]>([]);
-  const [stake, setStake] = useState<number>(10);
+  const [stakeState, setStakeState] = useState<number>(10);
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+
+  const setStake = useCallback((newStake: number) => {
+    setStakeState(newStake);
+    setIdempotencyKey(null);
+  }, []);
   const isFirstMount = useRef(true);
 
   // Load from localStorage on mount
