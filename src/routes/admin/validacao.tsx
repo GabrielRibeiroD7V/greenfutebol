@@ -11,16 +11,20 @@ function AdminValidationPage() {
 
   const auditItems = [
     {
+      title: "Correção Funcional: Múltiplas Seleções (Aprovado)",
+      status: "PASS",
+      items: [
+        "Múltiplas Seleções por Partida: Agora é permitido escolher Casa, Empate e Fora no mesmo bilhete",
+        "Múltiplas Seleções por Mercado: Toggle exato por selectionId, sem substituição automática",
+        "Suporte para 50+ Seleções: Bilhetes múltiplos sem limites arbitrários no frontend e backend",
+        "Cálculo de Odd Acumulada: Produto total de todas as seleções validado via RPC create_ticket_atomic",
+        "Integridade do MarketRenderer: Odds publicadas (OPEN) aparecem imediatamente ao entrar no jogo"
+      ]
+    },
+    {
       title: "Eliminação de Mocks (Fase 2I.1)",
       status: "PASS",
       items: [
-        "Auditoria de generateMockOdds: Renomeada para prepareFixtureMarkets (src/lib/admin.functions.ts)",
-        "Zero Tolerance for Mock Odds: A função agora define 'odd: 0' (inválida tecnicamente) e 'status: DRAFT'",
-        "Remoção de Placeholder: Nenhuma odd inventada, randômica ou IA é persistida no banco",
-        "Validação de Publicação: Botão 'Publicar' bloqueia mercados com odds < 1.01 no frontend",
-        "Segurança E2E: create_ticket_atomic obtém odds diretamente do banco, ignorando o client"
-      ]
-    },
     {
       title: "Infraestrutura de Roteamento",
       status: "PASS",
