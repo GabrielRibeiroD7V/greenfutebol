@@ -601,7 +601,7 @@ function AdminMarketManagerPage() {
                         template={template} 
                         players={players} 
                         isActionLoading={isActionLoading} 
-                        onConfirm={(ids) => addPlayerMarket(template, ids)}
+                        onConfirm={(ids: string[]) => addPlayerMarket(template, ids)}
                       />
                     </Dialog>
                   ))}
