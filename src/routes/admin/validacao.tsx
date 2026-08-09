@@ -25,6 +25,13 @@ function AdminValidationPage() {
       title: "Eliminação de Mocks (Fase 2I.1)",
       status: "PASS",
       items: [
+        "Auditoria de generateMockOdds: Renomeada para prepareFixtureMarkets (src/lib/admin.functions.ts)",
+        "Zero Tolerance for Mock Odds: A função agora define 'odd: 0' (inválida tecnicamente) e 'status: DRAFT'",
+        "Remoção de Placeholder: Nenhuma odd inventada, randômica ou IA é persistida no banco",
+        "Validação de Publicação: Botão 'Publicar' bloqueia mercados com odds < 1.01 no frontend",
+        "Segurança E2E: create_ticket_atomic obtém odds diretamente do banco, ignorando o client"
+      ]
+    },
     {
       title: "Infraestrutura de Roteamento",
       status: "PASS",
