@@ -740,24 +740,8 @@ function Index() {
         {/* Conteúdo Central: Jogos */}
         <main className="flex-1 overflow-y-auto no-scrollbar bg-[#050505] p-2 sm:p-4">
           <div className="max-w-4xl mx-auto space-y-4">
-            {/* Banner e Filtros Mobile */}
-            <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">
-              {["ALL", ...COMPETITION_CODES].map((id) => (
-                <button
-                  key={id}
-                  onClick={() => setCompetitionCode(id as any)}
-                  className={cn(
-                    "px-4 py-2 rounded-full text-[10px] font-black uppercase whitespace-nowrap border transition-all",
-                    competitionCode === id
-                      ? "bg-emerald-600 border-emerald-400 text-white"
-                      : "bg-white/5 border-white/10 text-slate-400",
-                  )}
-                >
-                  {id}
-                </button>
-              ))}
-            </div>
-
+            {/* Banner e Filtros Mobile Removidos - Substituídos pela sidebar fixa */}
+            
             {isLoading ? (
               <FixturesSkeleton />
             ) : error ? (
