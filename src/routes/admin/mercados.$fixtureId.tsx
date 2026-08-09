@@ -36,7 +36,7 @@ function AdminMarketManagerPage() {
   const handlePrepareMatch = async () => {
     setActionLoading(true);
     try {
-      await generateMockOdds({ data: { fixture_id: parseInt(fixtureId) } });
+      await prepareFixtureMarkets({ data: { fixture_id: parseInt(fixtureId) } });
       toast.success("Partida preparada com mercados em DRAFT.");
       fetchData();
     } catch (err: any) {
