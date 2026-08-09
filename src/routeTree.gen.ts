@@ -23,6 +23,7 @@ import { Route as AdminOddsRouteImport } from './routes/admin/odds'
 import { Route as AdminResultadosRouteImport } from './routes/admin/resultados'
 import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 import { Route as PagamentoTicketIdRouteImport } from './routes/pagamento.$ticketId'
+import { Route as AdminMercadosFixtureIdRouteImport } from './routes/admin/mercados.$fixtureId'
 import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api.public.asaas-webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -95,6 +96,11 @@ const PagamentoTicketIdRoute = PagamentoTicketIdRouteImport.update({
   path: '/pagamento/$ticketId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMercadosFixtureIdRoute = AdminMercadosFixtureIdRouteImport.update({
+  id: '/$fixtureId',
+  path: '/$fixtureId',
+  getParentRoute: () => AdminMercadosRoute,
+} as any)
 const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
   id: '/api/public/asaas-webhook',
   path: '/api/public/asaas-webhook',
@@ -110,12 +116,13 @@ export interface FileRoutesByFullPath {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
-  '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/mercados': typeof AdminMercadosRouteWithChildren
   '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -126,12 +133,13 @@ export interface FileRoutesByTo {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
-  '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/mercados': typeof AdminMercadosRouteWithChildren
   '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRoutesById {
@@ -144,12 +152,13 @@ export interface FileRoutesById {
   '/meus-bilhetes': typeof MeusBilhetesRoute
   '/perfil': typeof PerfilRoute
   '/admin/bilhetes': typeof AdminBilhetesRoute
-  '/admin/mercados': typeof AdminMercadosRoute
+  '/admin/mercados': typeof AdminMercadosRouteWithChildren
   '/admin/odds': typeof AdminOddsRoute
   '/admin/resultados': typeof AdminResultadosRoute
   '/jogo/$fixtureId': typeof JogoFixtureIdRoute
   '/pagamento/$ticketId': typeof PagamentoTicketIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
 }
 export interface FileRouteTypes {
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
     | '/admin/'
+    | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
     | '/admin'
+    | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
   id:
     | '__root__'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/jogo/$fixtureId'
     | '/pagamento/$ticketId'
     | '/admin/'
+    | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -318,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PagamentoTicketIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/mercados/$fixtureId': {
+      id: '/admin/mercados/$fixtureId'
+      path: '/$fixtureId'
+      fullPath: '/admin/mercados/$fixtureId'
+      preLoaderRoute: typeof AdminMercadosFixtureIdRouteImport
+      parentRoute: typeof AdminMercadosRoute
+    }
     '/api/public/asaas-webhook': {
       id: '/api/public/asaas-webhook'
       path: '/api/public/asaas-webhook'
@@ -328,9 +347,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminMercadosRouteChildren {
+  AdminMercadosFixtureIdRoute: typeof AdminMercadosFixtureIdRoute
+}
+
+const AdminMercadosRouteChildren: AdminMercadosRouteChildren = {
+  AdminMercadosFixtureIdRoute: AdminMercadosFixtureIdRoute,
+}
+
+const AdminMercadosRouteWithChildren = AdminMercadosRoute._addFileChildren(
+  AdminMercadosRouteChildren,
+)
+
 interface AdminRouteRouteChildren {
   AdminBilhetesRoute: typeof AdminBilhetesRoute
-  AdminMercadosRoute: typeof AdminMercadosRoute
+  AdminMercadosRoute: typeof AdminMercadosRouteWithChildren
   AdminOddsRoute: typeof AdminOddsRoute
   AdminResultadosRoute: typeof AdminResultadosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -338,7 +369,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBilhetesRoute: AdminBilhetesRoute,
-  AdminMercadosRoute: AdminMercadosRoute,
+  AdminMercadosRoute: AdminMercadosRouteWithChildren,
   AdminOddsRoute: AdminOddsRoute,
   AdminResultadosRoute: AdminResultadosRoute,
   AdminIndexRoute: AdminIndexRoute,
