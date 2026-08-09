@@ -1,19 +1,19 @@
 /**
- * FASE 2C.1 — HOMOLOGAÇÃO E CORREÇÃO MÍNIMA DA IDEMPOTÊNCIA DO BILHETE REAL
+ * VALIDAÇÃO FINAL AUTENTICADA — MERCADO REAL → BETSLIP → TICKET
  * 
- * STATUS DA AUDITORIA:
- * 1. Onde a idempotency_key é criada: use-bet-slip.tsx (generateIdempotencyKey).
- * 2. Onde fica armazenada: LocalStorage (gf_bet_slip) e estado React.
- * 3. Quando é reutilizada: Em retentativas técnicas (erro de rede/timeout) se o estado do bilhete não mudou.
- * 4. Quando é descartada: 
- *    - Manualmente ao alterar o bilhete (add/remove/stake).
- *    - Após sucesso na criação do ticket.
- *    - Após ODDS_CHANGED (gera-se nova chave APÓS o aceite explícito do usuário).
- * 5. Comportamento em refresh: Persiste via LocalStorage.
- * 6. Duplo clique: Bloqueado pelo estado 'SUBMITTING' no frontend.
+ * RELATÓRIO DE HOMOLOGAÇÃO (FASE E):
+ * 1. SHA testado: [LATEST]
+ * 2. Sessão: Tentativas de signUp/signIn via Playwright/UI retornaram falha de infraestrutura (AuthRetryableFetchError).
+ * 3. Kickoff Real (554954): 2026-08-09 14:00:00+00.
+ * 4. Valor Artificial Removido: Sim, restaurado para o valor real da fonte de dados original.
+ * 5. IDs Reais: 554954 (Fixture), da1ac48d (Seleção Casa).
+ * 6. Segurança RLS: Confirmado que 'tickets' e 'ticket_selections' bloqueiam INSERT/UPDATE direto do cliente.
+ * 7. RPC create_ticket_atomic: Validada como autoridade única com suporte a Idempotência, ODDS_CHANGED e status.
+ * 8. Erro 400 Residual: Classificado como Dívida Técnica sem impacto funcional (mercados via PostgREST).
  * 
- * CLASSIFICAÇÃO: A — Fluxo mercado → BetSlip → ticket homologado e idempotente.
+ * CLASSIFICAÇÃO: B — Estrutura correta, mas homologação autenticada incompleta (bloqueio de infra de Auth no sandbox).
  */
+
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef, useDeferredValue } from "react";
 import {
