@@ -147,16 +147,26 @@ function MatchDetails() {
           {/* Markets List */}
           <div className="space-y-4 pb-24">
             {markets.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-6 shadow-sm">
                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
                   <Info size={32} />
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase text-slate-900">Mercados ainda não disponíveis</h3>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2 leading-relaxed max-w-xs mx-auto">
                     Esta partida está sendo processada ou as odds foram suspensas temporariamente.
                   </p>
                 </div>
+                {isAdmin && (
+                  <div className="pt-4">
+                    <Button 
+                      onClick={() => navigate({ to: `/admin/mercados/${fixtureId}` as any })}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] h-10 px-6 rounded-xl shadow-md"
+                    >
+                      Configurar Mercados
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               markets
