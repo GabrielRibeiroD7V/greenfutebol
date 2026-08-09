@@ -669,9 +669,12 @@ function AdminMarketManagerPage() {
                         onChange={(e) => updateMarketStatus(m.id, e.target.value)}
                         className={cn(
                           "bg-black border-white/10 text-[9px] font-black uppercase rounded-lg px-2 h-8 outline-none",
-                          m.status === 'OPEN' ? "text-emerald-500" : m.status === 'SUSPENDED' ? "text-amber-500" : "text-red-500"
+                          m.status === 'OPEN' ? "text-emerald-500" : 
+                          m.status === 'DRAFT' ? "text-zinc-500" :
+                          m.status === 'SUSPENDED' ? "text-amber-500" : "text-red-500"
                         )}
                       >
+                        <option value="DRAFT">Rascunho (DRAFT)</option>
                         <option value="OPEN">Aberto (OPEN)</option>
                         <option value="SUSPENDED">Suspenso (SUSPENDED)</option>
                         <option value="CLOSED">Fechado (CLOSED)</option>
