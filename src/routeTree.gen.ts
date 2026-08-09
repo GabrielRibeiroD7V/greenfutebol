@@ -25,6 +25,7 @@ import { Route as JogoFixtureIdRouteImport } from './routes/jogo.$fixtureId'
 import { Route as PagamentoTicketIdRouteImport } from './routes/pagamento.$ticketId'
 import { Route as AdminMercadosFixtureIdRouteImport } from './routes/admin/mercados.$fixtureId'
 import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api.public.asaas-webhook'
+import { Route as ApiPublicSyncFixturesRouteImport } from './routes/api/public/sync-fixtures'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -106,6 +107,11 @@ const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
   path: '/api/public/asaas-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncFixturesRoute = ApiPublicSyncFixturesRouteImport.update({
+  id: '/api/public/sync-fixtures',
+  path: '/api/public/sync-fixtures',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
+  '/api/public/sync-fixtures': typeof ApiPublicSyncFixturesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
+  '/api/public/sync-fixtures': typeof ApiPublicSyncFixturesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/admin/mercados/$fixtureId': typeof AdminMercadosFixtureIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
+  '/api/public/sync-fixtures': typeof ApiPublicSyncFixturesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
+    | '/api/public/sync-fixtures'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
+    | '/api/public/sync-fixtures'
   id:
     | '__root__'
     | '/'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/mercados/$fixtureId'
     | '/api/public/asaas-webhook'
+    | '/api/public/sync-fixtures'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   JogoFixtureIdRoute: typeof JogoFixtureIdRoute
   PagamentoTicketIdRoute: typeof PagamentoTicketIdRoute
   ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
+  ApiPublicSyncFixturesRoute: typeof ApiPublicSyncFixturesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAsaasWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync-fixtures': {
+      id: '/api/public/sync-fixtures'
+      path: '/api/public/sync-fixtures'
+      fullPath: '/api/public/sync-fixtures'
+      preLoaderRoute: typeof ApiPublicSyncFixturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -390,17 +410,8 @@ const rootRouteChildren: RootRouteChildren = {
   JogoFixtureIdRoute: JogoFixtureIdRoute,
   PagamentoTicketIdRoute: PagamentoTicketIdRoute,
   ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
+  ApiPublicSyncFixturesRoute: ApiPublicSyncFixturesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
