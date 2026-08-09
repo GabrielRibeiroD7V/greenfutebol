@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { generateMockOdds, updateMarketSelection, updateMarketStatus } from "@/lib/admin.functions";
+import { prepareFixtureMarkets, updateMarketSelection, updateMarketStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
