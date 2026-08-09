@@ -470,7 +470,7 @@ function AdminMarketManagerPage() {
              PREPARAR PARTIDA (Templates Principais)
            </Button>
            <Button 
-             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl"
+             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl flex items-center gap-2"
              onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
            >
              VER COMO USUÁRIO
