@@ -806,6 +806,26 @@ function AdminMarketManagerPage() {
             )}
           </div>
         </div>
+        
+        {/* Mobile Sticky Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 p-4 md:hidden flex gap-4 z-50">
+           <Button 
+             variant="outline"
+             className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[10px] h-12 rounded-xl"
+             onClick={() => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
+                mainTemplates.forEach(t => createMarket(t));
+             }}
+           >
+             PREPARAR
+           </Button>
+           <Button 
+             className="flex-1 bg-emerald-600 text-black font-black uppercase text-[10px] h-12 rounded-xl"
+             onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
+           >
+             VER JOGO
+           </Button>
+        </div>
       </div>
     </div>
   );
