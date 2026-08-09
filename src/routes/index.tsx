@@ -513,7 +513,7 @@ function Index() {
                 <img
                   src={logoAsset.url}
                   alt="GreenFutebol"
-                  className="h-10 sm:h-12 w-auto relative z-10 brightness-100 drop-shadow-sm"
+                  className="h-12 sm:h-16 w-auto relative z-10 brightness-100 drop-shadow-sm"
                 />
               </div>
             </div>
