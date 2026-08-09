@@ -828,7 +828,7 @@ function Index() {
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
                                         <span className="text-[10px] font-black text-white whitespace-nowrap">
-                                          {formatFixtureDateTime(match.kickoff_at)}
+                                          {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
                                         <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), LIVE_STATUSES.includes(match.status) && "animate-pulse")}>
                                           {getStatusDisplay(match.status, match.elapsed)}
