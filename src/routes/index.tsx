@@ -872,7 +872,7 @@ function Index() {
         </main>
 
         {/* Bilhete Lateral Desktop */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-100 p-4 overflow-y-auto no-scrollbar bg-white">
+        <aside className="hidden xl:block w-80 shrink-0 border-l border-[#E5E7EB] overflow-y-auto no-scrollbar bg-white">
           <BetSlip />
         </aside>
       </div>
@@ -882,7 +882,7 @@ function Index() {
         <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
           <button
             onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
+            className="w-full bg-emerald-600 text-white py-4 rounded-[12px] font-bold uppercase tracking-widest shadow-xl flex items-center justify-between px-6"
           >
             <span className="flex items-center gap-2">
               <Ticket size={20} /> Bilhete
@@ -895,9 +895,9 @@ function Index() {
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
         <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-white rounded-t-3xl border-t border-slate-200 flex flex-col shadow-2xl">
+          <div className="absolute bottom-0 w-full max-h-[90vh] bg-white rounded-t-[16px] border-t border-[#E5E7EB] flex flex-col shadow-2xl">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <span className="text-sm font-black text-slate-900 uppercase tracking-widest">
+              <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">
                 Seu Bilhete
               </span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400">
