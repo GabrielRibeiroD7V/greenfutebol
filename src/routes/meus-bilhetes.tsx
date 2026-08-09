@@ -221,13 +221,13 @@ function MeusBilhetesComponent() {
                                 </div>
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
-                                  <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(t.status))}>
-                                    {t.status === 'PAID' ? 'Confirmada' : 
-                                     t.status === 'WAITING_PAYMENT' ? 'Aguardando' :
-                                     t.status === 'WON' ? 'Vencedora' :
-                                     t.status === 'LOST' ? 'Perdida' :
-                                     t.status === 'VOID' ? 'Anulada' : 'Pendente'}
-
+                                  <span className={cn("text-xs font-black uppercase tracking-wider", getSelectionStatusColor(sel.status || t.status))}>
+                                    {sel.status === 'WON' ? 'Vencedora' :
+                                     sel.status === 'LOST' ? 'Perdida' :
+                                     sel.status === 'VOID' ? 'Anulada' :
+                                     sel.status === 'PUSH' ? 'Push' :
+                                     t.status === 'PAID' ? 'Confirmada' : 
+                                     t.status === 'WAITING_PAYMENT' ? 'Aguardando' : 'Pendente'}
                                   </span>
                                 </div>
                               </div>
