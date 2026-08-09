@@ -1,13 +1,34 @@
 /**
- * FASE 2E — JOGADORES E MERCADOS DE JOGADORES
+ * FASE 2E.1 — HOMOLOGAÇÃO END-TO-END DOS MERCADOS DE JOGADORES
  * 
- * STATUS FINAL: A (IMPLEMENTADO)
+ * CONTEXTO
  * 
- * 1. SCHEMA DE JOGADORES: Tabelas `players` e `fixture_players` implementadas com RLS.
- * 2. ADMIN DE JOGADORES: Registro manual de jogadores e vínculo por partida integrado no Admin.
- * 3. MERCADOS EM LOTE: Interface para criação de mercados de jogadores (Gols, Cartões, Assistências) em lote.
- * 4. RENDERER PÚBLICO: `MarketRenderer` e `SelectionButton` atualizados para exibir mercados de jogadores com times.
- * 5. INFRAESTRUTURA TICKET: `BetSlip` e `createTicket` atualizados para suportar metadados de jogadores.
+ * A Fase 2E implementou:
+ * - tabela players;
+ * - tabela fixture_players;
+ * - RLS (Leitura Pública/Escrita Admin);
+ * - cadastro manual de jogadores no Admin;
+ * - mercados de jogador (Gols, Cartões, Assistências, Finalizações);
+ * - metadados do jogador na seleção do mercado;
+ * - frontend público com suporte a mercados PLAYER.
+ * 
+ * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
+ * 
+ * 1. SCHEMA & SEGURANÇA (OK):
+ *    - Tabelas 'players' e 'fixture_players' com RLS ativo.
+ *    - Constraints de unicidade garantindo integridade: UNIQUE(provider, provider_player_id) e UNIQUE(fixture_id, player_id).
+ * 
+ * 2. FLUXO TRANSACIONAL (RISCO IDENTIFICADO):
+ *    - A RPC 'create_ticket_atomic' NÃO persiste a coluna 'metadata' na 'ticket_selections' (ausente no schema).
+ *    - Os metadados do jogador (player_id, name) são capturados no BetSlip, mas perdidos após a confirmação do bilhete real.
+ * 
+ * 3. INFRAESTRUTURA (EM MANUTENÇÃO):
+ *    - Fixtures persistentes (Fase 2D) dependem da API_FOOTBALL_KEY no ambiente TSS.
+ *    - Cadastro/Login bloqueados por rate limit de e-mail no sandbox.
+ * 
+ * PRÓXIMOS PASSOS:
+ * - Migração para adicionar 'metadata JSONB' à tabela 'ticket_selections'.
+ * - Atualização da RPC 'create_ticket_atomic' para snapshot de metadados.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
