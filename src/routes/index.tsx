@@ -130,12 +130,12 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function getStatusClass(status: string): string {
-  if (LIVE_STATUSES.includes(status)) return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
-  if (["NS", "TBD"].includes(status)) return "bg-blue-500/10 text-blue-300 border-blue-500/20";
-  if (["FT", "AET", "PEN"].includes(status)) return "bg-slate-500/10 text-slate-400 border-slate-500/20";
-  if (["PST", "SUSP", "INT", "ABD"].includes(status)) return "bg-amber-500/10 text-amber-300 border-amber-500/20";
-  if (status === "CANC") return "bg-red-500/10 text-red-300 border-red-500/20";
-  return "bg-white/5 text-slate-400 border-white/10";
+  if (LIVE_STATUSES.includes(status)) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+  if (["NS", "TBD"].includes(status)) return "bg-blue-50 text-blue-600 border-blue-100";
+  if (["FT", "AET", "PEN"].includes(status)) return "bg-slate-100 text-slate-600 border-slate-200";
+  if (["PST", "SUSP", "INT", "ABD"].includes(status)) return "bg-amber-50 text-amber-600 border-amber-100";
+  if (status === "CANC") return "bg-red-50 text-red-600 border-red-100";
+  return "bg-slate-50 text-slate-500 border-slate-200";
 }
 
 function Index() {
