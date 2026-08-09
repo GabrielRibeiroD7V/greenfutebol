@@ -315,7 +315,10 @@ function AdminMarketManagerPage() {
     try {
       const { error } = await supabase
         .from("fixture_market_selections")
-        .update({ odd: val })
+        .update({ 
+          odd: val,
+          status: 'OPEN' // Auto open if odd is set
+        })
         .eq("id", selectionId);
       if (error) throw error;
       toast.success("Odd atualizada");
