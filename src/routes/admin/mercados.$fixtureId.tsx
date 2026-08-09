@@ -272,13 +272,13 @@ function AdminMarketManagerPage() {
         let metadata = {};
         const key = template.keys[i] || `OP${i+1}`;
         
-        if (template.id === 'OU' || template.id === 'CORNERS' || template.id === 'CARDS') {
-           const lineMatch = name.match(/(\d+\.\d+)/);
-           if (lineMatch) metadata = { line: parseFloat(lineMatch[1]), type: key.includes('OVER') ? 'OVER' : 'UNDER' };
-        } else if (template.id === 'CS') {
-           const scoreMatch = key.match(/(\d+):(\d+)/);
-           if (scoreMatch) metadata = { home_score: parseInt(scoreMatch[1]), away_score: parseInt(scoreMatch[2]) };
-        }
+         if (template.id === 'OU' || template.id === 'CORNERS' || template.id === 'CARDS') {
+            const lineMatch = name.match(/(\d+\.\d+)/);
+            if (lineMatch && lineMatch[1]) metadata = { line: parseFloat(lineMatch[1]), type: key.includes('OVER') ? 'OVER' : 'UNDER' };
+         } else if (template.id === 'CS') {
+            const scoreMatch = key.match(/(\d+):(\d+)/);
+            if (scoreMatch && scoreMatch[1] && scoreMatch[2]) metadata = { home_score: parseInt(scoreMatch[1]), away_score: parseInt(scoreMatch[2]) };
+         }
 
         return {
           market_id: market.id,
