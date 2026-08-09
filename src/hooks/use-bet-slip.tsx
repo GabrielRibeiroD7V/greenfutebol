@@ -76,11 +76,9 @@ export function useBetSlip() {
   }, [selections]);
 
   const removeSelection = useCallback((selectionId: string) => {
-    setSelections(prev => {
-      const next = prev.filter(s => s.selectionId !== selectionId);
-      if (next.length === 0) setIdempotencyKey(null);
-      return next;
-    });
+    // FASE 2C.1: Alteração manual invalida a tentativa anterior
+    setIdempotencyKey(null);
+    setSelections(prev => prev.filter(s => s.selectionId !== selectionId));
   }, []);
 
   const clearBetSlip = useCallback(() => {
