@@ -1,13 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useBetSlip } from "@/hooks/use-bet-slip";
+import { useBetSlip, BetSlipSelection } from "@/hooks/use-bet-slip";
 import { useAuth } from "@/hooks/use-auth";
-import { Ticket, AlertCircle, ArrowLeft, Trash2, CheckCircle2, Loader2, Info } from "lucide-react";
+import { Ticket, AlertCircle, ArrowLeft, Trash2, CheckCircle2, Loader2, Info, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createTicket } from "@/lib/tickets.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+type SubmissionState = 'IDLE' | 'READY' | 'SUBMITTING' | 'NEEDS_REVIEW' | 'SUCCESS';
+
+interface OddChange {
+  selection_id: string;
+  old_odd: number;
+  new_odd: number;
+}
 
 export const Route = createFileRoute("/bilhete")({
   component: BilhetePage,
@@ -21,13 +28,22 @@ function BilhetePage() {
     removeSelection, 
     clearBetSlip,
     idempotencyKey,
-    generateIdempotencyKey
+    generateIdempotencyKey,
+    addSelection
   } = useBetSlip();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [state, setState] = useState<SubmissionState>('IDLE');
   const [ticketResult, setTicketResult] = useState<any>(null);
+  const [oddChanges, setOddChanges] = useState<OddChange[]>([]);
+  const [unavailableSelectionIds, setUnavailableSelectionIds] = useState<string[]>([]);
+  
   const createTicketFn = useServerFn(createTicket);
+
+  const isInvalid = useMemo(() => {
+    return selections.length === 0 || unavailableSelectionIds.length > 0;
+  }, [selections, unavailableSelectionIds]);
 
   const handleConfirm = async () => {
     if (!isAuthenticated) {
@@ -35,16 +51,37 @@ function BilhetePage() {
       return;
     }
 
-    if (!idempotencyKey) {
-      toast.error("Erro interno: Chave de idempotência ausente.");
+    // Se houve mudança de odds, o usuário precisa aceitar primeiro (o botão muda)
+    if (state === 'NEEDS_REVIEW') {
+      // O usuário aceitou as novas odds, então aplicamos elas e geramos nova chave
+      oddChanges.forEach(change => {
+        const selection = selections.find(s => s.selectionId === change.selection_id);
+        if (selection) {
+          addSelection({ ...selection, displayedOdd: change.new_odd });
+        }
+      });
+      setOddChanges([]);
+      const newKey = generateIdempotencyKey();
+      
+      // Imediatamente tenta submeter com a nova chave e odds
+      submit(newKey);
       return;
     }
 
-    setIsSubmitting(true);
+    let currentKey = idempotencyKey;
+    if (!currentKey) {
+      currentKey = generateIdempotencyKey();
+    }
+
+    submit(currentKey);
+  };
+
+  const submit = async (key: string) => {
+    setState('SUBMITTING');
     try {
       const payload = {
         stake,
-        idempotency_key: idempotencyKey,
+        idempotency_key: key,
         selections: selections.map(s => ({
           selection_id: s.selectionId,
           expected_odd: s.displayedOdd
@@ -53,33 +90,47 @@ function BilhetePage() {
 
       const result = await createTicketFn({ data: payload });
       setTicketResult(result);
+      setState('SUCCESS');
       clearBetSlip();
       toast.success("Bilhete confirmado com sucesso!");
     } catch (error: any) {
       const msg = error.message || "";
+      console.error("Erro na criação do ticket:", error);
       
       if (msg.includes("UNAUTHORIZED")) {
+        setState('IDLE');
         toast.error("Sessão expirada. Por favor, faça login novamente.");
         navigate({ to: "/login", search: { redirect: "/bilhete" } });
       } else if (msg.includes("ODDS_CHANGED")) {
-        toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
-        // A RPC retorna a nova odd no corpo do erro PostgREST se configurada, 
-        // mas aqui forçamos o refetch ou a limpeza para que o usuário veja a nova odd.
-        generateIdempotencyKey(); // Nova tentativa exige nova chave
-      } else if (msg.includes("MARKET_UNAVAILABLE")) {
+        setState('NEEDS_REVIEW');
+        try {
+          // Extrai o JSON do detalhe do erro (PostgREST detail)
+          const detailMatch = msg.match(/detail = (\[.*\])/);
+          if (detailMatch) {
+            const changes = JSON.parse(detailMatch[1]) as OddChange[];
+            setOddChanges(changes);
+            toast.warning("Algumas odds mudaram. Revise antes de confirmar.");
+          } else {
+            toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
+          }
+        } catch (e) {
+          toast.warning("As odds mudaram. Por favor, revise seu bilhete.");
+        }
+      } else if (msg.includes("MARKET_UNAVAILABLE") || msg.includes("SELECTION_UNAVAILABLE")) {
+        setState('IDLE');
         toast.error("Um ou mais mercados foram suspensos ou fechados.");
-        generateIdempotencyKey();
-      } else if (msg.includes("FIXTURE_METADATA_UNAVAILABLE")) {
-        toast.error("Esta partida ainda não está disponível para apostas.");
+        // Em um sistema real, poderíamos extrair qual ID falhou do detalhe
+        // Por ora, marcamos todos como suspeitos ou pedimos revisão
       } else if (msg.includes("MATCH_ALREADY_STARTED")) {
-        toast.error("Uma ou mais partidas já começaram.");
+        setState('IDLE');
+        toast.error("Uma ou mais partidas já começaram. Remova-as para continuar.");
       } else if (msg.includes("INVALID_STAKE")) {
+        setState('IDLE');
         toast.error("Valor da aposta inválido (Mínimo R$ 5,00).");
       } else {
+        setState('IDLE'); // Permite retry com a mesma chave
         toast.error(msg || "Erro ao confirmar bilhete.");
       }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
