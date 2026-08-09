@@ -128,6 +128,7 @@ export function useBetSlip() {
     setStake,
     idempotencyKey,
     generateIdempotencyKey,
+    resetIdempotency,
     addSelection,
     removeSelection,
     toggleSelection,
