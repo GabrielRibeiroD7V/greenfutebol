@@ -282,7 +282,7 @@ function AdminTicketsPage() {
                   size="sm" 
                   disabled={tickets.length < 50} 
                   onClick={() => setPage(p => p + 1)}
-                  className="text-xs font-black uppercase tracking-widest border-slate-200"
+                  className="text-[10px] font-bold uppercase tracking-widest border-[#E5E7EB] rounded-[6px] h-8"
                 >
                   Próxima
                 </Button>
