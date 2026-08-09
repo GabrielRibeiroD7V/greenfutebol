@@ -292,6 +292,11 @@ function AdminFixtureListPage() {
                             {f.market_count} Mercados
                           </span>
                         )}
+                        {f.has_players && (
+                          <span className="text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                            <Users size={10} /> Jogadores
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3">
