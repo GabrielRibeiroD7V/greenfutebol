@@ -252,11 +252,11 @@ function Index() {
           .order('kickoff_at', { ascending: true });
 
         if (!dbError && dbFixtures && dbFixtures.length > 0) {
-          const formatted = dbFixtures.map(f => ({
-            fixture_id: f.provider_fixture_id,
-            league_name: f.competition_name,
+          const formatted: Fixture[] = dbFixtures.map(f => ({
+            fixture_id: Number(f.provider_fixture_id),
+            league_name: f.competition_name || "Competição",
             league_logo: null,
-            country: f.country,
+            country: f.country || "Internacional",
             home_team_name: f.home_team_name,
             home_team_logo: f.home_team_crest,
             away_team_name: f.away_team_name,
