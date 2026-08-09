@@ -1,21 +1,34 @@
 /**
- * FASE 2E.1 — HOMOLOGAÇÃO END-TO-END DOS MERCADOS DE JOGADORES
+ * FASE 2F — RESULTADOS E LIQUIDAÇÃO DE MERCADOS
  * 
- * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
+ * CONTEXTO
  * 
- * 1. SCHEMA & SEGURANÇA (OK):
- *    - Tabelas 'players' e 'fixture_players' com RLS ativo.
- *    - Constraints de unicidade garantindo integridade.
+ * A GreenSport já possui:
+ * - fixtures persistentes;
+ * - mercados reais;
+ * - odds reais;
+ * - jogadores;
+ * - mercados de jogadores;
+ * - BetSlip com selection_id real;
+ * - create_ticket_atomic segura;
+ * - snapshots históricos;
+ * - payment_mode SIMULATED;
+ * - fluxo de ticket homologado.
  * 
- * 2. FLUXO TRANSACIONAL (RESOLVIDO):
- *    - A RPC 'create_ticket_atomic' e a tabela 'ticket_selections' agora suportam 'metadata JSONB'.
- *    - Os metadados do jogador (player_id, name) são persistidos no momento da aposta.
+ * OBJETIVO
  * 
- * 3. INFRAESTRUTURA (CONCLUÍDO):
- *    - Homologação end-to-end realizada com sucesso.
- *    - Snapshot de metadados validado no banco de dados.
+ * Implementar um motor de liquidação seguro, auditável e determinístico.
  * 
- * CLASSIFICAÇÃO: A — Mercado de jogador seguro e homologado.
+ * Fluxo:
+ * RESULTADO DA FIXTURE
+ * → AVALIAÇÃO DAS SELEÇÕES
+ * → WON / LOST / VOID / PUSH
+ * → STATUS DO TICKET
+ * → RETORNO FINAL
+ * 
+ * NÃO implementar Pix/Asaas.
+ * NÃO publicar.
+ * NÃO fazer deploy.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
