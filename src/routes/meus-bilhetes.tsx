@@ -276,14 +276,11 @@ function MeusBilhetesComponent() {
                             Odd Total: <span className="font-bold text-white">{t.total_odd.toFixed(2)}</span>
                           </div>
                           {(t.status === 'PENDING_PAYMENT' || t.status === 'WAITING_PAYMENT') && (
-                            <Link 
-                              to="/pagamento.$ticketId" 
-                              params={{ ticketId: t.id }}
-                              className="text-xs text-emerald-500 font-bold hover:underline"
-                            >
-                              {t.status === 'WAITING_PAYMENT' ? 'Ver PIX' : 'Pagar Agora'}
-                            </Link>
+                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest border border-white/10 px-2 py-0.5 rounded">
+                              Aguardando Pagamento (Simulado)
+                            </span>
                           )}
+
                         </div>
 
                         <Button 
