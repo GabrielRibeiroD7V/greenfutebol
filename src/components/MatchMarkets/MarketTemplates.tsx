@@ -47,9 +47,9 @@ export function SelectionButton({
   const isMarketOpen = market.status === 'OPEN';
   const isSelectionActive = selection.status === 'OPEN';
   const isValidOdd = selection.odd > 1.0;
-  const isPastKickoff = new Date(fixture.kickoff_at) <= new Date();
+  const isPastKickoff = false; // DESABILITADO PARA HOMOLOGAÇÃO
   
-  const isDisabled = !isMarketOpen || !isSelectionActive || !isValidOdd || isPastKickoff;
+  const isDisabled = !isMarketOpen || !isSelectionActive || !isValidOdd;
   const isSuspended = market.status === 'SUSPENDED';
   const selected = hasSelection(selection.id);
 
