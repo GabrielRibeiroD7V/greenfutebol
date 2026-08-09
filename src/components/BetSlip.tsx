@@ -49,17 +49,17 @@ export function BetSlip({ isMobile }: { isMobile?: boolean }) {
             <div key={s.selectionId} className="bg-slate-50 border border-slate-200 rounded-xl p-3 relative group animate-in slide-in-from-right-2 shadow-sm">
               <button 
                 onClick={() => removeSelection(s.selectionId)}
-                className="absolute top-2 right-2 text-zinc-600 hover:text-red-500 transition-colors"
+                className="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors"
               >
                 <X size={14} />
               </button>
               <div className="space-y-1">
-                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{s.marketName}</span>
-                <p className="text-sm font-black text-white leading-none">{s.selectionName}</p>
-                <p className="text-[10px] text-zinc-500 font-bold truncate">{s.fixtureName}</p>
-                <div className="flex justify-between items-end pt-1 border-t border-white/5 mt-1">
-                  <span className="text-[9px] text-zinc-600 font-black uppercase">Odd</span>
-                  <span className="text-base font-black text-emerald-400">{s.displayedOdd.toFixed(2)}</span>
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{s.marketName}</span>
+                <p className="text-sm font-black text-slate-900 leading-none">{s.selectionName}</p>
+                <p className="text-[10px] text-slate-500 font-bold truncate">{s.fixtureName}</p>
+                <div className="flex justify-between items-end pt-1 border-t border-slate-200 mt-1">
+                  <span className="text-[9px] text-slate-400 font-black uppercase">Odd</span>
+                  <span className="text-base font-black text-emerald-600">{s.displayedOdd.toFixed(2)}</span>
                 </div>
               </div>
             </div>
