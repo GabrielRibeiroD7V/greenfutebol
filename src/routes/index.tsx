@@ -636,9 +636,9 @@ function Index() {
             "w-[110px] sm:w-[130px] lg:w-64",
           )}
         >
-          <div className="p-4 space-y-6">
+          <div className="p-2 sm:p-4 space-y-4 lg:space-y-6">
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">
+              <h4 className="text-[9px] lg:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
                 Principais Ligas
               </h4>
               <div className="space-y-1">
@@ -659,31 +659,33 @@ function Index() {
                     key={league.id}
                     onClick={() => {
                       setCompetitionCode(league.id as any);
-                      if (window.innerWidth < 1024) setIsMenuOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold group",
+                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       competitionCode === league.id
                         ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                         : "text-slate-400 hover:bg-white/5 hover:text-white",
                     )}
                   >
                     <league.icon
-                      size={16}
+                      size={14}
                       className={cn(
+                        "lg:w-4 lg:h-4",
                         competitionCode === league.id
                           ? "text-emerald-500"
                           : "text-slate-500 group-hover:text-emerald-500",
                       )}
                     />
-                    {league.name}
+                    <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
+                      {league.name}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-2">
+              <h4 className="text-[9px] lg:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
                 Filtros
               </h4>
               <div className="space-y-1">
@@ -696,34 +698,40 @@ function Index() {
                     key={tab.id}
                     onClick={() => {
                       setActiveTab(tab.id as any);
-                      if (window.innerWidth < 1024) setIsMenuOpen(false);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-bold",
+                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       activeTab === tab.id
                         ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                         : "text-slate-400 hover:bg-white/5 hover:text-white",
                     )}
                   >
                     <tab.icon
-                      size={16}
-                      className={cn(activeTab === tab.id ? "text-emerald-500" : "text-slate-500")}
+                      size={14}
+                      className={cn(
+                        "lg:w-4 lg:h-4",
+                        activeTab === tab.id ? "text-emerald-500" : "text-slate-500 group-hover:text-emerald-500"
+                      )}
                     />
-                    {tab.name}
+                    <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
+                      {tab.name}
+                    </span>
                   </button>
                 ))}
-                <label className="block px-3 pt-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  Escolher data
-                  <input
-                    type="date"
-                    value={customDate}
-                    onChange={(event) => {
-                      setCustomDate(event.target.value);
-                      setActiveTab("custom");
-                    }}
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 outline-none focus:border-emerald-500/40"
-                  />
-                </label>
+                <div className="px-1 lg:px-3 pt-2">
+                  <label className="block text-[8px] lg:text-[10px] font-black uppercase tracking-widest text-slate-500 text-center lg:text-left">
+                    Data
+                    <input
+                      type="date"
+                      value={customDate}
+                      onChange={(event) => {
+                        setCustomDate(event.target.value);
+                        setActiveTab("custom");
+                      }}
+                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-white/10 bg-white/5 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-300 outline-none focus:border-emerald-500/40"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           </div>
