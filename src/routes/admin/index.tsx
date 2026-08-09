@@ -11,8 +11,8 @@ function AdminIndexPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redireciona para mercados por padrão, que é a tela principal de gestão
-    navigate({ to: "/admin/mercados", replace: true });
+    // Redireciona para validação por padrão para garantir a homologação final
+    navigate({ to: "/admin/validacao", replace: true });
   }, [navigate]);
 
   return (
