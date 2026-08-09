@@ -184,17 +184,17 @@ function AdminTicketsPage() {
         {loading && tickets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="animate-spin text-emerald-600 w-10 h-10 mb-4" />
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Carregando auditoria...</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Carregando auditoria...</p>
           </div>
         ) : tickets.length === 0 ? (
-          <div className="text-center p-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <Ticket className="mx-auto h-16 w-16 text-slate-200 mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 uppercase italic">Nenhum bilhete encontrado</h3>
-            <p className="text-slate-500 mt-2 font-medium">Ajuste os filtros para encontrar registros específicos.</p>
+          <div className="text-center p-20 bg-white rounded-[8px] border border-[#E5E7EB]">
+            <Ticket className="mx-auto h-12 w-12 text-slate-200 mb-4" />
+            <h3 className="text-sm font-bold text-slate-900 uppercase">Nenhum bilhete encontrado</h3>
+            <p className="text-slate-500 mt-2 text-[11px] font-medium uppercase tracking-wider">Ajuste os filtros para encontrar registros específicos.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="bg-slate-200/50 rounded-xl p-3 grid grid-cols-12 gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest px-6 hidden lg:grid">
+          <div className="space-y-1">
+            <div className="bg-[#F6F7F7] border border-[#E5E7EB] rounded-[4px] p-3 grid grid-cols-12 gap-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest px-6 hidden lg:grid">
               <div className="col-span-2">Código / Data</div>
               <div className="col-span-3">Cliente / Contato</div>
               <div className="col-span-1 text-center">Itens</div>
