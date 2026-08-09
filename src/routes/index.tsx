@@ -47,6 +47,7 @@ const homeSearchSchema = z.object({
   tab: z.enum(["today", "tomorrow", "live", "custom"]).optional().catch("today"),
   comp: z.enum(["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL", "ALL"]).optional().catch("ALL"),
   date: z.string().optional().catch(""),
+  _reset: z.string().optional(), // Added to force refresh if needed
 });
 
 export const Route = createFileRoute("/")({
@@ -163,14 +164,23 @@ function Index() {
 
   // Sync state to URL
   useEffect(() => {
-    navigate({
-      search: {
-        tab: activeTab,
-        comp: competitionCode,
-        date: customDate || undefined,
-      },
-    } as any);
-  }, [activeTab, competitionCode, customDate, navigate]);
+    const currentSearch = search;
+    if (
+      currentSearch.tab !== activeTab ||
+      currentSearch.comp !== competitionCode ||
+      currentSearch.date !== (customDate || undefined)
+    ) {
+      navigate({
+        search: {
+          ...currentSearch,
+          tab: activeTab,
+          comp: competitionCode,
+          date: customDate || undefined,
+        },
+        replace: true,
+      } as any);
+    }
+  }, [activeTab, competitionCode, customDate, navigate, search]);
 
   const requestIdRef = useRef(0);
   const fixturesCacheRef = useRef(
@@ -219,6 +229,13 @@ function Index() {
     if (parts.length !== 3) return dateStr;
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
+
+  useEffect(() => {
+    // Check if we need to sync from search (especially when coming back)
+    if (search.tab && search.tab !== activeTab) setActiveTab(search.tab as any);
+    if (search.comp && search.comp !== competitionCode) setCompetitionCode(search.comp as any);
+    if (search.date && search.date !== customDate) setCustomDate(search.date);
+  }, [search.tab, search.comp, search.date]);
 
   useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
