@@ -665,6 +665,7 @@ export type Database = {
           kickoff_at_snapshot: string
           market_name_snapshot: string
           market_type_code_snapshot: string
+          metadata: Json | null
           odd_snapshot: number
           option_code_snapshot: string
           option_label_snapshot: string
@@ -692,6 +693,7 @@ export type Database = {
           kickoff_at_snapshot: string
           market_name_snapshot: string
           market_type_code_snapshot: string
+          metadata?: Json | null
           odd_snapshot: number
           option_code_snapshot: string
           option_label_snapshot: string
@@ -719,6 +721,7 @@ export type Database = {
           kickoff_at_snapshot?: string
           market_name_snapshot?: string
           market_type_code_snapshot?: string
+          metadata?: Json | null
           odd_snapshot?: number
           option_code_snapshot?: string
           option_label_snapshot?: string

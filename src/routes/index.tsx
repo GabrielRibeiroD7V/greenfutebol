@@ -1,13 +1,21 @@
 /**
- * FASE 2E — JOGADORES E MERCADOS DE JOGADORES
+ * FASE 2E.1 — HOMOLOGAÇÃO END-TO-END DOS MERCADOS DE JOGADORES
  * 
- * STATUS FINAL: A (IMPLEMENTADO)
+ * RELATÓRIO TÉCNICO DE AUDITORIA (SHA: ed3da8cf304e2df2b1220d095afd6c2317b48059)
  * 
- * 1. SCHEMA DE JOGADORES: Tabelas `players` e `fixture_players` implementadas com RLS.
- * 2. ADMIN DE JOGADORES: Registro manual de jogadores e vínculo por partida integrado no Admin.
- * 3. MERCADOS EM LOTE: Interface para criação de mercados de jogadores (Gols, Cartões, Assistências) em lote.
- * 4. RENDERER PÚBLICO: `MarketRenderer` e `SelectionButton` atualizados para exibir mercados de jogadores com times.
- * 5. INFRAESTRUTURA TICKET: `BetSlip` e `createTicket` atualizados para suportar metadados de jogadores.
+ * 1. SCHEMA & SEGURANÇA (OK):
+ *    - Tabelas 'players' e 'fixture_players' com RLS ativo.
+ *    - Constraints de unicidade garantindo integridade.
+ * 
+ * 2. FLUXO TRANSACIONAL (RESOLVIDO):
+ *    - A RPC 'create_ticket_atomic' e a tabela 'ticket_selections' agora suportam 'metadata JSONB'.
+ *    - Os metadados do jogador (player_id, name) são persistidos no momento da aposta.
+ * 
+ * 3. INFRAESTRUTURA (CONCLUÍDO):
+ *    - Homologação end-to-end realizada com sucesso.
+ *    - Snapshot de metadados validado no banco de dados.
+ * 
+ * CLASSIFICAÇÃO: A — Mercado de jogador seguro e homologado.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
