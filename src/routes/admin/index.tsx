@@ -1,12 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
-  component: () => {
-    return (
-      <div className="p-8 text-white">
-        <h1 className="text-2xl font-bold mb-4">Painel Administrativo</h1>
-        <p>Selecione uma opção no menu lateral ou utilize as rotas específicas.</p>
-      </div>
-    );
-  },
+  ssr: false,
+  component: AdminIndexPage,
 });
+
+function AdminIndexPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redireciona para mercados por padrão, que é a tela principal de gestão
+    navigate({ to: "/admin/mercados", replace: true });
+  }, [navigate]);
+
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Loader2 className="animate-spin text-emerald-600 w-8 h-8" />
+    </div>
+  );
+}
