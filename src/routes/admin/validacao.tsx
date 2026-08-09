@@ -11,14 +11,14 @@ function AdminValidationPage() {
 
   const auditItems = [
     {
-      title: "Correção Funcional: Múltiplas Seleções (Aprovado)",
+      title: "Correção Definitiva: Regras de Jogo (Aprovado)",
       status: "PASS",
       items: [
-        "Múltiplas Seleções por Partida: Agora é permitido escolher Casa, Empate e Fora no mesmo bilhete",
-        "Múltiplas Seleções por Mercado: Toggle exato por selectionId, sem substituição automática",
-        "Suporte para 50+ Seleções: Bilhetes múltiplos sem limites arbitrários no frontend e backend",
-        "Cálculo de Odd Acumulada: Produto total de todas as seleções validado via RPC create_ticket_atomic",
-        "Integridade do MarketRenderer: Odds publicadas (OPEN) aparecem imediatamente ao entrar no jogo"
+        "Seleções Livres: Permitido incluir Casa, Empate e Fora (ou Over/Under) no mesmo bilhete",
+        "Regra All-or-Nothing: Qualquer perda (LOST) liquida o bilhete inteiro como 0,00",
+        "Acúmulo de Odds: Ticket WON exige 100% de acerto; VOID recalcula odd para 1.00",
+        "Sem Pagamentos Parciais: Sistema não permite cashout ou premiação por acerto parcial",
+        "Persistência BetSlip: Toggle por selectionId sem substituição automática por fixture"
       ]
     },
     {

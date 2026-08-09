@@ -104,17 +104,17 @@ export function useBetSlip() {
     setIdempotencyKey(null);
 
     setSelections(prev => {
-      // REGRA CORREÇÃO FUNCIONAL: Nenhuma substituição automática.
-      // Apenas toggle exato por selectionId.
+      // REGRA CORREÇÃO DEFINITIVA: Nenhuma substituição automática por fixture ou market.
+      // Selections diferentes podem coexistir livremente, mesmo opostas.
       
       const isDuplicate = prev.some(s => s.selectionId === newSelection.selectionId);
       
       if (isDuplicate) {
-        // Toggle: Se já existe exatamente essa seleção, remove.
+        // Toggle: Se já existe exatamente esse selectionId, remove.
         return prev.filter(s => s.selectionId !== newSelection.selectionId);
       }
       
-      // Caso contrário, adiciona ao bilhete sem remover outras da mesma fixture/market.
+      // Caso contrário, adiciona ao bilhete. Não deduplica por fixture_id ou market_id.
       return [...prev, newSelection];
     });
   }, []);
