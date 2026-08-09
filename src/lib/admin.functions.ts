@@ -162,38 +162,31 @@ export const updateMarketStatus = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-const generateMockOddsInput = z.object({
-  fixture_id: z.number(),
-});
-
 export const generateMockOdds = createServerFn({ method: "POST" })
-  .validator((data: any) => generateMockOddsInput.parse(data))
+  .validator((data: any) => z.object({ fixture_id: z.number() }).parse(data))
   .handler(async ({ data }) => {
     await requireAdmin();
     const { fixture_id } = data;
 
-    // Phase 2: Use hardcoded templates since market_types was dropped
+    // Get competition code
+    const { data: fixture } = await supabase
+      .from('fixtures')
+      .select('competition_code')
+      .eq('provider_fixture_id', fixture_id)
+      .single();
+    
+    const compCode = fixture?.competition_code || 'DEMO';
+
+    // Market templates for homologation
     const templates = [
-      {
-        market_type: '1X2',
-        market_name: 'Resultado Final',
-        market_group: 'RESULT',
-        selections: [
-          { key: 'H', name: 'Casa', odd: 1.85 },
-          { key: 'D', name: 'Empate', odd: 3.40 },
-          { key: 'A', name: 'Fora', odd: 4.20 },
-        ]
-      },
-      {
-        market_type: 'OU25',
-        market_name: 'Total de Gols (2.5)',
-        market_group: 'GOALS',
-        line: 2.5,
-        selections: [
-          { key: 'OVER', name: 'Mais de 2.5', odd: 1.95 },
-          { key: 'UNDER', name: 'Menos de 2.5', odd: 1.85 },
-        ]
-      }
+      { type: '1X2', name: 'Resultado Final', group: 'RESULT', selections: [{ k: 'H', n: 'Casa' }, { k: 'D', n: 'Empate' }, { k: 'A', n: 'Fora' }] },
+      { type: 'DC', name: 'Dupla Chance', group: 'RESULT', selections: [{ k: '1X', n: '1X' }, { k: '12', n: '12' }, { k: 'X2', n: 'X2' }] },
+      { type: 'DNB', name: 'Empate Anula', group: 'RESULT', selections: [{ k: 'H', n: 'Casa' }, { k: 'A', n: 'Fora' }] },
+      { type: 'BTTS', name: 'Ambas Marcam', group: 'RESULT', selections: [{ k: 'YES', n: 'Sim' }, { k: 'NO', n: 'Não' }] },
+      { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 1.5, selections: [{ k: 'OVER', n: 'Mais de 1.5' }, { k: 'UNDER', n: 'Menos de 1.5' }] },
+      { type: 'OU', name: 'Total de Gols', group: 'GOALS', line: 2.5, selections: [{ k: 'OVER', n: 'Mais de 2.5' }, { k: 'UNDER', n: 'Menos de 2.5' }] },
+      { type: 'CS', name: 'Placar Exato', group: 'SCORE', selections: [{ k: '0:0', n: '0 x 0' }, { k: '1:0', n: '1 x 0' }, { k: '0:1', n: '0 x 1' }, { k: '1:1', n: '1 x 1' }, { k: '2:1', n: '2 x 1' }] },
+      { type: 'OU', name: 'Escanteios', group: 'CORNERS', line: 8.5, selections: [{ k: 'OVER', n: 'Mais de 8.5' }, { k: 'UNDER', n: 'Menos de 8.5' }] },
     ];
 
     for (const t of templates) {
@@ -201,35 +194,28 @@ export const generateMockOdds = createServerFn({ method: "POST" })
         .from('fixture_markets')
         .insert({
           fixture_id,
-          competition_code: 'DEMO', // Required field
-          market_type: t.market_type,
-          market_name: t.market_name,
-          market_group: t.market_group,
+          competition_code: compCode,
+          market_type: t.type,
+          market_name: t.name,
+          market_group: t.group,
           line: t.line || null,
-          status: 'OPEN'
+          status: 'DRAFT'
         })
         .select()
         .single();
 
-      if (fmError) {
-        console.error(`Error creating market:`, fmError);
-        continue;
-      }
+      if (fmError) continue;
 
       const selections = t.selections.map((s, idx) => ({
         market_id: fm.id,
-        selection_key: s.key,
-        selection_name: s.name,
-        odd: s.odd,
+        selection_key: s.k,
+        selection_name: s.n,
+        odd: 0, // Admin must set odds
         sort_order: idx,
-        status: 'OPEN'
+        status: 'DRAFT'
       }));
 
-      const { error: sError } = await supabase
-        .from('fixture_market_selections')
-        .insert(selections);
-
-      if (sError) console.error(`Error creating selections:`, sError);
+      await supabase.from('fixture_market_selections').insert(selections);
     }
 
     return { success: true };
