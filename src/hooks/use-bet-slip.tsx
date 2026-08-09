@@ -18,6 +18,7 @@ export type BetSlipSelection = {
 export function useBetSlip() {
   const [selections, setSelections] = useState<BetSlipSelection[]>([]);
   const [stake, setStake] = useState<number>(10);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const isFirstMount = useRef(true);
 
   // Load from localStorage on mount
@@ -29,6 +30,8 @@ export function useBetSlip() {
       try {
         const parsed = JSON.parse(saved);
         const data = parsed.selections || [];
+        const savedKey = parsed.idempotencyKey || null;
+
         
         // Detect legacy format: id, fixture_id, market_id, selection_id
         const isLegacy = data.some((s: any) => 
