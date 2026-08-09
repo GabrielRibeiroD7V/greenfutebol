@@ -703,7 +703,7 @@ function AdminMarketManagerPage() {
                               type="number" 
                               step="0.01"
                               defaultValue={s.odd.toFixed(2)}
-                              onBlur={(e) => updateSelectionOdd(s.id, e.target.value)}
+                              onBlur={(e) => updateSelectionOdd(s.id, e.target.value.replace(',', '.'))}
                               className="bg-zinc-900 border-white/5 text-center font-black text-emerald-500 text-lg h-12 rounded-xl focus:ring-emerald-500/20"
                             />
                             <div className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-800 border border-white/10 rounded-full shadow-lg">
