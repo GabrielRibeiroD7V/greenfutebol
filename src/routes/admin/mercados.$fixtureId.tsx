@@ -39,10 +39,28 @@ function AdminMarketManagerPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: fData } = await supabase.functions.invoke("get-football-fixture", {
-        body: { fixture_id: parseInt(fixtureId) }
-      });
-      if (fData?.fixture) setFixture(fData.fixture);
+      const { data: fData, error: fError } = await supabase
+        .from("fixtures")
+        .select("*")
+        .eq("provider_fixture_id", parseInt(fixtureId))
+        .single();
+      
+      if (fData) {
+        setFixture({
+          fixture_id: fData.provider_fixture_id,
+          home_team_name: fData.home_team_name,
+          away_team_name: fData.away_team_name,
+          kickoff_at: fData.kickoff_at,
+          league_name: fData.competition_name,
+          league_id: fData.competition_code
+        });
+      } else {
+        // Fallback para cache se não persistido ainda
+        const { data: cData } = await supabase.functions.invoke("get-football-fixture", {
+          body: { fixture_id: parseInt(fixtureId) }
+        });
+        if (cData?.fixture) setFixture(cData.fixture);
+      }
 
       const { data: mData, error: mError } = await supabase
         .from("fixture_markets")
