@@ -1,13 +1,13 @@
 /**
- * FASE 2D — PERSISTÊNCIA E PREPARAÇÃO EM LOTE
+ * FASE 2E — JOGADORES E MERCADOS DE JOGADORES
  * 
  * STATUS FINAL: A (IMPLEMENTADO)
  * 
- * 1. FIXTURES PERSISTENTES: Tabela `public.fixtures` criada com `provider_fixture_id` único.
- * 2. SYNC AUTOMÁTICO: Rota `/api/public/sync-fixtures` realiza o UPSERT dos dados do provedor.
- * 3. PREPARAÇÃO EM LOTE: RPC `prepare_fixture_markets_batch` cria mercados DRAFT sem odds artificiais.
- * 4. ADMIN EVOLUÍDO: Listagem administrativa com contagem de mercados, seleção múltipla e preparação em lote.
- * 5. FRONTEND INTEGRADO: Homepage agora consome prioritariamente a tabela persistente.
+ * 1. SCHEMA DE JOGADORES: Tabelas `players` e `fixture_players` implementadas com RLS.
+ * 2. ADMIN DE JOGADORES: Registro manual de jogadores e vínculo por partida integrado no Admin.
+ * 3. MERCADOS EM LOTE: Interface para criação de mercados de jogadores (Gols, Cartões, Assistências) em lote.
+ * 4. RENDERER PÚBLICO: `MarketRenderer` e `SelectionButton` atualizados para exibir mercados de jogadores com times.
+ * 5. INFRAESTRUTURA TICKET: `BetSlip` e `createTicket` atualizados para suportar metadados de jogadores.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";

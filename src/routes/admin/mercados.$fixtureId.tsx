@@ -1,12 +1,30 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Save, Trash2, Edit2, AlertCircle, CheckCircle2, LayoutGrid, X, Power, PowerOff, ListPlus, Settings2, Trophy, UserPlus, Users, ShieldCheck, ShieldAlert, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
@@ -22,14 +40,22 @@ const MARKET_TEMPLATES = [
   { id: "CORNERS", name: "Escanteios", group: "CORNERS", selections: ["Mais de 9.5", "Menos de 9.5"], keys: ["OVER", "UNDER"], line: 9.5 },
   { id: "CARDS", name: "Cartões", group: "CARDS", selections: ["Mais de 4.5", "Menos de 4.5"], keys: ["OVER", "UNDER"], line: 4.5 },
   { id: "CUSTOM", name: "Mercado Personalizado", group: "CUSTOM", selections: ["Opção 1"], keys: ["OP1"] },
+  { id: "PLAYER_GOAL", name: "Jogador Marca Gol", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
+  { id: "PLAYER_CARDS", name: "Jogador Recebe Cartão", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
+  { id: "PLAYER_ASSIST", name: "Jogador Dá Assistência", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
+  { id: "PLAYER_SHOTS", name: "Finalizações do Jogador", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_SHOTS', hasLine: true },
 ];
 
 function AdminMarketManagerPage() {
   const { fixtureId } = useParams({ from: "/admin/mercados/$fixtureId" });
   const [fixture, setFixture] = useState<any>(null);
   const [markets, setMarkets] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isAddingPlayer, setIsAddingPlayer] = useState(false);
+  const [playerSearch, setPlayerSearch] = useState("");
+  const [newPlayer, setNewPlayer] = useState({ name: "", team_side: "HOME", shirt_number: "", position: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,10 +96,139 @@ function AdminMarketManagerPage() {
       
       if (mError) throw mError;
       setMarkets(mData || []);
+
+      const { data: pData, error: pError } = await supabase
+        .from("fixture_players")
+        .select("*, players(*)")
+        .eq("fixture_id", parseInt(fixtureId));
+      
+      if (pError) throw pError;
+      setPlayers(pData || []);
     } catch (err: any) {
       toast.error("Erro ao carregar dados: " + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addPlayer = async () => {
+    if (!newPlayer.name) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+    setIsActionLoading(true);
+    try {
+      // 1. Create player globally if needed (simplified for manual)
+      const { data: player, error: pError } = await supabase
+        .from("players")
+        .insert({
+          name: newPlayer.name,
+          provider: 'MANUAL'
+        })
+        .select()
+        .single();
+      
+      if (pError) throw pError;
+
+      // 2. Link to fixture
+      const { error: fpError } = await supabase
+        .from("fixture_players")
+        .insert({
+          fixture_id: parseInt(fixtureId),
+          player_id: player.id,
+          team_side: newPlayer.team_side,
+          team_name: newPlayer.team_side === 'HOME' ? fixture.home_team_name : fixture.away_team_name,
+          shirt_number: newPlayer.shirt_number ? parseInt(newPlayer.shirt_number) : null,
+          position: newPlayer.position || null,
+          source: 'MANUAL',
+          status: 'AVAILABLE'
+        });
+      
+      if (fpError) throw fpError;
+
+      toast.success("Jogador adicionado");
+      setNewPlayer({ name: "", team_side: "HOME", shirt_number: "", position: "" });
+      setIsAddingPlayer(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const updatePlayerStatus = async (fpId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("fixture_players")
+        .update({ status })
+        .eq("id", fpId);
+      if (error) throw error;
+      toast.success("Status atualizado");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const addPlayerMarket = async (template: any, selectedPlayerIds: string[]) => {
+    if (selectedPlayerIds.length === 0) {
+      toast.error("Selecione pelo menos um jogador");
+      return;
+    }
+    setIsActionLoading(true);
+    try {
+      const marketData = {
+        fixture_id: parseInt(fixtureId),
+        competition_code: fixture.league_id.toString(),
+        market_type: template.id,
+        market_name: template.name,
+        market_group: template.group,
+        status: "DRAFT", // Manual player markets start as DRAFT
+        kickoff_at: fixture.kickoff_at,
+        home_team: fixture.home_team_name,
+        away_team: fixture.away_team_name,
+        period: "FULL_TIME"
+      };
+
+      const { data: market, error: mError } = await supabase
+        .from("fixture_markets")
+        .insert(marketData)
+        .select()
+        .single();
+
+      if (mError) throw mError;
+
+      const selections = selectedPlayerIds.map((pid, i) => {
+        const fp = players.find(p => p.player_id === pid);
+        return {
+          market_id: market.id,
+          selection_key: `PLAYER_${pid}`,
+          selection_name: fp.players.name,
+          odd: 1.90,
+          sort_order: i,
+          status: "OPEN",
+          metadata: {
+            player_id: pid,
+            player_name: fp.players.name,
+            team_side: fp.team_side,
+            player_market_type: template.playerMarketType
+          }
+        };
+      });
+
+      const { error: sError } = await supabase
+        .from("fixture_market_selections")
+        .insert(selections);
+      
+      if (sError) throw sError;
+
+      toast.success("Mercado de jogador criado em DRAFT");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -273,24 +428,186 @@ function AdminMarketManagerPage() {
           </div>
         </header>
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <LayoutGrid size={14} /> Adicionar Novo Mercado
-            </h3>
+        <section className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Users size={14} /> Jogadores da Partida
+              </h3>
+              <Dialog open={isAddingPlayer} onOpenChange={setIsAddingPlayer}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase text-[9px] rounded-full h-8 px-4">
+                    <UserPlus size={14} className="mr-2" /> Adicionar Jogador
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-zinc-900 border-white/5 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="uppercase font-black italic text-emerald-500">Novo Jogador</DialogTitle>
+                    <DialogDescription className="text-zinc-500 uppercase text-[9px] font-black tracking-widest">Cadastro manual para esta fixture</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-zinc-400">Nome do Jogador</Label>
+                      <Input 
+                        value={newPlayer.name} 
+                        onChange={e => setNewPlayer({...newPlayer, name: e.target.value})}
+                        className="bg-black border-white/5"
+                        placeholder="Ex: Matheus Pereira"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-black text-zinc-400">Time</Label>
+                        <Select value={newPlayer.team_side} onValueChange={v => setNewPlayer({...newPlayer, team_side: v})}>
+                          <SelectTrigger className="bg-black border-white/5">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-900 border-white/5 text-white">
+                            <SelectItem value="HOME">Mandante ({fixture?.home_team_name})</SelectItem>
+                            <SelectItem value="AWAY">Visitante ({fixture?.away_team_name})</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-black text-zinc-400">Nº Camisa (Opcional)</Label>
+                        <Input 
+                          type="number"
+                          value={newPlayer.shirt_number} 
+                          onChange={e => setNewPlayer({...newPlayer, shirt_number: e.target.value})}
+                          className="bg-black border-white/5"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-zinc-400">Posição (Opcional)</Label>
+                      <Input 
+                        value={newPlayer.position} 
+                        onChange={e => setNewPlayer({...newPlayer, position: e.target.value})}
+                        className="bg-black border-white/5"
+                        placeholder="Ex: Meia-Atacante"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      disabled={isActionLoading} 
+                      onClick={addPlayer}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase w-full py-6 rounded-2xl"
+                    >
+                      Salvar Jogador
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="bg-zinc-900/30 border border-white/5 rounded-3xl p-4 min-h-[300px] flex flex-col gap-4">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                <Input 
+                  placeholder="BUSCAR JOGADOR..." 
+                  value={playerSearch}
+                  onChange={e => setPlayerSearch(e.target.value)}
+                  className="bg-black border-white/5 pl-10 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                />
+              </div>
+
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {['HOME', 'AWAY'].map(side => {
+                  const sidePlayers = players.filter(p => p.team_side === side && 
+                    (playerSearch === "" || p.players.name.toLowerCase().includes(playerSearch.toLowerCase()))
+                  );
+                  return (
+                    <div key={side} className="space-y-2">
+                      <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest border-b border-white/5 pb-2">
+                        {side === 'HOME' ? fixture?.home_team_name : fixture?.away_team_name} ({sidePlayers.length})
+                      </h4>
+                      {sidePlayers.length === 0 ? (
+                        <p className="text-[9px] text-zinc-700 font-black italic text-center py-4">Nenhum jogador cadastrado</p>
+                      ) : (
+                        <div className="grid gap-2">
+                          {sidePlayers.map(p => (
+                            <div key={p.id} className="bg-black/40 border border-white/5 p-3 rounded-xl flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-[10px] font-black text-emerald-500">
+                                  {p.shirt_number || '?' }
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black uppercase">{p.players.name}</p>
+                                  <p className="text-[8px] text-zinc-600 font-bold uppercase">{p.position || 'N/A'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => updatePlayerStatus(p.id, p.status === 'AVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE')}
+                                  className={cn(
+                                    "h-7 px-2 rounded-lg text-[8px] font-black uppercase",
+                                    p.status === 'AVAILABLE' ? "text-emerald-500 hover:text-emerald-400 bg-emerald-500/5" : "text-red-500 hover:text-red-400 bg-red-500/5"
+                                  )}
+                                >
+                                  {p.status === 'AVAILABLE' ? <ShieldCheck size={12} className="mr-1" /> : <ShieldAlert size={12} className="mr-1" />}
+                                  {p.status === 'AVAILABLE' ? 'ATIVO' : 'INATIVO'}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {MARKET_TEMPLATES.map(template => (
-              <Button 
-                key={template.id}
-                disabled={isActionLoading}
-                onClick={() => createMarket(template)}
-                className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
-              >
-                <Plus size={16} className="text-zinc-600 group-hover:text-black" />
-                <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
-              </Button>
-            ))}
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <LayoutGrid size={14} /> Adicionar Novo Mercado
+              </h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-3">
+                {MARKET_TEMPLATES.filter(t => !t.isPlayerMarket).map(template => (
+                  <Button 
+                    key={template.id}
+                    disabled={isActionLoading}
+                    onClick={() => createMarket(template)}
+                    className="bg-zinc-900/50 hover:bg-emerald-600 border border-white/5 h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
+                  >
+                    <Plus size={16} className="text-zinc-600 group-hover:text-black" />
+                    <span className="text-[10px] font-black uppercase tracking-tighter group-hover:text-black">{template.name}</span>
+                  </Button>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Mercados de Jogadores</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {MARKET_TEMPLATES.filter(t => t.isPlayerMarket).map(template => (
+                    <Dialog key={template.id}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-emerald-500/5 hover:bg-emerald-500 border border-emerald-500/20 text-emerald-500 hover:text-black h-auto py-4 rounded-2xl flex flex-col gap-2 transition-all group"
+                        >
+                          <Users size={16} />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">{template.name}</span>
+                        </Button>
+                      </DialogTrigger>
+                      <PlayerMarketCreator 
+                        template={template} 
+                        players={players} 
+                        isActionLoading={isActionLoading} 
+                        onConfirm={(ids: string[]) => addPlayerMarket(template, ids)}
+                      />
+                    </Dialog>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -412,5 +729,53 @@ function AdminMarketManagerPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PlayerMarketCreator({ template, players, isActionLoading, onConfirm }: any) {
+  const [selected, setSelected] = useState<string[]>([]);
+  
+  return (
+    <DialogContent className="bg-zinc-900 border-white/5 text-white max-w-md">
+      <DialogHeader>
+        <DialogTitle className="uppercase font-black italic text-emerald-500">{template.name}</DialogTitle>
+        <DialogDescription className="text-zinc-500 uppercase text-[9px] font-black tracking-widest">Selecione os jogadores e defina as odds</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+        {['HOME', 'AWAY'].map(side => (
+          <div key={side} className="space-y-2">
+            <h4 className="text-[9px] font-black text-zinc-600 uppercase tracking-widest border-b border-white/5 pb-2">
+              {side === 'HOME' ? 'Mandante' : 'Visitante'}
+            </h4>
+            <div className="grid gap-2">
+              {players.filter((p: any) => p.team_side === side && p.status === 'AVAILABLE').map((p: any) => (
+                <div key={p.id} className="flex items-center space-x-3 bg-black/40 p-3 rounded-xl border border-white/5">
+                  <Checkbox 
+                    id={`p-${p.player_id}`} 
+                    checked={selected.includes(p.player_id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) setSelected([...selected, p.player_id]);
+                      else setSelected(selected.filter(id => id !== p.player_id));
+                    }}
+                  />
+                  <Label htmlFor={`p-${p.player_id}`} className="text-[10px] font-black uppercase flex-1 cursor-pointer">
+                    {p.players.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <DialogFooter>
+        <Button 
+          disabled={isActionLoading || selected.length === 0}
+          onClick={() => onConfirm(selected)}
+          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase w-full py-6 rounded-2xl"
+        >
+          Criar Mercado ({selected.length})
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }

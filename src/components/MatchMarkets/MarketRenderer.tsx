@@ -44,6 +44,33 @@ export function MarketRenderer({
 
   // Renderers baseados em market_type
   
+  // 0. Mercados de Jogadores
+  if (market.market_group === 'PLAYER') {
+    return (
+      <MarketGroup title={market.market_name} status={market.status}>
+        <div className="grid grid-cols-1 divide-y divide-white/5 max-h-[400px] overflow-y-auto custom-scrollbar">
+          {selections.map(s => (
+            <div key={s.id} className="flex items-center justify-between p-3 group hover:bg-white/5 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase text-zinc-400 group-hover:text-emerald-500 transition-colors">
+                  {s.selection_name}
+                </span>
+                {s.metadata?.team_side && (
+                  <span className="text-[8px] text-zinc-600 font-bold uppercase">
+                    {s.metadata.team_side === 'HOME' ? fixture.home_team_name : fixture.away_team_name}
+                  </span>
+                )}
+              </div>
+              <div className="w-24 h-10">
+                <SelectionButton selection={s} market={market} fixture={fixture} showLabel={false} className="h-full rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </MarketGroup>
+    );
+  }
+
   // 1. Over/Under (OU, CORNERS, CARDS etc se forem de linha)
   if (market.market_type === 'OU' || (market.line !== null && market.line !== undefined)) {
     return (

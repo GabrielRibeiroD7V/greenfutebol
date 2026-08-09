@@ -13,6 +13,7 @@ export type BetSlipSelection = {
   displayedOdd: number;
   homeTeam: string;
   awayTeam: string;
+  metadata?: any;
 };
 
 export function useBetSlip() {

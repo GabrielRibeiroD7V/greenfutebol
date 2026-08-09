@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Calendar, Trophy, ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Search, Calendar, Trophy, ChevronRight, AlertCircle, RefreshCw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -44,11 +44,13 @@ function AdminFixtureListPage() {
       const fixtureIds = persistentFixtures?.map(f => f.provider_fixture_id) || [];
       const { data: marketsData } = await supabase
         .from('fixture_markets')
-        .select('fixture_id, id')
+        .select('fixture_id, market_group')
         .in('fixture_id', fixtureIds);
 
-      const marketCounts = (marketsData || []).reduce((acc: any, curr) => {
-        acc[curr.fixture_id] = (acc[curr.fixture_id] || 0) + 1;
+      const marketInfo = (marketsData || []).reduce((acc: any, curr) => {
+        if (!acc[curr.fixture_id]) acc[curr.fixture_id] = { count: 0, hasPlayers: false };
+        acc[curr.fixture_id].count++;
+        if (curr.market_group === 'PLAYER') acc[curr.fixture_id].hasPlayers = true;
         return acc;
       }, {});
 
@@ -62,7 +64,8 @@ function AdminFixtureListPage() {
         kickoff_at: f.kickoff_at,
         status_long: f.status,
         status_short: f.status,
-        market_count: marketCounts[f.provider_fixture_id] || 0
+        market_count: marketInfo[f.provider_fixture_id]?.count || 0,
+        has_players: marketInfo[f.provider_fixture_id]?.hasPlayers || false
       })) || [];
 
       setFixtures(formatted);
@@ -287,6 +290,11 @@ function AdminFixtureListPage() {
                         {f.market_count > 0 && (
                           <span className="text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
                             {f.market_count} Mercados
+                          </span>
+                        )}
+                        {f.has_players && (
+                          <span className="text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                            <Users size={10} /> Jogadores
                           </span>
                         )}
                       </div>

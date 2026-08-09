@@ -162,6 +162,56 @@ export type Database = {
         }
         Relationships: []
       }
+      fixture_players: {
+        Row: {
+          created_at: string
+          fixture_id: number
+          id: string
+          player_id: string | null
+          position: string | null
+          shirt_number: number | null
+          source: string | null
+          status: string | null
+          team_name: string
+          team_side: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fixture_id: number
+          id?: string
+          player_id?: string | null
+          position?: string | null
+          shirt_number?: number | null
+          source?: string | null
+          status?: string | null
+          team_name: string
+          team_side?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fixture_id?: number
+          id?: string
+          player_id?: string | null
+          position?: string | null
+          shirt_number?: number | null
+          source?: string | null
+          status?: string | null
+          team_name?: string
+          team_side?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixture_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixture_results: {
         Row: {
           away_cards: number | null
@@ -447,6 +497,36 @@ export type Database = {
           name?: string
           period?: string
           settlement_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          provider: string | null
+          provider_player_id: string | null
+          team_provider_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          provider?: string | null
+          provider_player_id?: string | null
+          team_provider_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          provider?: string | null
+          provider_player_id?: string | null
+          team_provider_id?: string | null
           updated_at?: string
         }
         Relationships: []
