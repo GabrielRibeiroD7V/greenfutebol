@@ -7,7 +7,7 @@ interface Selection {
   id: string;
   selection_name: string;
   selection_key: string;
-  odd: number;
+  odd: number | null;
   status: string;
   sort_order: number;
   metadata?: any;
@@ -48,7 +48,7 @@ export function SelectionButton({
   
   const isMarketOpen = market.status === 'OPEN';
   const isSelectionActive = selection.status === 'OPEN';
-  const isValidOdd = selection.odd > 1.0;
+  const isValidOdd = selection.odd !== null && selection.odd > 1.0;
   const isPastKickoff = new Date(fixture.kickoff_at) <= new Date();
   
   const isDisabled = !isMarketOpen || !isSelectionActive || !isValidOdd || isPastKickoff;
@@ -72,7 +72,7 @@ export function SelectionButton({
       marketType: market.market_group,
       selectionId: selection.id,
       selectionName: selection.selection_name,
-      displayedOdd: selection.odd,
+      displayedOdd: selection.odd || 0,
       homeTeam: fixture.home_team_name,
       awayTeam: fixture.away_team_name,
       metadata: selection.metadata
@@ -103,14 +103,14 @@ export function SelectionButton({
         </span>
       )}
       <div className="flex items-center gap-1.5">
-        {isSuspended ? (
-          <Lock size={12} className="text-amber-500" />
+        {isSuspended || !isValidOdd ? (
+          <Lock size={12} className={cn(isSuspended ? "text-amber-500" : "text-slate-300")} />
         ) : (
             <span className={cn(
               "text-[13px] font-bold tracking-tight",
               selected ? "text-white" : "text-slate-900"
             )}>
-            {selection.odd.toFixed(2)}
+            {selection.odd?.toFixed(2)}
           </span>
         )}
       </div>

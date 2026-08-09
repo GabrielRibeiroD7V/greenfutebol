@@ -23,7 +23,7 @@ function MatchDetails() {
   const [fixture, setFixture] = useState<any>(null);
   const [markets, setMarkets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({ "Principais": true });
+  const [activeCategory, setActiveCategory] = useState<string>("TODOS");
 
   const { addSelection, selections, toggleSelection, hasSelection } = useBetSlip();
 
@@ -163,8 +163,26 @@ function MatchDetails() {
             </div>
           </section>
 
+          {/* Categories Tab */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100">
+            {["TODOS", "PRINCIPAIS", "GOLS", "1º TEMPO", "ESCANTEIOS", "CARTÕES", "PLACAR", "JOGADORES"].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-[10px] font-black uppercase whitespace-nowrap transition-all",
+                  activeCategory === cat 
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" 
+                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
           {/* Markets List */}
-          <div className="space-y-4 pb-24">
+          <div className="space-y-0 pb-24">
             {markets.length === 0 ? (
               <div className="py-20 text-center space-y-4">
                 <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
@@ -189,7 +207,24 @@ function MatchDetails() {
               </div>
             ) : (
               markets
-                .filter(m => m.status !== 'CLOSED')
+                .filter(m => {
+                  if (m.status === 'CLOSED' || m.status === 'DRAFT') return false;
+                  // Only show markets that have at least one priced selection
+                  const hasPricedSelection = m.fixture_market_selections.some((s: any) => s.odd !== null && s.odd > 1.0);
+                  if (!hasPricedSelection) return false;
+
+                  if (activeCategory === "TODOS") return true;
+                  const groupMap: Record<string, string> = {
+                    "PRINCIPAIS": "RESULT",
+                    "GOLS": "GOALS",
+                    "1º TEMPO": "HT",
+                    "ESCANTEIOS": "CORNERS",
+                    "CARTÕES": "CARDS",
+                    "PLACAR": "SCORE",
+                    "JOGADORES": "PLAYER"
+                  };
+                  return m.market_group === groupMap[activeCategory];
+                })
                 .map(m => (
                   <MarketRenderer 
                     key={m.id} 
@@ -203,6 +238,20 @@ function MatchDetails() {
                     }} 
                   />
                 ))
+            )}
+            {markets.length > 0 && markets.filter(m => {
+              if (m.status === 'CLOSED' || m.status === 'DRAFT') return false;
+              const hasPricedSelection = m.fixture_market_selections.some((s: any) => s.odd !== null && s.odd > 1.0);
+              if (!hasPricedSelection) return false;
+              if (activeCategory === "TODOS") return true;
+              const groupMap: Record<string, string> = {
+                "PRINCIPAIS": "RESULT", "GOLS": "GOALS", "1º TEMPO": "HT", "ESCANTEIOS": "CORNERS", "CARTÕES": "CARDS", "PLACAR": "SCORE", "JOGADORES": "PLAYER"
+              };
+              return m.market_group === groupMap[activeCategory];
+            }).length === 0 && (
+              <div className="py-20 text-center text-slate-400 text-[11px] font-bold uppercase tracking-widest">
+                Nenhum mercado nesta categoria
+              </div>
             )}
           </div>
         </main>
