@@ -501,8 +501,8 @@ function Index() {
       data-testid="main-container"
     >
       {/* Header Fixo e Denso */}
-      <header className="bg-white border-b border-border text-foreground shadow-sm sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
+      <header className="bg-white border-b border-[#E5E7EB] text-foreground sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-20">
           <div className="flex items-center gap-4">
             <div
               className="flex items-center gap-2 group cursor-pointer"
@@ -513,13 +513,13 @@ function Index() {
                 <img
                   src={logoAsset.url}
                   alt="GreenFutebol"
-                  className="h-12 sm:h-16 w-auto relative z-10 brightness-100 drop-shadow-sm"
+                  className="h-14 sm:h-24 w-auto relative z-10 brightness-100 drop-shadow-sm"
                 />
               </div>
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
+          <div className="hidden lg:flex items-center gap-8 font-bold uppercase tracking-wider text-[11px]">
             <button
               onClick={() => {
                 navigate({ to: "/" });
@@ -564,20 +564,20 @@ function Index() {
                 placeholder="Buscar jogo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
+                className="bg-slate-50 border border-[#E5E7EB] rounded-[6px] py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
+                  <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">
                     Saldo
                   </span>
-                  <span className="text-sm font-black text-slate-900">R$ 0,00</span>
+                  <span className="text-sm font-bold text-slate-900">R$ 0,00</span>
                 </div>
                 <div
-                  className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 cursor-pointer"
+                  className="w-8 h-8 rounded-[6px] bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 cursor-pointer font-bold"
                   onClick={() => navigate({ to: "/meus-bilhetes" })}
                 >
                   {(profile?.name || "U").charAt(0).toUpperCase()}
@@ -587,13 +587,13 @@ function Index() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate({ to: "/login" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-emerald-600 transition-all uppercase tracking-widest"
+                  className="px-3 py-1.5 rounded-[6px] text-xs font-bold text-slate-600 hover:text-emerald-600 transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
                 <button
                   onClick={() => navigate({ to: "/cadastro" })}
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-widest transition-all"
+                  className="px-4 py-1.5 rounded-[6px] bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-widest transition-all"
                 >
                   Cadastrar
                 </button>
@@ -608,13 +608,13 @@ function Index() {
         {/* Sidebar Esquerda: Ligas e Favoritos */}
         <aside
           className={cn(
-            "bg-white border-r border-slate-100 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
+            "bg-white border-r border-[#E5E7EB] overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
             "w-[110px] sm:w-[130px] lg:w-64",
           )}
         >
           <div className="p-2 sm:p-4 space-y-4 lg:space-y-6">
             <div className="space-y-2">
-              <h4 className="text-[9px] lg:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
+              <h4 className="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
                 Principais Ligas
               </h4>
               <div className="space-y-1">
@@ -637,9 +637,9 @@ function Index() {
                       setCompetitionCode(league.id as any);
                     }}
                     className={cn(
-                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
+                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-none transition-all group relative",
                       competitionCode === league.id
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        ? "bg-emerald-50 text-emerald-700 border-l-[3px] border-emerald-600"
                         : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
@@ -661,7 +661,7 @@ function Index() {
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-[9px] lg:text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
+              <h4 className="text-[9px] lg:text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] lg:tracking-[0.2em] px-1 lg:px-2">
                 Filtros
               </h4>
               <div className="space-y-1">
@@ -676,9 +676,9 @@ function Index() {
                       setActiveTab(tab.id as any);
                     }}
                     className={cn(
-                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
+                      "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-none transition-all group relative",
                       activeTab === tab.id
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        ? "bg-emerald-50 text-emerald-700 border-l-[3px] border-emerald-600"
                         : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
@@ -695,7 +695,7 @@ function Index() {
                   </button>
                 ))}
                 <div className="px-1 lg:px-3 pt-2">
-                  <label className="block text-[8px] lg:text-[10px] font-black uppercase tracking-widest text-slate-500 text-center lg:text-left">
+                  <label className="block text-[8px] lg:text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center lg:text-left">
                     Data
                     <input
                       type="date"
