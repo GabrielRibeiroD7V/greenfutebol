@@ -66,23 +66,39 @@ export function useBetSlip() {
     return selections.some(s => s.selectionId === selectionId);
   }, [selections]);
 
+  const generateIdempotencyKey = useCallback(() => {
+    const key = crypto.randomUUID();
+    setIdempotencyKey(key);
+    return key;
+  }, []);
+
   const getSelectionByMarket = useCallback((marketId: string) => {
     return selections.find(s => s.marketId === marketId);
   }, [selections]);
 
   const removeSelection = useCallback((selectionId: string) => {
-    setSelections(prev => prev.filter(s => s.selectionId !== selectionId));
+    setSelections(prev => {
+      const next = prev.filter(s => s.selectionId !== selectionId);
+      if (next.length === 0) setIdempotencyKey(null);
+      return next;
+    });
   }, []);
 
   const clearBetSlip = useCallback(() => {
     setSelections([]);
+    setIdempotencyKey(null);
   }, []);
 
   const addSelection = useCallback((newSelection: BetSlipSelection) => {
     if (!newSelection.selectionId || !newSelection.marketId || newSelection.fixtureId <= 0) return;
     if (newSelection.displayedOdd <= 1.0) return;
 
+    if (!idempotencyKey) {
+      generateIdempotencyKey();
+    }
+
     setSelections(prev => {
+
       const filtered = prev.filter(s => s.marketId !== newSelection.marketId);
       if (prev.some(s => s.selectionId === newSelection.selectionId)) {
         return prev.filter(s => s.selectionId !== newSelection.selectionId);
