@@ -1,51 +1,63 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { getAdminTickets } from "@/lib/admin.functions";
-import { Loader2, Search, Ticket, User, Phone, Calendar, Clock, ChevronRight, Filter, ShieldCheck, RefreshCw } from "lucide-react";
+import { getAdminTickets, getAdminTicketsSummary } from "@/lib/admin.functions";
+import { 
+  Loader2, Search, Ticket, User, Phone, Calendar, Clock, 
+  ChevronRight, Filter, ShieldCheck, RefreshCw, TrendingUp, 
+  CheckCircle2, XCircle, AlertCircle, Ban, ArrowRightLeft, CreditCard
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/phone-utils";
-import { supabase } from "@/integrations/supabase/client";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export const Route = createFileRoute("/admin/bilhetes")({
   ssr: false,
   component: AdminTicketsPage,
 });
 
-
 function AdminTicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
+  const [status, setStatus] = useState("ALL");
+  const [dateRange, setDateRange] = useState("ALL");
+  const [paymentMode, setPaymentMode] = useState("ALL");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  const debouncedSearch = useDebounce(search, 500);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadTickets();
-  }, [search]);
+    loadData();
+  }, [debouncedSearch, status, dateRange, paymentMode, page]);
 
-  const loadTickets = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const { tickets: data } = await getAdminTickets({ data: { search } });
+      const [ticketsData, summaryData] = await Promise.all([
+        getAdminTickets({ 
+          data: { 
+            search: debouncedSearch, 
+            status: status === 'ALL' ? undefined : status,
+            dateRange: dateRange === 'ALL' ? undefined : dateRange,
+            paymentMode: paymentMode === 'ALL' ? undefined : paymentMode,
+            page,
+            pageSize: 50
+          } 
+        }),
+        getAdminTicketsSummary()
+      ]);
       
-      const ticketsWithDetails = await Promise.all(
-        (data || []).map(async (ticket: any) => {
-          try {
-            const { data: details, error } = await supabase
-              .from('tickets')
-              .select('*, profiles(*), ticket_selections(*)')
-              .eq('id', ticket.id)
-              .single();
-            return details || ticket;
-          } catch (e) {
-            return ticket;
-          }
-        })
-      );
-
-      setTickets(ticketsWithDetails);
+      setTickets(ticketsData.tickets || []);
+      setTotalCount(ticketsData.totalCount || 0);
+      setSummary(summaryData);
     } catch (e) {
       console.error(e);
     } finally {
@@ -53,218 +65,229 @@ function AdminTicketsPage() {
     }
   };
 
-  const getSelectionStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'WON': return 'text-emerald-600';
-      case 'LOST': return 'text-red-600';
-      case 'VOID': return 'text-slate-500';
-      case 'CANCELLED': return 'text-slate-600';
-      default: return 'text-amber-600';
+      case 'WON': return <CheckCircle2 size={16} className="text-emerald-500" />;
+      case 'LOST': return <XCircle size={16} className="text-red-500" />;
+      case 'VOID': return <Ban size={16} className="text-slate-400" />;
+      case 'CANCELLED': return <AlertCircle size={16} className="text-slate-400" />;
+      default: return <Clock size={16} className="text-amber-500" />;
     }
+  };
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
-              <ShieldCheck size={28} />
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
+              <Ticket size={28} />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight italic">Gestão de Bilhetes</h1>
-              <p className="text-slate-500 text-sm font-medium">Monitoramento administrativo em tempo real.</p>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight italic">Auditório de Bilhetes</h1>
+              <p className="text-slate-500 text-sm font-medium">Controle total sobre as operações dos clientes.</p>
             </div>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm">Home</Button>
-            <Button onClick={loadTickets} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 shadow-sm">
+            <Button onClick={loadData} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 shadow-sm">
               <RefreshCw size={16} className={cn("mr-2", loading && "animate-spin")} />
               Atualizar
             </Button>
           </div>
         </header>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 mb-8 shadow-sm">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <Input 
-              placeholder="Buscar por código, nome ou ID..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"
-            />
+        {/* Resumo Financeiro */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          {[
+            { label: 'Bilhetes Hoje', value: summary?.todayCount || 0, icon: Ticket, color: 'emerald' },
+            { label: 'Stake Hoje', value: formatCurrency(summary?.todayStake || 0), icon: CreditCard, color: 'emerald' },
+            { label: 'Pendentes', value: summary?.pendingCount || 0, icon: Clock, color: 'amber' },
+            { label: 'Ganhos', value: summary?.wonCount || 0, icon: CheckCircle2, color: 'emerald' },
+            { label: 'Perdidos', value: summary?.lostCount || 0, icon: XCircle, color: 'red' },
+            { label: 'Exposição Total', value: formatCurrency(summary?.potentialExposure || 0), icon: TrendingUp, color: 'slate' },
+          ].map((item, idx) => (
+            <div key={idx} className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3", 
+                item.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
+                item.color === 'amber' ? "bg-amber-50 text-amber-600" :
+                item.color === 'red' ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
+              )}>
+                <item.icon size={18} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
+              <p className="text-lg font-black text-slate-900 leading-none">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Filtros e Busca */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 mb-8 shadow-sm space-y-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Input 
+                placeholder="Buscar por código, ID do bilhete..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos Status</SelectItem>
+                  <SelectItem value="PENDING">Pendentes</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmados</SelectItem>
+                  <SelectItem value="WON">Ganhos</SelectItem>
+                  <SelectItem value="LOST">Perdidos</SelectItem>
+                  <SelectItem value="VOID">Anulados</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelados</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todo Período</SelectItem>
+                  <SelectItem value="today">Hoje</SelectItem>
+                  <SelectItem value="7days">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30days">Últimos 30 dias</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={paymentMode} onValueChange={setPaymentMode}>
+                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                  <SelectValue placeholder="Pagamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos Meios</SelectItem>
+                  <SelectItem value="SIMULATED">Simulado</SelectItem>
+                  <SelectItem value="REAL">Real (Pix)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
+        {/* Listagem */}
         {loading && tickets.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="animate-spin text-emerald-600 w-10 h-10 mb-4" />
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Carregando base de bilhetes...</p>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Carregando auditoria...</p>
           </div>
         ) : tickets.length === 0 ? (
           <div className="text-center p-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
             <Ticket className="mx-auto h-16 w-16 text-slate-200 mb-4" />
             <h3 className="text-xl font-bold text-slate-900 uppercase italic">Nenhum bilhete encontrado</h3>
-            <p className="text-slate-500 mt-2 font-medium">Ajuste os filtros de busca ou aguarde novas apostas.</p>
+            <p className="text-slate-500 mt-2 font-medium">Ajuste os filtros para encontrar registros específicos.</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="space-y-4">
+            <div className="bg-slate-200/50 rounded-xl p-3 grid grid-cols-12 gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest px-6 hidden lg:grid">
+              <div className="col-span-2">Código / Data</div>
+              <div className="col-span-3">Cliente / Contato</div>
+              <div className="col-span-1 text-center">Itens</div>
+              <div className="col-span-2 text-right">Stake / Odd</div>
+              <div className="col-span-2 text-right">Retorno</div>
+              <div className="col-span-2 text-right">Status</div>
+            </div>
+
             {tickets.map(t => (
               <div 
                 key={t.id} 
-                className={cn(
-                  "bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all duration-300 shadow-sm",
-                  expandedTicketId === t.id ? "ring-1 ring-emerald-500/30" : "hover:border-slate-300"
-                )}
+                onClick={() => navigate({ to: `/admin/bilhetes/${t.id}` })}
+                className="bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 grid grid-cols-12 gap-4 items-center cursor-pointer hover:border-emerald-300 transition-all shadow-sm group"
               >
-                <div 
-                  className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer"
-                  onClick={() => setExpandedTicketId(expandedTicketId === t.id ? null : t.id)}
-                >
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:items-center gap-6 flex-1">
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">Código</span>
-                      <span className="text-lg font-black text-emerald-600 tracking-widest">{t.code}</span>
-                    </div>
-
-                    <div className="space-y-1 min-w-[140px]">
-                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">Usuário</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 border border-slate-200">
-                          {(t.profiles?.name || "U").charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm font-black text-slate-900 truncate max-w-[100px]">
-                          {t.profiles?.name || "Anônimo"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">Telefone</span>
-                      <span className="text-sm font-bold text-slate-600">
-                        {t.profiles?.phone ? maskPhone(t.profiles.phone) : "-"}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">Data/Hora</span>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold uppercase tracking-tight">
-                        <Calendar size={12} />
-                        {new Date(t.created_at).toLocaleDateString('pt-BR')}
-                        <Clock size={12} className="ml-1" />
-                        {new Date(t.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between lg:justify-end gap-8 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-                    <div className="flex flex-col text-right">
-                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Aposta</span>
-                      <span className="text-lg font-black text-slate-900">R$ {t.stake.toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                      <span className="text-[10px] text-emerald-600/50 font-black uppercase tracking-widest">Possível</span>
-                      <span className="text-lg font-black text-emerald-600">R$ {t.potential_return.toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                        t.status === 'WON' ? "bg-emerald-100 text-emerald-700" : 
-                        t.status === 'LOST' ? "bg-red-100 text-red-700" :
-                        t.status === 'VOID' ? "bg-slate-100 text-slate-600" :
-                        "bg-amber-100 text-amber-700"
-                      )}>
-                        {t.status === 'PAID' ? 'Pago' : 
-                         t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
-                         t.status === 'PENDING_PAYMENT' ? 'Iniciado' :
-                         t.status === 'WON' ? 'Ganho' :
-                         t.status === 'LOST' ? 'Perdido' :
-                         t.status === 'VOID' ? 'Anulado' :
-                         t.status === 'CANCELLED' ? 'Cancelado' : t.status}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{t.ticket_selections?.length || 0} SELEÇÕES</span>
-                    </div>
-                    <ChevronRight 
-                      className={cn("text-slate-400 transition-transform duration-300 hidden lg:block", expandedTicketId === t.id && "rotate-90")} 
-                      size={20} 
-                    />
+                <div className="col-span-6 lg:col-span-2 space-y-1">
+                  <span className="text-sm font-black text-emerald-600 tracking-tighter group-hover:underline">{t.code}</span>
+                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold italic">
+                    {new Date(t.created_at).toLocaleDateString('pt-BR')} - {new Date(t.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
 
-                {expandedTicketId === t.id && (
-                  <div className="border-t border-slate-100 bg-slate-50 p-5 md:p-8 animate-in slide-in-from-top-2 duration-300">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] flex items-center gap-2">
-                          <Filter size={14} />
-                          Composição do Bilhete
-                        </h4>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase">Ticket ID: {t.id}</div>
-                      </div>
-                      
-                      <div className="grid gap-4">
-                        {t.ticket_selections?.map((sel: any, idx: number) => (
-                          <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-3">
-                                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-black uppercase tracking-wider">
-                                  {sel.market_name_snapshot}
-                                </span>
-                                <span className="text-base font-black text-slate-900">
-                                  {sel.option_label_snapshot}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 text-sm text-slate-600 font-bold uppercase tracking-tighter italic">
-                                {sel.home_team_snapshot} 
-                                <span className="text-emerald-600/30 px-1 font-black not-italic">vs</span> 
-                                {sel.away_team_snapshot}
-                              </div>
-                              <div className="flex items-center gap-4 text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                                <span className="flex items-center gap-1"><Calendar size={12} /> {sel.league_name_snapshot}</span>
-                                <span className="flex items-center gap-1"><Clock size={12} /> {new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR')}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between md:justify-end gap-10 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
-                              <div className="flex flex-col md:items-end">
-                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Odd Salva</span>
-                                <span className="text-xl font-black text-emerald-600">{sel.odd_snapshot.toFixed(2)}</span>
-                              </div>
-                              <div className="flex flex-col md:items-end">
-                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Resultado</span>
-                                <span className={cn("text-sm font-black uppercase tracking-widest", getSelectionStatusColor(sel.status))}>
-                                  {sel.status === 'PENDING' ? 'Aguardando' : 
-                                   sel.status === 'WON' ? 'Vencedora' :
-                                   sel.status === 'LOST' ? 'Perdida' :
-                                   sel.status === 'VOID' ? 'Anulada' : sel.status}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="bg-white rounded-2xl p-6 border border-slate-200 flex flex-wrap items-center justify-between gap-6 shadow-sm">
-                        <div className="flex items-center gap-8">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Odd Acumulada</span>
-                            <span className="text-lg font-black text-slate-900">{t.total_odd.toFixed(2)}</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Valor do Bilhete</span>
-                            <span className="text-lg font-black text-slate-900">R$ {t.stake.toFixed(2)}</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Potencial Bruto</span>
-                          <span className="text-2xl font-black text-emerald-600">R$ {t.potential_return.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
+                <div className="col-span-6 lg:col-span-3 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 border border-slate-200">
+                    {(t.profiles?.name || "U").charAt(0).toUpperCase()}
                   </div>
-                )}
+                  <div className="space-y-0.5 min-w-0">
+                    <span className="text-xs font-black text-slate-900 block truncate">{t.profiles?.name || "Anônimo"}</span>
+                    <span className="text-[10px] text-slate-500 font-bold block truncate">{t.profiles?.phone ? maskPhone(t.profiles.phone) : (t.profiles?.email || "-")}</span>
+                  </div>
+                </div>
+
+                <div className="col-span-4 lg:col-span-1 flex flex-col items-center justify-center">
+                  <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Tipo</span>
+                  <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full uppercase">
+                    {t.selection_count === 1 ? 'Simples' : 'Múltipla'}
+                  </span>
+                </div>
+
+                <div className="col-span-4 lg:col-span-2 text-right space-y-0.5">
+                  <span className="text-xs font-black text-slate-900 block">{formatCurrency(t.stake)}</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase italic block">Odd {t.total_odd.toFixed(2)}</span>
+                </div>
+
+                <div className="col-span-4 lg:col-span-2 text-right">
+                  <span className="text-sm font-black text-emerald-600 block">{formatCurrency(t.potential_return)}</span>
+                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter block">{t.selection_count} seleções</span>
+                </div>
+
+                <div className="col-span-12 lg:col-span-2 flex flex-col items-end gap-1 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(t.status)}
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                      {t.status === 'PAID' ? 'Pago' : 
+                       t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
+                       t.status === 'PENDING_PAYMENT' ? 'Pendente Pag.' :
+                       t.status === 'WON' ? 'Ganho' :
+                       t.status === 'LOST' ? 'Perdido' :
+                       t.status === 'VOID' ? 'Anulado' :
+                       t.status === 'CONFIRMED' ? 'Confirmado' :
+                       t.status === 'CANCELLED' ? 'Cancelado' : t.status}
+                    </span>
+                  </div>
+                  <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest">
+                    {t.payment_mode === 'SIMULATED' ? 'Modo Simulado' : 'Transação Real'}
+                  </span>
+                </div>
               </div>
             ))}
+
+            {/* Paginação Simples */}
+            <div className="flex items-center justify-between py-6">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total: {totalCount} bilhetes</span>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={page === 1} 
+                  onClick={() => setPage(p => p - 1)}
+                  className="text-xs font-black uppercase tracking-widest border-slate-200"
+                >
+                  Anterior
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={tickets.length < 50} 
+                  onClick={() => setPage(p => p + 1)}
+                  className="text-xs font-black uppercase tracking-widest border-slate-200"
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
