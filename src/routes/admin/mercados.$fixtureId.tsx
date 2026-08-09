@@ -452,7 +452,24 @@ function AdminMarketManagerPage() {
               </p>
             </div>
           </div>
-        </header>
+        <div className="flex gap-4 mb-4">
+           <Button 
+             variant="outline"
+             className="flex-1 bg-zinc-900 border-white/5 text-white font-black uppercase text-[11px] h-14 rounded-2xl"
+             onClick={() => {
+                const mainTemplates = MARKET_TEMPLATES.filter(t => t.group === 'PRINCIPAIS' || t.group === 'GOLS' || t.group === 'PLACAR');
+                mainTemplates.forEach(t => createMarket(t));
+             }}
+           >
+             PREPARAR PARTIDA (Templates Principais)
+           </Button>
+           <Button 
+             className="bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] h-14 rounded-2xl"
+             onClick={() => window.open(`/jogo/${fixtureId}`, '_blank')}
+           >
+             VER COMO USUÁRIO
+           </Button>
+        </div>
 
         <section className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
