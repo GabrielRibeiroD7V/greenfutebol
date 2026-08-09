@@ -92,9 +92,9 @@ function MatchDetails() {
     : (fixture ? new Date(fixture.kickoff_at) <= new Date() : false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col lg:flex-row">
       <div className="flex-1 min-w-0">
-        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 p-4 flex items-center justify-between shadow-sm">
+        <header className="sticky top-0 z-40 bg-white border-b border-[#E5E7EB] p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate({ to: "/" })} className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><ArrowLeft size={20} /></button>
             <div>
@@ -121,47 +121,66 @@ function MatchDetails() {
         </header>
 
         <main className="p-4 space-y-6 max-w-4xl mx-auto w-full">
-          {/* Match Header Card */}
-          <section className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 space-y-3">
-                <img src={fixture.home_team_logo} className="w-16 h-16 mx-auto" alt="" />
-                <p className="font-black uppercase tracking-tighter text-slate-900">{fixture.home_team_name}</p>
+          {/* Match Header Integrated */}
+          <section className="bg-white py-6 border-b border-[#E5E7EB] text-center space-y-4">
+            <div className="flex flex-col items-center gap-1 mb-4">
+               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{fixture.league_name}</span>
+               <span className="text-[9px] font-medium text-slate-400 uppercase tracking-widest">{fixture.country} · {fixture.round}</span>
+            </div>
+            
+            <div className="flex items-center justify-between gap-2 sm:gap-4 max-w-2xl mx-auto">
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <img src={fixture.home_team_logo} className="w-12 h-12 sm:w-16 sm:h-16 object-contain" alt="" />
+                <p className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{fixture.home_team_name}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-4xl font-black text-emerald-600">{fixture.home_score ?? 0} - {fixture.away_score ?? 0}</p>
-                <p className="text-[10px] font-black text-slate-500 uppercase">{fixture.status_long}</p>
+              
+              <div className="flex flex-col items-center gap-1 min-w-[80px]">
+                <p className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tighter">
+                  {fixture.home_score ?? 0} <span className="text-slate-200">-</span> {fixture.away_score ?? 0}
+                </p>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-[4px] text-[9px] font-black uppercase tracking-wider",
+                  isStarted ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                )}>
+                  {fixture.status_long}
+                </span>
               </div>
-              <div className="flex-1 space-y-3">
-                <img src={fixture.away_team_logo} className="w-16 h-16 mx-auto" alt="" />
-                <p className="font-black uppercase tracking-tighter text-slate-900">{fixture.away_team_name}</p>
+              
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <img src={fixture.away_team_logo} className="w-12 h-12 sm:w-16 sm:h-16 object-contain" alt="" />
+                <p className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{fixture.away_team_name}</p>
               </div>
             </div>
-            <div className="flex justify-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-4">
-              <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(fixture.kickoff_at)}</span>
-              <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(fixture.kickoff_at)}</span>
-              <span className="flex items-center gap-1"><MapPin size={12} /> {fixture.venue}</span>
+            
+            <div className="flex justify-center items-center gap-4 text-[10px] font-medium text-slate-500 pt-4">
+              <span>{formatDate(fixture.kickoff_at)} · {formatTime(fixture.kickoff_at)}</span>
+              {fixture.venue && (
+                <>
+                  <span className="text-slate-200">|</span>
+                  <span className="flex items-center gap-1 truncate max-w-[150px]"><MapPin size={10} /> {fixture.venue}</span>
+                </>
+              )}
             </div>
           </section>
 
           {/* Markets List */}
           <div className="space-y-4 pb-24">
             {markets.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-6 shadow-sm">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
-                  <Info size={32} />
+              <div className="py-20 text-center space-y-4">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                  <Info size={24} />
                 </div>
-                <div>
-                  <h3 className="text-sm font-black uppercase text-slate-900">Mercados ainda não disponíveis</h3>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2 leading-relaxed max-w-xs mx-auto">
-                    Esta partida está sendo processada ou as odds foram suspensas temporariamente.
+                <div className="space-y-1">
+                  <h3 className="text-[13px] font-bold text-slate-900">Mercados ainda não disponíveis</h3>
+                  <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto">
+                    As odds desta partida ainda não foram publicadas ou estão temporariamente suspensas.
                   </p>
                 </div>
                 {isAdmin && (
                   <div className="pt-4">
                     <Button 
                       onClick={() => navigate({ to: `/admin/mercados/${fixtureId}` as any })}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] h-10 px-6 rounded-xl shadow-md"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase text-[10px] h-9 px-6 rounded-[8px]"
                     >
                       Configurar Mercados
                     </Button>

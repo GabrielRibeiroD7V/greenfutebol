@@ -84,19 +84,20 @@ export function SelectionButton({
       disabled={false}
       onClick={handleClick}
       className={cn(
-        "relative flex flex-col items-center justify-center p-3 transition-all duration-200 min-h-[64px]",
+        "relative flex flex-col items-center justify-center p-2 sm:p-3 transition-all duration-200 min-h-[56px] sm:min-h-[64px]",
         selected 
-          ? "bg-emerald-600 border-emerald-500 shadow-md z-10" 
-          : "bg-white border border-slate-100 hover:bg-slate-50 hover:border-slate-200",
+          ? "bg-emerald-600 border-emerald-500 z-10" 
+          : "bg-[#F6F7F7] border border-[#E5E7EB] hover:bg-emerald-50 hover:border-emerald-100",
         isDisabled && "opacity-40 cursor-not-allowed grayscale",
         isSuspended && "border-amber-500/20",
+        "rounded-[6px]",
         className
       )}
     >
       {showLabel && (
         <span className={cn(
-          "text-[10px] font-bold uppercase tracking-tight mb-1",
-          selected ? "text-emerald-100 bg-white/20 px-1.5 py-0.5 rounded" : "text-slate-500"
+          "text-[10px] font-medium uppercase tracking-tight mb-0.5",
+          selected ? "text-white" : "text-slate-600"
         )}>
           {selection.selection_name}
         </span>
@@ -105,10 +106,10 @@ export function SelectionButton({
         {isSuspended ? (
           <Lock size={12} className="text-amber-500" />
         ) : (
-          <span className={cn(
-            "text-lg font-black tracking-tighter",
-            selected ? "text-white" : "text-emerald-600"
-          )}>
+            <span className={cn(
+              "text-[13px] font-bold tracking-tight",
+              selected ? "text-white" : "text-slate-900"
+            )}>
             {selection.odd.toFixed(2)}
           </span>
         )}
@@ -122,22 +123,20 @@ export function SelectionButton({
 
 export function MarketGroup({ title, children, status }: { title: string, children: React.ReactNode, status?: string }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-2">
-      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
-          <div className="w-1 h-3 bg-emerald-600 rounded-full" />
+    <div className="border-b border-[#E5E7EB] last:border-b-0 animate-in fade-in">
+      <div className="px-0 py-3 flex justify-between items-center">
+        <h3 className="text-[13px] font-semibold text-slate-900 flex items-center gap-2">
           {title}
         </h3>
-        <div className="flex items-center gap-2">
-          {status === 'SUSPENDED' && (
-            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100">
-              Suspenso
-            </span>
-          )}
-          <Info size={14} className="text-slate-400 hover:text-emerald-600 cursor-help transition-colors" />
-        </div>
+        {status === 'SUSPENDED' && (
+          <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100">
+            Suspenso
+          </span>
+        )}
       </div>
-      {children}
+      <div className="pb-4">
+        {children}
+      </div>
     </div>
   );
 }
