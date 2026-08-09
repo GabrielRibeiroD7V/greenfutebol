@@ -75,16 +75,16 @@ function MeusBilhetesComponent() {
 
   const getSelectionStatusColor = (status: string) => {
     switch (status) {
-      case 'WON': return 'text-emerald-500';
-      case 'LOST': return 'text-red-500';
+      case 'WON': return 'text-emerald-600';
+      case 'LOST': return 'text-red-600';
       case 'VOID':
-      case 'PUSH': return 'text-slate-400';
-      case 'CANCELLED': return 'text-slate-500';
-      default: return 'text-amber-500';
+      case 'PUSH': return 'text-slate-500';
+      case 'CANCELLED': return 'text-slate-600';
+      default: return 'text-amber-600';
     }
   };
 
-  if (authLoading || loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-emerald-500" /></div>;
+  if (authLoading || loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-emerald-600" /></div>;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -138,18 +138,18 @@ function MeusBilhetesComponent() {
                   onClick={() => setExpandedTicketId(expandedTicketId === t.id ? null : t.id)}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                       <Ticket size={24} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-emerald-400 font-black text-lg tracking-widest">{t.code}</span>
+                        <span className="text-emerald-600 font-black text-lg tracking-widest">{t.code}</span>
                         <span className={cn(
                           "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                          t.status === 'WON' ? "bg-emerald-500/10 text-emerald-500" : 
-                          t.status === 'LOST' ? "bg-red-500/10 text-red-500" :
-                          t.status === 'VOID' ? "bg-slate-500/10 text-slate-500" :
-                          "bg-amber-500/10 text-amber-500"
+                          t.status === 'WON' ? "bg-emerald-100 text-emerald-700" : 
+                          t.status === 'LOST' ? "bg-red-100 text-red-700" :
+                          t.status === 'VOID' ? "bg-slate-100 text-slate-600" :
+                          "bg-amber-100 text-amber-700"
                         )}>
                         {t.status === 'PAID' ? 'Pago' : 
                            t.status === 'WAITING_PAYMENT' ? 'Aguardando PIX' :
@@ -171,24 +171,24 @@ function MeusBilhetesComponent() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:text-right gap-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                  <div className="flex items-center justify-between sm:text-right gap-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Valor Apostado</span>
-                      <span className="text-lg font-black text-white">R$ {t.stake.toFixed(2)}</span>
+                      <span className="text-lg font-black text-slate-900">R$ {t.stake.toFixed(2)}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-emerald-500/50 font-black uppercase tracking-widest">Retorno Possível</span>
-                      <span className="text-lg font-black text-emerald-400">R$ {t.potential_return.toFixed(2)}</span>
+                      <span className="text-[10px] text-emerald-600/70 font-black uppercase tracking-widest">Retorno Possível</span>
+                      <span className="text-lg font-black text-emerald-600">R$ {t.potential_return.toFixed(2)}</span>
                     </div>
                     <ChevronRight 
-                      className={cn("text-slate-600 transition-transform duration-300 hidden sm:block", expandedTicketId === t.id && "rotate-90")} 
+                      className={cn("text-slate-400 transition-transform duration-300 hidden sm:block", expandedTicketId === t.id && "rotate-90")} 
                       size={20} 
                     />
                   </div>
                 </div>
 
                 {expandedTicketId === t.id && (
-                  <div className="border-t border-white/5 bg-black/20 p-5 sm:p-6 animate-in slide-in-from-top-2 duration-300">
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-5 sm:p-6 animate-in slide-in-from-top-2 duration-300">
                     <div className="space-y-4">
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <Filter size={12} />
@@ -197,27 +197,27 @@ function MeusBilhetesComponent() {
                       <div className="grid gap-3">
                         {t.selections ? (
                           t.selections.map((sel: any, idx: number) => (
-                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-black uppercase">
+                                  <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">
                                     {sel.market || sel.market_name_snapshot}
                                   </span>
-                                  <span className="text-sm font-black text-white">
+                                  <span className="text-sm font-black text-slate-900">
                                     {sel.option || sel.option_label_snapshot}
                                   </span>
                                 </div>
-                                <div className="text-xs text-slate-400 font-medium">
+                                <div className="text-xs text-slate-600 font-medium">
                                   {sel.home_team || sel.home_team_snapshot} x {sel.away_team || sel.away_team_snapshot}
                                 </div>
-                                <div className="text-[10px] text-slate-600">
+                                <div className="text-[10px] text-slate-500">
                                   {sel.competition || sel.league_name_snapshot} • {sel.kickoff_at_snapshot ? new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR') : 'Aposta Realizada'}
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Cotação</span>
-                                  <span className="text-base font-black text-emerald-400">{(sel.odd || sel.odd_snapshot).toFixed(2)}</span>
+                                  <span className="text-base font-black text-emerald-600">{(sel.odd || sel.odd_snapshot).toFixed(2)}</span>
                                 </div>
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
@@ -235,27 +235,27 @@ function MeusBilhetesComponent() {
                           ))
                         ) : (
                           t.ticket_selections?.map((sel: any, idx: number) => (
-                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div key={idx} className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-black uppercase">
+                                  <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">
                                     {sel.market_name_snapshot}
                                   </span>
-                                  <span className="text-sm font-black text-white">
+                                  <span className="text-sm font-black text-slate-900">
                                     {sel.option_label_snapshot}
                                   </span>
                                 </div>
-                                <div className="text-xs text-slate-400 font-medium">
+                                <div className="text-xs text-slate-600 font-medium">
                                   {sel.home_team_snapshot} x {sel.away_team_snapshot}
                                 </div>
-                                <div className="text-[10px] text-slate-600">
+                                <div className="text-[10px] text-slate-500">
                                   {sel.league_name_snapshot} • {new Date(sel.kickoff_at_snapshot).toLocaleString('pt-BR')}
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                              <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Cotação</span>
-                                  <span className="text-base font-black text-emerald-400">{sel.odd_snapshot.toFixed(2)}</span>
+                                  <span className="text-base font-black text-emerald-600">{sel.odd_snapshot.toFixed(2)}</span>
                                 </div>
                                 <div className="flex flex-col sm:items-end">
                                   <span className="text-[9px] text-slate-500 font-bold uppercase">Status</span>
@@ -273,24 +273,22 @@ function MeusBilhetesComponent() {
                         )}
                       </div>
                       
-                      <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5">
+                      <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
                         <div className="flex gap-4">
-                          <div className="text-xs text-slate-500 italic">
-                            Odd Total: <span className="font-bold text-white">{t.total_odd.toFixed(2)}</span>
+                          <div className="text-xs text-slate-600 italic">
+                            Odd Total: <span className="font-bold text-slate-900">{t.total_odd.toFixed(2)}</span>
                           </div>
                           {(t.status === 'PENDING_PAYMENT' || t.status === 'WAITING_PAYMENT') && (
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest border border-white/10 px-2 py-0.5 rounded">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest border border-slate-200 px-2 py-0.5 rounded">
                               Simulado (Aguardando)
                             </span>
                           )}
-
-
                         </div>
 
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="text-slate-500 hover:text-white"
+                          className="text-slate-500 hover:text-slate-900 hover:bg-slate-100"
                           onClick={() => setExpandedTicketId(null)}
                         >
                           Fechar Detalhes
