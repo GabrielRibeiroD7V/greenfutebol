@@ -92,7 +92,7 @@ function MeusBilhetesComponent() {
         <div className="max-w-7xl mx-auto px-4 flex items-center h-14 sm:h-16 gap-4">
           <button 
             onClick={() => navigate({ to: "/" })}
-            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-emerald-500"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-emerald-600"
           >
             <ArrowLeft size={24} />
           </button>
