@@ -130,12 +130,12 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function getStatusClass(status: string): string {
-  if (LIVE_STATUSES.includes(status)) return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
-  if (["NS", "TBD"].includes(status)) return "bg-blue-500/10 text-blue-300 border-blue-500/20";
-  if (["FT", "AET", "PEN"].includes(status)) return "bg-slate-500/10 text-slate-400 border-slate-500/20";
-  if (["PST", "SUSP", "INT", "ABD"].includes(status)) return "bg-amber-500/10 text-amber-300 border-amber-500/20";
-  if (status === "CANC") return "bg-red-500/10 text-red-300 border-red-500/20";
-  return "bg-white/5 text-slate-400 border-white/10";
+  if (LIVE_STATUSES.includes(status)) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+  if (["NS", "TBD"].includes(status)) return "bg-blue-50 text-blue-600 border-blue-100";
+  if (["FT", "AET", "PEN"].includes(status)) return "bg-slate-100 text-slate-600 border-slate-200";
+  if (["PST", "SUSP", "INT", "ABD"].includes(status)) return "bg-amber-50 text-amber-600 border-amber-100";
+  if (status === "CANC") return "bg-red-50 text-red-600 border-red-100";
+  return "bg-slate-50 text-slate-500 border-slate-200";
 }
 
 function Index() {
@@ -497,11 +497,11 @@ function Index() {
 
   return (
     <div
-      className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]"
+      className="min-h-screen bg-background flex flex-col font-sans text-foreground overflow-x-hidden w-full max-w-[100vw]"
       data-testid="main-container"
     >
       {/* Header Fixo e Denso */}
-      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
+      <header className="bg-white border-b border-border text-foreground shadow-sm sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <div
@@ -513,7 +513,7 @@ function Index() {
                 <img
                   src={logoAsset.url}
                   alt="GreenFutebol"
-                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]"
+                  className="h-10 sm:h-12 w-auto relative z-10 brightness-100 drop-shadow-sm"
                 />
               </div>
             </div>
@@ -528,8 +528,8 @@ function Index() {
               className={cn(
                 "pb-5 pt-5 transition-all border-b-2",
                 competitionCode === "ALL"
-                  ? "text-emerald-500 border-emerald-500"
-                  : "text-slate-400 border-transparent hover:text-white",
+                  ? "text-emerald-600 border-emerald-600"
+                  : "text-slate-500 border-transparent hover:text-emerald-600",
               )}
             >
               Futebol
@@ -542,15 +542,15 @@ function Index() {
               className={cn(
                 "pb-5 pt-5 transition-all border-b-2",
                 activeTab === "live"
-                  ? "text-emerald-500 border-emerald-500"
-                  : "text-slate-400 border-transparent hover:text-white",
+                  ? "text-emerald-600 border-emerald-600"
+                  : "text-slate-500 border-transparent hover:text-emerald-600",
               )}
             >
               Ao Vivo
             </button>
             <button
               onClick={() => navigate({ to: "/meus-bilhetes" })}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-slate-500 hover:text-emerald-600 transition-colors"
             >
               Minhas Apostas
             </button>
@@ -558,26 +558,26 @@ function Index() {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:relative md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
               <input
                 type="text"
                 placeholder="Buscar jogo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-white placeholder:text-white/20 transition-all outline-none"
+                className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">
+                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
                     Saldo
                   </span>
-                  <span className="text-sm font-black text-white">R$ 0,00</span>
+                  <span className="text-sm font-black text-slate-900">R$ 0,00</span>
                 </div>
                 <div
-                  className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 cursor-pointer"
                   onClick={() => navigate({ to: "/meus-bilhetes" })}
                 >
                   {(profile?.name || "U").charAt(0).toUpperCase()}
@@ -587,7 +587,7 @@ function Index() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate({ to: "/login" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-300 hover:text-white transition-all uppercase tracking-widest"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-600 hover:text-emerald-600 transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
@@ -608,7 +608,7 @@ function Index() {
         {/* Sidebar Esquerda: Ligas e Favoritos */}
         <aside
           className={cn(
-            "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
+            "bg-white border-r border-slate-100 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
             "w-[110px] sm:w-[130px] lg:w-64",
           )}
         >
@@ -639,8 +639,8 @@ function Index() {
                     className={cn(
                       "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       competitionCode === league.id
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white",
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
                     <league.icon
@@ -648,8 +648,8 @@ function Index() {
                       className={cn(
                         "lg:w-4 lg:h-4",
                         competitionCode === league.id
-                          ? "text-emerald-500"
-                          : "text-slate-500 group-hover:text-emerald-500",
+                          ? "text-emerald-600"
+                          : "text-slate-400 group-hover:text-emerald-600",
                       )}
                     />
                     <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
@@ -678,15 +678,15 @@ function Index() {
                     className={cn(
                       "w-full flex flex-col lg:flex-row items-center lg:items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 lg:py-2.5 rounded-lg lg:rounded-xl transition-all group",
                       activeTab === tab.id
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white",
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-emerald-600",
                     )}
                   >
                     <tab.icon
                       size={14}
                       className={cn(
                         "lg:w-4 lg:h-4",
-                        activeTab === tab.id ? "text-emerald-500" : "text-slate-500 group-hover:text-emerald-500"
+                        activeTab === tab.id ? "text-emerald-600" : "text-slate-400 group-hover:text-emerald-600"
                       )}
                     />
                     <span className="text-[9px] lg:text-sm font-bold lg:font-bold text-center lg:text-left leading-tight break-words max-w-full">
@@ -704,7 +704,7 @@ function Index() {
                         setCustomDate(event.target.value);
                         setActiveTab("custom");
                       }}
-                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-white/10 bg-white/5 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-300 outline-none focus:border-emerald-500/40"
+                      className="mt-1 lg:mt-2 w-full rounded-md lg:rounded-lg border border-slate-200 bg-slate-50 px-1 lg:px-3 py-1 lg:py-2 text-[9px] lg:text-xs text-slate-700 outline-none focus:border-emerald-500/40"
                     />
                   </label>
                 </div>
@@ -714,19 +714,19 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="flex-1 overflow-y-auto no-scrollbar bg-[#050505] p-2 sm:p-4">
+        <main className="flex-1 overflow-y-auto no-scrollbar bg-slate-50 p-2 sm:p-4">
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Banner e Filtros Mobile Removidos - Substituídos pela sidebar fixa */}
             
             {isLoading ? (
               <FixturesSkeleton />
             ) : error ? (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center space-y-3">
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center space-y-3 shadow-sm">
                 <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
-                <h3 className="text-white font-black uppercase tracking-widest text-sm">
+                <h3 className="text-slate-900 font-black uppercase tracking-widest text-sm">
                   Erro de Conexão
                 </h3>
-                <p className="text-slate-400 text-xs">{error}</p>
+                <p className="text-slate-600 text-xs">{error}</p>
                 <button
                   onClick={() => setRetryCount((value) => value + 1)}
                   className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all"
@@ -735,7 +735,7 @@ function Index() {
                 </button>
               </div>
             ) : groupedFixtures.length === 0 ? (
-              <div className="bg-white/5 border border-white/5 rounded-2xl p-20 text-center space-y-4 backdrop-blur-sm">
+              <div className="bg-white border border-slate-200 rounded-2xl p-20 text-center space-y-4 shadow-sm">
                 <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
                   {isPartial
                     ? "Algumas competições não puderam ser atualizadas. Tente novamente."
@@ -747,12 +747,12 @@ function Index() {
             ) : (
               <div className="space-y-6">
                 {isPartial && (
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[10px] font-bold uppercase tracking-wider text-amber-700 shadow-sm">
                     Algumas competições não puderam ser atualizadas. Os jogos disponíveis continuam sendo exibidos.
                   </div>
                 )}
                 {isShowingNextAvailable && displayedDate && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
+                  <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 text-emerald-700 shadow-sm">
                     <Info size={16} className="shrink-0" />
                     <p className="font-bold text-[10px] uppercase tracking-widest">
                       Não há mais jogos disponíveis nesta data. Exibindo os próximos jogos.
@@ -763,8 +763,8 @@ function Index() {
 
                 {groupedFixtures.map((dateGroup) => (
                   <div key={dateGroup.date} className="space-y-4">
-                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
-                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-600">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
                         {formatGroupHeader(dateGroup.date)}
                       </span>
                     </div>
@@ -775,12 +775,12 @@ function Index() {
                           key={`${dateGroup.date}-${league.country}-${league.name}`}
                           className="space-y-2"
                         >
-                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                          <div className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-sm">
                             {league.logo ? (
                               <img
                                 src={league.logo}
                                 alt={league.name}
-                                className="w-4 h-4 object-contain brightness-125"
+                                className="w-4 h-4 object-contain brightness-100"
                               />
                             ) : (
                               <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
@@ -788,7 +788,7 @@ function Index() {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-900">{league.name}</span>
                               <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
                             </div>
                           </div>
@@ -800,10 +800,10 @@ function Index() {
                                   to="/jogo/$fixtureId"
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
-                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                  <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm">
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[10px] font-black text-white whitespace-nowrap">
+                                        <span className="text-[10px] font-black text-slate-900 whitespace-nowrap">
                                           {formatFixtureDateTime(match.kickoff_at, isShowingNextAvailable)}
                                         </span>
                                         <span className={cn("mt-1 w-fit rounded-md border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-tighter", getStatusClass(match.status), (LIVE_STATUSES.includes(match.status)) && "animate-pulse")}>
@@ -821,11 +821,11 @@ function Index() {
                                                 className="w-4 h-4 object-contain"
                                               />
                                             )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                              <span className="text-xs font-bold text-slate-800 truncate">
                                               {match.home_team_name}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">
+                                            <span className="text-xs font-black text-slate-900">
                                             {match.home_score ?? 0}
                                           </span>
                                         </div>
@@ -837,11 +837,11 @@ function Index() {
                                                 className="w-4 h-4 object-contain"
                                               />
                                             )}
-                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                            <span className="text-xs font-bold text-slate-800 truncate">
                                               {match.away_team_name}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black text-white">
+                                          <span className="text-xs font-black text-slate-900">
                                             {match.away_score ?? 0}
                                           </span>
                                         </div>
@@ -867,7 +867,7 @@ function Index() {
         </main>
 
         {/* Bilhete Lateral Desktop */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l border-white/5 p-4 overflow-y-auto no-scrollbar bg-[#080808]">
+        <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-100 p-4 overflow-y-auto no-scrollbar bg-white">
           <BetSlip />
         </aside>
       </div>
@@ -889,10 +889,10 @@ function Index() {
 
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm">
+          <div className="absolute bottom-0 w-full max-h-[90vh] bg-white rounded-t-3xl border-t border-slate-200 flex flex-col shadow-2xl">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900 uppercase tracking-widest">
                 Seu Bilhete
               </span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400">
@@ -906,7 +906,7 @@ function Index() {
         </div>
       )}
 
-      <footer className="py-6 border-t border-white/5 text-center bg-black">
+      <footer className="py-6 border-t border-slate-100 text-center bg-white">
         <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">
           &copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE
         </span>

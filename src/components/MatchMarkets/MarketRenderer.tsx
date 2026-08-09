@@ -48,15 +48,15 @@ export function MarketRenderer({
   if (market.market_group === 'PLAYER') {
     return (
       <MarketGroup title={market.market_name} status={market.status}>
-        <div className="grid grid-cols-1 divide-y divide-white/5 max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 divide-y divide-slate-100 max-h-[400px] overflow-y-auto custom-scrollbar">
           {selections.map(s => (
-            <div key={s.id} className="flex items-center justify-between p-3 group hover:bg-white/5 transition-colors">
+            <div key={s.id} className="flex items-center justify-between p-3 group hover:bg-slate-50 transition-colors">
               <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase text-zinc-400 group-hover:text-emerald-500 transition-colors">
+                <span className="text-[10px] font-black uppercase text-slate-500 group-hover:text-emerald-600 transition-colors">
                   {s.selection_name}
                 </span>
                 {s.metadata?.team_side && (
-                  <span className="text-[8px] text-zinc-600 font-bold uppercase">
+                  <span className="text-[8px] text-slate-400 font-bold uppercase">
                     {s.metadata.team_side === 'HOME' ? fixture.home_team_name : fixture.away_team_name}
                   </span>
                 )}
@@ -75,7 +75,7 @@ export function MarketRenderer({
   if (market.market_type === 'OU' || (market.line !== null && market.line !== undefined)) {
     return (
       <MarketGroup title={`${market.market_name} ${market.line || ''}`} status={market.status}>
-        <div className="grid grid-cols-2 divide-x divide-white/5">
+        <div className="grid grid-cols-2 divide-x divide-slate-100">
           {selections.map(s => (
             <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
           ))}
@@ -88,7 +88,7 @@ export function MarketRenderer({
   if (market.market_type === 'CS') {
     return (
       <MarketGroup title={market.market_name} status={market.status}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 divide-x divide-y divide-white/5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 divide-x divide-y divide-slate-100">
           {selections.map(s => (
             <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
           ))}
@@ -103,7 +103,7 @@ export function MarketRenderer({
 
   return (
     <MarketGroup title={market.market_name} status={market.status}>
-      <div className={cn("grid divide-x divide-y divide-white/5", gridCols)}>
+      <div className={cn("grid divide-x divide-y divide-slate-100", gridCols)}>
         {selections.map(s => (
           <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
         ))}

@@ -84,35 +84,35 @@ function MatchDetails() {
 
   const isAdmin = user?.email?.includes('admin') || false;
 
-  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>;
-  if (!fixture) return <div className="min-h-screen bg-black text-white p-8">Partida não encontrada</div>;
+  if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-emerald-600" /></div>;
+  if (!fixture) return <div className="min-h-screen bg-white text-slate-900 p-8">Partida não encontrada</div>;
 
   const isStarted = markets.length > 0 && markets[0].kickoff_at 
     ? new Date(markets[0].kickoff_at) <= new Date() 
     : (fixture ? new Date(fixture.kickoff_at) <= new Date() : false);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row">
       <div className="flex-1 min-w-0">
-        <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/5 p-4 flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 p-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate({ to: "/" })} className="p-2 hover:bg-white/5 rounded-full"><ArrowLeft size={20} /></button>
+            <button onClick={() => navigate({ to: "/" })} className="p-2 hover:bg-slate-100 rounded-full text-slate-600"><ArrowLeft size={20} /></button>
             <div>
-              <h1 className="text-sm font-black uppercase text-emerald-500">{fixture.league_name}</h1>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{fixture.country} • {fixture.round}</p>
+              <h1 className="text-sm font-black uppercase text-emerald-600">{fixture.league_name}</h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{fixture.country} • {fixture.round}</p>
             </div>
           </div>
           {isAdmin && (
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => navigate({ to: `/admin/resultados` })}
-                className="text-[10px] font-black uppercase text-emerald-500 hover:text-emerald-400 underline"
+                className="text-[10px] font-black uppercase text-emerald-600 hover:text-emerald-700 underline"
               >
                 Liquidar
               </button>
               <button 
                 onClick={() => navigate({ to: `/admin/mercados/${fixture.fixture_id}` })}
-                className="text-[10px] font-black uppercase text-zinc-500 hover:text-emerald-500 underline"
+                className="text-[10px] font-black uppercase text-slate-500 hover:text-emerald-600 underline"
               >
                 Gerenciar mercados
               </button>
@@ -122,22 +122,22 @@ function MatchDetails() {
 
         <main className="p-4 space-y-6 max-w-4xl mx-auto w-full">
           {/* Match Header Card */}
-          <section className="bg-zinc-900 border border-white/5 rounded-3xl p-8 text-center space-y-6">
+          <section className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 space-y-3">
                 <img src={fixture.home_team_logo} className="w-16 h-16 mx-auto" alt="" />
-                <p className="font-black uppercase tracking-tighter">{fixture.home_team_name}</p>
+                <p className="font-black uppercase tracking-tighter text-slate-900">{fixture.home_team_name}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-4xl font-black text-emerald-500">{fixture.home_score ?? 0} - {fixture.away_score ?? 0}</p>
-                <p className="text-[10px] font-black text-zinc-500 uppercase">{fixture.status_long}</p>
+                <p className="text-4xl font-black text-emerald-600">{fixture.home_score ?? 0} - {fixture.away_score ?? 0}</p>
+                <p className="text-[10px] font-black text-slate-500 uppercase">{fixture.status_long}</p>
               </div>
               <div className="flex-1 space-y-3">
                 <img src={fixture.away_team_logo} className="w-16 h-16 mx-auto" alt="" />
-                <p className="font-black uppercase tracking-tighter">{fixture.away_team_name}</p>
+                <p className="font-black uppercase tracking-tighter text-slate-900">{fixture.away_team_name}</p>
               </div>
             </div>
-            <div className="flex justify-center gap-6 text-[10px] font-bold text-zinc-500 uppercase tracking-widest border-t border-white/5 pt-4">
+            <div className="flex justify-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-4">
               <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(fixture.kickoff_at)}</span>
               <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(fixture.kickoff_at)}</span>
               <span className="flex items-center gap-1"><MapPin size={12} /> {fixture.venue}</span>
@@ -147,13 +147,13 @@ function MatchDetails() {
           {/* Markets List */}
           <div className="space-y-4 pb-24">
             {markets.length === 0 ? (
-              <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto text-zinc-600">
+              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
                   <Info size={32} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase text-white">Mercados ainda não disponíveis</h3>
-                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                  <h3 className="text-sm font-black uppercase text-slate-900">Mercados ainda não disponíveis</h3>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
                     Esta partida está sendo processada ou as odds foram suspensas temporariamente.
                   </p>
                 </div>
@@ -179,15 +179,15 @@ function MatchDetails() {
         </main>
       </div>
 
-      <aside className="hidden lg:block w-96 bg-zinc-950 border-l border-white/5">
+      <aside className="hidden lg:block w-96 bg-white border-l border-slate-200">
         <div className="sticky top-0 h-screen overflow-y-auto">
           <BetSlip />
         </div>
       </aside>
 
       {/* Mobile Bet Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-emerald-500/20 p-4 pb-safe z-50">
-         <Button onClick={() => navigate({ to: "/bilhete" })} className="w-full bg-emerald-600 h-14 rounded-xl flex justify-between px-6">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-safe z-50 shadow-2xl">
+         <Button onClick={() => navigate({ to: "/bilhete" })} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-14 rounded-xl flex justify-between px-6 shadow-lg shadow-emerald-500/20">
            <span className="font-black uppercase tracking-tight">Bilhete • {selections.length} {selections.length === 1 ? 'seleção' : 'seleções'}</span>
            <span className="font-black">Total: {selections.reduce((acc, s) => acc * s.displayedOdd, 1).toFixed(2)}</span>
          </Button>

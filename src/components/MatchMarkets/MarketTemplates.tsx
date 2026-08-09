@@ -86,8 +86,8 @@ export function SelectionButton({
       className={cn(
         "relative flex flex-col items-center justify-center p-3 transition-all duration-200 min-h-[64px]",
         selected 
-          ? "bg-emerald-600 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] z-10" 
-          : "bg-zinc-900/50 border border-white/5 hover:bg-white/5 hover:border-white/10",
+          ? "bg-emerald-600 border-emerald-500 shadow-md z-10" 
+          : "bg-white border border-slate-100 hover:bg-slate-50 hover:border-slate-200",
         isDisabled && "opacity-40 cursor-not-allowed grayscale",
         isSuspended && "border-amber-500/20",
         className
@@ -96,7 +96,7 @@ export function SelectionButton({
       {showLabel && (
         <span className={cn(
           "text-[10px] font-bold uppercase tracking-tight mb-1",
-          selected ? "text-emerald-500 bg-black/40 px-1.5 py-0.5 rounded" : "text-zinc-500"
+          selected ? "text-emerald-100 bg-black/20 px-1.5 py-0.5 rounded" : "text-slate-500"
         )}>
           {selection.selection_name}
         </span>
@@ -107,7 +107,7 @@ export function SelectionButton({
         ) : (
           <span className={cn(
             "text-lg font-black tracking-tighter",
-            selected ? "text-white" : "text-emerald-500"
+            selected ? "text-white" : "text-emerald-600"
           )}>
             {selection.odd.toFixed(2)}
           </span>
@@ -122,19 +122,19 @@ export function SelectionButton({
 
 export function MarketGroup({ title, children, status }: { title: string, children: React.ReactNode, status?: string }) {
   return (
-    <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-2">
-      <div className="px-4 py-3 bg-zinc-800/40 border-b border-white/5 flex justify-between items-center">
-        <h3 className="text-[11px] font-black uppercase tracking-widest text-zinc-300 flex items-center gap-2">
-          <div className="w-1 h-3 bg-emerald-500 rounded-full" />
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-2">
+      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+          <div className="w-1 h-3 bg-emerald-600 rounded-full" />
           {title}
         </h3>
         <div className="flex items-center gap-2">
           {status === 'SUSPENDED' && (
-            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100">
               Suspenso
             </span>
           )}
-          <Info size={14} className="text-zinc-600 hover:text-zinc-400 cursor-help transition-colors" />
+          <Info size={14} className="text-slate-400 hover:text-emerald-600 cursor-help transition-colors" />
         </div>
       </div>
       {children}
