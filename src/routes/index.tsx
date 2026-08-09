@@ -41,7 +41,16 @@ import {
   withTimeout,
 } from "@/lib/fixtures-utils";
 
+import { z } from "zod";
+
+const homeSearchSchema = z.object({
+  tab: z.enum(["today", "tomorrow", "live", "custom"]).optional().catch("today"),
+  comp: z.enum(["BSA", "PL", "CL", "BL1", "PD", "SA", "FL1", "DED", "ELC", "PPL", "ALL"]).optional().catch("ALL"),
+  date: z.string().optional().catch(""),
+});
+
 export const Route = createFileRoute("/")({
+  validateSearch: homeSearchSchema,
   head: () => ({
     meta: [
       { title: "GreenFutebol - Plataforma Premium de Futebol" },
@@ -130,25 +139,38 @@ function getStatusClass(status: string): string {
 function Index() {
   const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { selections } = useBetSlip();
-  const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "live" | "custom">("today");
+
+  const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "live" | "custom">(search.tab || "today");
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
   const [displayedDate, setDisplayedDate] = useState<string | null>(null);
   const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
   const [competitionCode, setCompetitionCode] = useState<
     "BSA" | "PL" | "CL" | "BL1" | "PD" | "SA" | "FL1" | "DED" | "ELC" | "PPL" | "ALL"
-  >("ALL");
+  >(search.comp || "ALL");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const [customDate, setCustomDate] = useState("");
+  const [customDate, setCustomDate] = useState(search.date || "");
   const [reachedLimit, setReachedLimit] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Sync state to URL
+  useEffect(() => {
+    navigate({
+      search: {
+        tab: activeTab,
+        comp: competitionCode,
+        date: customDate || undefined,
+      },
+    } as any);
+  }, [activeTab, competitionCode, customDate, navigate]);
 
   const requestIdRef = useRef(0);
   const fixturesCacheRef = useRef(
