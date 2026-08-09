@@ -234,8 +234,8 @@ function AdminTicketsPage() {
                 </div>
 
                 <div className="col-span-4 lg:col-span-2 text-right space-y-0.5">
-                  <span className="text-xs font-black text-slate-900 block">{formatCurrency(t.stake)}</span>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase italic block">Odd {t.total_odd.toFixed(2)}</span>
+                  <span className="text-[11px] font-bold text-slate-900 block">{formatCurrency(t.stake)}</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-tighter">Cotação {t.total_odd.toFixed(2)}</span>
                 </div>
 
                 <div className="col-span-4 lg:col-span-2 text-right">
