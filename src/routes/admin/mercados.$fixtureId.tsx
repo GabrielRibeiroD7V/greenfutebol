@@ -31,19 +31,17 @@ export const Route = createFileRoute("/admin/mercados/$fixtureId")({
 });
 
 const MARKET_TEMPLATES = [
-  { id: "1X2", name: "Resultado Final", group: "RESULT", selections: ["Casa", "Empate", "Visitante"], keys: ["H", "D", "A"] },
-  { id: "DC", name: "Dupla Chance", group: "RESULT", selections: ["Casa ou Empate", "Casa ou Visitante", "Empate ou Visitante"], keys: ["1X", "12", "X2"] },
-  { id: "DNB", name: "Empate Anula", group: "RESULT", selections: ["Casa", "Visitante"], keys: ["H", "A"] },
-  { id: "OU", name: "Total de Gols", group: "GOALS", selections: ["Mais de 2.5", "Menos de 2.5"], keys: ["OVER", "UNDER"], line: 2.5 },
-  { id: "BTTS", name: "Ambas Marcam", group: "GOALS", selections: ["Sim", "Não"], keys: ["YES", "NO"] },
-  { id: "CS", name: "Placar Exato", group: "SCORE", selections: ["1 x 0", "0 x 0", "0 x 1"], keys: ["1:0", "0:0", "0:1"] },
-  { id: "CORNERS", name: "Escanteios", group: "CORNERS", selections: ["Mais de 9.5", "Menos de 9.5"], keys: ["OVER", "UNDER"], line: 9.5 },
-  { id: "CARDS", name: "Cartões", group: "CARDS", selections: ["Mais de 4.5", "Menos de 4.5"], keys: ["OVER", "UNDER"], line: 4.5 },
-  { id: "CUSTOM", name: "Mercado Personalizado", group: "CUSTOM", selections: ["Opção 1"], keys: ["OP1"] },
-  { id: "PLAYER_GOAL", name: "Jogador Marca Gol", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
-  { id: "PLAYER_CARDS", name: "Jogador Recebe Cartão", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
-  { id: "PLAYER_ASSIST", name: "Jogador Dá Assistência", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
-  { id: "PLAYER_SHOTS", name: "Finalizações do Jogador", group: "PLAYER", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_SHOTS', hasLine: true },
+  { id: "1X2", name: "Resultado Final", group: "PRINCIPAIS", selections: ["Casa", "Empate", "Visitante"], keys: ["H", "D", "A"] },
+  { id: "DC", name: "Dupla Chance", group: "PRINCIPAIS", selections: ["1X", "12", "X2"], keys: ["1X", "12", "X2"] },
+  { id: "DNB", name: "Empate Anula", group: "PRINCIPAIS", selections: ["Casa", "Visitante"], keys: ["H", "A"] },
+  { id: "BTTS", name: "Ambas Marcam", group: "PRINCIPAIS", selections: ["Sim", "Não"], keys: ["YES", "NO"] },
+  { id: "OU", name: "Total de Gols", group: "GOLS", selections: ["Mais de 0.5", "Menos de 0.5", "Mais de 1.5", "Menos de 1.5", "Mais de 2.5", "Menos de 2.5"], keys: ["OVER_0.5", "UNDER_0.5", "OVER_1.5", "UNDER_1.5", "OVER_2.5", "UNDER_2.5"] },
+  { id: "CS", name: "Placar Exato", group: "PLACAR", selections: ["1 x 0", "0 x 0", "0 x 1", "1 x 1", "2 x 0", "0 x 2", "2 x 1", "1 x 2", "2 x 2"], keys: ["1:0", "0:0", "0:1", "1:1", "2:0", "0:2", "2:1", "1:2", "2:2"] },
+  { id: "CORNERS", name: "Escanteios", group: "ESCANTEIOS", selections: ["Mais de 8.5", "Menos de 8.5", "Mais de 9.5", "Menos de 9.5"], keys: ["OVER_8.5", "UNDER_8.5", "OVER_9.5", "UNDER_9.5"] },
+  { id: "CARDS", name: "Cartões", group: "CARTÕES", selections: ["Mais de 3.5", "Menos de 3.5", "Mais de 4.5", "Menos de 4.5"], keys: ["OVER_3.5", "UNDER_3.5", "OVER_4.5", "UNDER_4.5"] },
+  { id: "PLAYER_GOAL", name: "Marcar Gol", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'ANYTIME_GOALSCORER' },
+  { id: "PLAYER_CARDS", name: "Receber Cartão", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_CARD' },
+  { id: "PLAYER_ASSIST", name: "Dar Assistência", group: "JOGADORES", selections: [], keys: [], isPlayerMarket: true, playerMarketType: 'PLAYER_ASSIST' },
 ];
 
 function AdminMarketManagerPage() {
