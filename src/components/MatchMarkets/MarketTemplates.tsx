@@ -44,12 +44,12 @@ export function SelectionButton({
 }) {
   const { toggleSelection, hasSelection } = useBetSlip();
   
-  const isMarketOpen = true; // market.status === 'OPEN';
-  const isSelectionActive = true; // selection.status === 'OPEN';
+  const isMarketOpen = market.status === 'OPEN';
+  const isSelectionActive = selection.status === 'OPEN';
   const isValidOdd = selection.odd > 1.0;
-  const isPastKickoff = false; 
+  const isPastKickoff = new Date(fixture.kickoff_at) <= new Date();
   
-  const isDisabled = false;
+  const isDisabled = !isMarketOpen || !isSelectionActive || !isValidOdd || isPastKickoff;
   const isSuspended = market.status === 'SUSPENDED';
   const selected = hasSelection(selection.id);
 
@@ -78,7 +78,7 @@ export function SelectionButton({
 
   return (
     <button
-      disabled={false}
+      disabled={isDisabled}
       onClick={handleClick}
       className={cn(
         "relative flex flex-col items-center justify-center p-3 transition-all duration-200 min-h-[64px]",
