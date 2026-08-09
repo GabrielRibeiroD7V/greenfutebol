@@ -8,6 +8,7 @@ import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { MarketRenderer } from "@/components/MatchMarkets/MarketRenderer";
 
 export const Route = createFileRoute("/jogo/$fixtureId")({
   component: MatchDetails,
