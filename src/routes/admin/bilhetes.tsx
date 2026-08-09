@@ -140,7 +140,7 @@ function AdminTicketsPage() {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full bg-slate-50 border-slate-200 font-bold text-xs">
+                <SelectTrigger className="w-full bg-white border-[#E5E7EB] font-bold text-[11px] h-10 rounded-[6px] uppercase tracking-wider">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
