@@ -48,9 +48,9 @@ export function MarketRenderer({
   if (market.market_group === 'PLAYER') {
     return (
       <MarketGroup title={market.market_name} status={market.status}>
-        <div className="grid grid-cols-1 divide-y divide-slate-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 divide-y divide-slate-100 max-h-[400px] overflow-y-auto no-scrollbar">
           {selections.map(s => (
-            <div key={s.id} className="flex items-center justify-between p-3 group hover:bg-slate-50 transition-colors">
+            <div key={s.id} className="flex items-center justify-between py-2 group hover:bg-slate-50 transition-colors">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black uppercase text-slate-500 group-hover:text-emerald-600 transition-colors">
                   {s.selection_name}
@@ -62,7 +62,7 @@ export function MarketRenderer({
                 )}
               </div>
               <div className="w-24 h-10">
-                <SelectionButton selection={s} market={market} fixture={fixture} showLabel={false} className="h-full rounded-xl" />
+                <SelectionButton selection={s} market={market} fixture={fixture} showLabel={false} className="h-full rounded-[6px]" />
               </div>
             </div>
           ))}
@@ -75,7 +75,7 @@ export function MarketRenderer({
   if (market.market_type === 'OU' || (market.line !== null && market.line !== undefined)) {
     return (
       <MarketGroup title={`${market.market_name} ${market.line || ''}`} status={market.status}>
-        <div className="grid grid-cols-2 divide-x divide-slate-100">
+        <div className="grid grid-cols-2 gap-2">
           {selections.map(s => (
             <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
           ))}
@@ -88,7 +88,7 @@ export function MarketRenderer({
   if (market.market_type === 'CS') {
     return (
       <MarketGroup title={market.market_name} status={market.status}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 divide-x divide-y divide-slate-100">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
           {selections.map(s => (
             <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
           ))}
@@ -100,10 +100,9 @@ export function MarketRenderer({
   // 3. Renderer Genérico (1X2, DC, DNB, BTTS, etc)
   // Define grid cols based on selection count
   const gridCols = selections.length <= 2 ? 'grid-cols-2' : selections.length <= 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3';
-
   return (
     <MarketGroup title={market.market_name} status={market.status}>
-      <div className={cn("grid divide-x divide-y divide-slate-100", gridCols)}>
+      <div className={cn("grid gap-2", gridCols)}>
         {selections.map(s => (
           <SelectionButton key={s.id} selection={s} market={market} fixture={fixture} />
         ))}
