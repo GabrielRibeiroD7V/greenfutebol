@@ -1,12 +1,10 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, ShieldAlert, X } from "lucide-react";
+import { ArrowLeft, Trophy, MapPin, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp, Ticket, Info, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
-import { generateMockOdds } from "@/lib/admin.functions";
-import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/jogo/$fixtureId")({
@@ -49,25 +47,18 @@ interface FixtureDetails {
 interface FixtureMarket {
   id: string;
   status: string;
-  market_type: {
-    code: string;
-    name: string;
-    category: string;
-  };
-  options: FixtureMarketOption[];
+  marketType: string;
+  name: string;
+  category: string;
+  selections: FixtureMarketSelection[];
 }
 
-interface FixtureMarketOption {
+interface FixtureMarketSelection {
   id: string;
   odd: number;
-  active: boolean;
-  market_option: {
-    code: string;
-    label: string;
-    parameter: number | null;
-    side: string | null;
-    display_order: number;
-  };
+  key: string;
+  label: string;
+  sortOrder: number;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -111,62 +102,71 @@ function MatchDetails() {
   const [markets, setMarkets] = useState<FixtureMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
+  const [marketsError, setMarketsError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     RESULT: true,
     GOALS: true
   });
-  const [isGeneratingOdds, setIsGeneratingOdds] = useState(false);
   const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
 
   const TIMEZONE = "America/Campo_Grande";
 
   const fetchMarkets = async () => {
     setIsLoadingMarkets(true);
+    setMarketsError(null);
     try {
-      const { data: dbMarkets, error: marketsError } = await supabase
+      const marketsClient = supabase as any;
+      const { data: dbMarkets, error: marketQueryError } = await marketsClient
         .from('fixture_markets')
-        .select(`
-          id,
-          status,
-          market_type:market_types (
-            code,
-            name,
-            category
-          ),
-          fixture_market_options (
-            id,
-            odd,
-            active,
-            market_option:market_options (
-              code,
-              label,
-              parameter,
-              side,
-              display_order
-            )
-          )
-        `)
+        .select('id,status,market_type,market_name,market_group,line,period')
         .eq('fixture_id', parseInt(fixtureId))
-        .eq('status', 'OPEN');
+        .order('created_at', { ascending: true });
 
-      if (marketsError) throw marketsError;
+      if (marketQueryError) throw marketQueryError;
 
-      const formattedMarkets: FixtureMarket[] = (dbMarkets || []).map((m: any) => ({
-        id: m.id,
-        status: m.status,
-        market_type: m.market_type,
-        options: m.fixture_market_options.map((opt: any) => ({
-          id: opt.id,
-          odd: Number(opt.odd),
-          active: opt.active,
-          market_option: opt.market_option
-        })).sort((a: any, b: any) => a.market_option.display_order - b.market_option.display_order)
-      }));
+      const marketIds = (dbMarkets || []).map((market: any) => market.id);
+      let dbSelections: any[] = [];
+      if (marketIds.length > 0) {
+        const { data, error: selectionQueryError } = await marketsClient
+          .from('fixture_market_selections')
+          .select('id,market_id,selection_key,selection_name,odd,status,sort_order')
+          .in('market_id', marketIds)
+          .order('sort_order', { ascending: true });
+        if (selectionQueryError) throw selectionQueryError;
+        dbSelections = data || [];
+      }
+
+      const formattedMarkets: FixtureMarket[] = (dbMarkets || [])
+        .filter((market: any) => market.status === 'OPEN')
+        .map((market: any) => ({
+          id: market.id,
+          status: market.status,
+          marketType: market.market_type,
+          name: market.market_name,
+          category: market.market_group,
+          selections: dbSelections
+            .filter((selection: any) =>
+              selection.market_id === market.id &&
+              selection.status === 'OPEN' &&
+              selection.odd !== null &&
+              Number(selection.odd) > 1
+            )
+            .map((selection: any) => ({
+              id: selection.id,
+              odd: Number(selection.odd),
+              key: selection.selection_key,
+              label: selection.selection_name,
+              sortOrder: selection.sort_order,
+            })),
+        }))
+        .filter((market: FixtureMarket) => market.selections.length > 0);
 
       setMarkets(formattedMarkets);
     } catch (err) {
       console.error("Erro ao buscar mercados:", err);
+      setMarketsError("Não foi possível carregar os mercados desta partida.");
+      setMarkets([]);
     } finally {
       setIsLoadingMarkets(false);
     }
@@ -215,7 +215,7 @@ function MatchDetails() {
   const groupedMarkets = useMemo(() => {
     const groups: Record<string, FixtureMarket[]> = {};
     markets.forEach(m => {
-      const cat = m.market_type.category;
+      const cat = m.category;
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(m);
     });
@@ -251,22 +251,6 @@ function MatchDetails() {
 
   const toggleCategory = (cat: string) => {
     setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const handleGenerateMockOdds = async () => {
-    if (isGeneratingOdds) return;
-    setIsGeneratingOdds(true);
-    try {
-      const result = await generateMockOdds({ data: { fixture_id: parseInt(fixtureId) } });
-      if (result.success) {
-        toast.success("Odds de teste geradas com sucesso!");
-        fetchMarkets();
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar odds.");
-    } finally {
-      setIsGeneratingOdds(false);
-    }
   };
 
   if (isLoading) {
@@ -314,15 +298,6 @@ function MatchDetails() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button 
-              onClick={handleGenerateMockOdds}
-              disabled={isGeneratingOdds}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-600/20 transition-all disabled:opacity-50"
-            >
-              {isGeneratingOdds ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
-              Odds Teste
-            </button>
-            
             {isAuthenticated && (
               <button 
                 onClick={() => navigate({ to: "/meus-bilhetes" })}
@@ -420,6 +395,11 @@ function MatchDetails() {
                 <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
                 <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest">Carregando Mercados...</p>
               </div>
+            ) : marketsError ? (
+              <div className="bg-red-500/5 rounded-2xl p-12 flex flex-col items-center justify-center text-center space-y-3 border border-red-500/20">
+                <AlertCircle className="text-red-400" />
+                <span className="text-xs font-bold text-red-300">{marketsError}</span>
+              </div>
             ) : markets.length === 0 ? (
               <div className="bg-white/5 rounded-2xl p-12 flex flex-col items-center justify-center text-center space-y-6 border border-white/5 backdrop-blur-sm">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sem mercados para esta partida</span>
@@ -435,20 +415,20 @@ function MatchDetails() {
                       {catMarkets.map(market => (
                         <div key={market.id} className="bg-[#0c0c0c] border border-white/5 rounded-xl overflow-hidden">
                           <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{market.market_type.name}</span>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{market.name}</span>
                           </div>
                           <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {market.options.map(opt => {
-                              const isSelected = selections.some(s => s.fixture_market_option_id === opt.id);
+                            {market.selections.map(opt => {
+                              const isSelected = selections.some(s => s.selection_id === opt.id);
                               return (
                                 <button 
                                   key={opt.id}
                                   onClick={() => addSelection({
-                                    fixture_market_option_id: opt.id,
-                                    fixture_market_id: market.id,
+                                    selection_id: opt.id,
+                                    market_id: market.id,
                                     odd: opt.odd,
-                                    label: opt.market_option.label,
-                                    market_name: market.market_type.name,
+                                    label: opt.label,
+                                    market_name: market.name,
                                     home_team: fixture.home_team_name,
                                     away_team: fixture.away_team_name,
                                     fixture_id: fixture.fixture_id
@@ -460,7 +440,7 @@ function MatchDetails() {
                                       : "bg-white/5 border-white/5 text-slate-400 hover:border-emerald-500/30"
                                   )}
                                 >
-                                  <span className="text-[9px] font-bold uppercase truncate w-full text-center">{opt.market_option.label}</span>
+                                  <span className="text-[9px] font-bold uppercase truncate w-full text-center">{opt.label}</span>
                                   <span className="text-base font-black">{opt.odd.toFixed(2)}</span>
                                 </button>
                               );

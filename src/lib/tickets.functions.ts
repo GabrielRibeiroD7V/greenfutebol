@@ -59,8 +59,8 @@ export const getTicketDetail = createServerFn({ method: "GET" })
   });
 
 const selectionSchema = z.object({
-  fixture_market_option_id: z.string().uuid(),
-  expected_odd: z.number(),
+  selection_id: z.string().uuid(),
+  expected_odd: z.number().gt(1),
 });
 
 const createTicketInput = z.object({
@@ -70,13 +70,13 @@ const createTicketInput = z.object({
 });
 
 interface RPCResult {
-  success: boolean;
+  success?: boolean;
   ticket_id?: string;
   ticket_code?: string;
   error_code?: string;
   is_duplicate?: boolean;
   changed_selections?: Array<{
-    option_id: string;
+    selection_id: string;
     old_odd: number;
     current_odd: number;
     label: string;
@@ -92,8 +92,8 @@ export const createTicket = createServerFn({ method: "POST" })
     const { data: rpcResponse, error: rpcError } = await supabase.rpc('create_ticket_atomic', {
       p_stake: stake,
       p_idempotency_key: idempotency_key,
-      p_selections: selections.map((s: { fixture_market_option_id: string; expected_odd: number }) => ({
-        option_id: s.fixture_market_option_id,
+      p_selections: selections.map((s: { selection_id: string; expected_odd: number }) => ({
+        selection_id: s.selection_id,
         expected_odd: s.expected_odd
       }))
     });
@@ -116,7 +116,7 @@ export const createTicket = createServerFn({ method: "POST" })
 
     const result = rpcResponse as unknown as RPCResult;
 
-    if (!result || !result.success) {
+    if (!result || !result.ticket_id || !result.ticket_code) {
       if (result?.error_code === 'ODDS_CHANGED') {
         return {
           success: false,

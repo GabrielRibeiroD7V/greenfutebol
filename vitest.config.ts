@@ -10,5 +10,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['src/test/e2e/**'],
   },
 });

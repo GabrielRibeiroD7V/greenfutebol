@@ -58,7 +58,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           stake,
           idempotency_key: idempotencyKey,
           selections: selections.map(s => ({
-            fixture_market_option_id: s.fixture_market_option_id,
+            selection_id: s.selection_id,
             expected_odd: s.odd
           }))
         }
@@ -175,9 +175,9 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
             )}
             
             {selections.map((s) => (
-              <div key={s.fixture_market_option_id} className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2 relative group animate-in slide-in-from-right-4 duration-300">
+              <div key={s.selection_id} className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2 relative group animate-in slide-in-from-right-4 duration-300">
                 <button 
-                  onClick={() => removeSelection(s.fixture_market_option_id)}
+                  onClick={() => removeSelection(s.selection_id)}
                   className="absolute top-2 right-2 p-1 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <X size={14} />

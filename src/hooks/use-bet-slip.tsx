@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toggleSelection } from "@/lib/bet-slip-policy";
 
 export interface Selection {
-  fixture_market_option_id: string;
-  fixture_market_id: string; // New structural key
+  selection_id: string;
+  market_id: string;
   odd: number;
   label: string;
   market_name: string;
@@ -26,26 +27,22 @@ export function useBetSlip() {
     
     setIsValidating(true);
     try {
-      const optionIds = currentSelections.map(s => s.fixture_market_option_id);
+      const selectionIds = currentSelections.map(s => s.selection_id);
       
-      const { data, error } = await supabase
-        .from('fixture_market_options')
-        .select(`
-          id,
-          odd,
-          active,
-          fixture_market:fixture_markets (
-            id,
-            status,
-            fixture_id
-          ),
-          market_option:market_options (
-            label
-          )
-        `)
-        .in('id', optionIds);
+      const { data, error } = await (supabase as any)
+        .from('fixture_market_selections')
+        .select('id, market_id, odd, status')
+        .in('id', selectionIds);
 
       if (error || !data) throw error;
+
+      const marketIds = [...new Set(data.map((selection: any) => selection.market_id))];
+      const { data: markets, error: marketsError } = await (supabase as any)
+        .from('fixture_markets')
+        .select('id, status, fixture_id, kickoff_at_snapshot')
+        .in('id', marketIds);
+
+      if (marketsError || !markets) throw marketsError;
 
       // 4. Revalidate cache for kickoff
       const { data: fixturesCache } = await supabase
@@ -60,22 +57,24 @@ export function useBetSlip() {
       const updatedLabels: string[] = [];
 
       for (const s of currentSelections) {
-        const dbOpt = data.find(d => d.id === s.fixture_market_option_id);
+        const dbOpt = data.find((d: any) => d.id === s.selection_id);
+        const market = markets.find((m: any) => m.id === dbOpt?.market_id);
         const fixture = allFixtures.find(f => f.fixture_id === s.fixture_id);
         
-        const isStarted = fixture && new Date(fixture.kickoff_at) <= now;
-        const isSuspended = !dbOpt || !dbOpt.active || (dbOpt.fixture_market as any).status !== 'OPEN';
+        const kickoffAt = market?.kickoff_at_snapshot || fixture?.kickoff_at;
+        const isStarted = !kickoffAt || new Date(kickoffAt) <= now;
+        const isSuspended = !dbOpt || dbOpt.status !== 'OPEN' || market?.status !== 'OPEN' || Number(dbOpt.odd) <= 1;
 
         if (!dbOpt || isSuspended || isStarted) {
           removedLabels.push(`${s.home_team} x ${s.away_team} (${s.label})`);
           continue;
         }
 
-        if (Math.abs(dbOpt.odd - s.odd) > 0.0001) {
+        if (Math.abs(Number(dbOpt.odd) - s.odd) > 0.0001) {
           updatedLabels.push(s.label);
           validSelections.push({
             ...s,
-            odd: dbOpt.odd
+            odd: Number(dbOpt.odd)
           });
         } else {
           validSelections.push(s);
@@ -126,21 +125,11 @@ export function useBetSlip() {
   }, [selections, stake, returnToConfirm]);
 
   const addSelection = useCallback((newSelection: Selection) => {
-    setSelections(prev => {
-      // Incompatibility Rule: Only one selection per fixture_id + fixture_market_id
-      const filtered = prev.filter(s => !(s.fixture_id === newSelection.fixture_id && s.fixture_market_id === newSelection.fixture_market_id));
-      const isAlreadySelected = prev.find(s => s.fixture_market_option_id === newSelection.fixture_market_option_id);
-      
-      if (isAlreadySelected) {
-        return prev.filter(s => s.fixture_market_option_id !== newSelection.fixture_market_option_id);
-      }
-
-      return [...filtered, newSelection];
-    });
+    setSelections(prev => toggleSelection(prev, newSelection));
   }, []);
 
   const removeSelection = useCallback((id: string) => {
-    setSelections(prev => prev.filter(s => s.fixture_market_option_id !== id));
+    setSelections(prev => prev.filter(s => s.selection_id !== id));
   }, []);
 
   const clearSlip = useCallback(() => {
