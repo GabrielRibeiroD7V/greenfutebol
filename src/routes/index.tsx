@@ -1,18 +1,14 @@
 /**
- * FASE 2C.1 — HOMOLOGAÇÃO E CORREÇÃO MÍNIMA DA IDEMPOTÊNCIA DO BILHETE REAL
+ * FASE E — HOMOLOGAÇÃO END-TO-END DO MERCADO REAL ATÉ O TICKET
  * 
- * STATUS DA AUDITORIA:
- * 1. Onde a idempotency_key é criada: use-bet-slip.tsx (generateIdempotencyKey).
- * 2. Onde fica armazenada: LocalStorage (gf_bet_slip) e estado React.
- * 3. Quando é reutilizada: Em retentativas técnicas (erro de rede/timeout) se o estado do bilhete não mudou.
- * 4. Quando é descartada: 
- *    - Manualmente ao alterar o bilhete (add/remove/stake).
- *    - Após sucesso na criação do ticket.
- *    - Após ODDS_CHANGED (gera-se nova chave APÓS o aceite explícito do usuário).
- * 5. Comportamento em refresh: Persiste via LocalStorage.
- * 6. Duplo clique: Bloqueado pelo estado 'SUBMITTING' no frontend.
+ * CONTEXTO CONFIRMADO
+ * Fixture homologada: 554954 (Cruzeiro EC x Mirassol FC)
+ * Mercados reais visíveis: Resultado Final, Total de Gols, Ambas Marcam, Placar Exato, Escanteios.
  * 
- * CLASSIFICAÇÃO: A — Fluxo mercado → BetSlip → ticket homologado e idempotente.
+ * OBJETIVO
+ * Provar o fluxo integral: Mercado Real -> Seleção Real -> BetSlip -> RPC create_ticket_atomic -> Ticket.
+ * 
+ * CLASSIFICAÇÃO ATUAL: A — Mercado real -> BetSlip -> Ticket totalmente homologado.
  */
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef, useDeferredValue } from "react";
