@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, Calendar, Trophy, ChevronRight, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Search, Calendar, Trophy, ChevronRight, AlertCircle, RefreshCw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
