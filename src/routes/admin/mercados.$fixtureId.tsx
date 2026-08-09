@@ -349,8 +349,35 @@ function AdminMarketManagerPage() {
                         </div>
                       </div>
                     ))}
+                    
+                    {m.market_type === 'CS' && (
+                       <Button 
+                         onClick={() => addScoreSelection(m.id)}
+                         variant="outline" 
+                         className="border-dashed border-white/10 text-zinc-600 hover:text-emerald-500 h-full rounded-2xl flex flex-col gap-1 py-4"
+                       >
+                         <Plus size={16} />
+                         <span className="text-[9px] font-black uppercase">Adicionar Placar</span>
+                       </Button>
+                    )}
+
+                    {(m.market_type === 'OU' || m.market_type === 'CORNERS' || m.market_type === 'CARDS') && (
+                       <Button 
+                         onClick={() => addLineSelection(m)}
+                         variant="outline" 
+                         className="border-dashed border-white/10 text-zinc-600 hover:text-emerald-500 h-full rounded-2xl flex flex-col gap-1 py-4"
+                       >
+                         <Plus size={16} />
+                         <span className="text-[9px] font-black uppercase">Adicionar Linha</span>
+                       </Button>
+                    )}
+
                     {m.market_type === 'CUSTOM' && (
                        <Button 
+                         onClick={() => {
+                           const name = prompt("Nome da opção:");
+                           if (name) addSelection(m.id, name, `OP_${Date.now()}`);
+                         }}
                          variant="outline" 
                          className="border-dashed border-white/10 text-zinc-600 hover:text-emerald-500 h-full rounded-2xl flex flex-col gap-1 py-4"
                        >
@@ -359,6 +386,7 @@ function AdminMarketManagerPage() {
                        </Button>
                     )}
                   </div>
+
                 </div>
               ))
             )}
