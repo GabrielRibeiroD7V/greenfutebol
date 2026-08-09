@@ -44,11 +44,13 @@ function AdminFixtureListPage() {
       const fixtureIds = persistentFixtures?.map(f => f.provider_fixture_id) || [];
       const { data: marketsData } = await supabase
         .from('fixture_markets')
-        .select('fixture_id, id')
+        .select('fixture_id, market_group')
         .in('fixture_id', fixtureIds);
 
-      const marketCounts = (marketsData || []).reduce((acc: any, curr) => {
-        acc[curr.fixture_id] = (acc[curr.fixture_id] || 0) + 1;
+      const marketInfo = (marketsData || []).reduce((acc: any, curr) => {
+        if (!acc[curr.fixture_id]) acc[curr.fixture_id] = { count: 0, hasPlayers: false };
+        acc[curr.fixture_id].count++;
+        if (curr.market_group === 'PLAYER') acc[curr.fixture_id].hasPlayers = true;
         return acc;
       }, {});
 
