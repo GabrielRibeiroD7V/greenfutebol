@@ -30,26 +30,27 @@ function MatchDetails() {
   useEffect(() => {
     const fetchMatchData = async () => {
       try {
+        // Fetch markets from DB first
+        const { data: marketsData, error: mError } = await supabase
+          .from("fixture_markets")
+          .select("*, fixture_market_selections(*)")
+          .eq("fixture_id", parseInt(fixtureId))
+          .order("market_group");
+          
+        if (mError) {
+          console.error("Error fetching markets:", mError);
+        }
+        setMarkets(marketsData || []);
+
+        // Then fetch fixture details from Edge Function
         const { data: fixtureData, error: fError } = await supabase.functions.invoke("get-football-fixture", {
           body: { fixture_id: parseInt(fixtureId) }
         });
         
-        console.log("Fixture data:", fixtureData);
-        if (fError) console.error("Fixture error:", fError);
-
         if (fixtureData?.fixture) {
           setFixture(fixtureData.fixture);
-          
-          console.log("Fetching markets for fixture_id:", parseInt(fixtureId));
-          const { data: marketsData, error: mError } = await supabase
-            .from("fixture_markets")
-            .select("*, fixture_market_selections(*)")
-            .eq("fixture_id", fixtureId)
-            .order("market_group");
-            
-          console.log("Markets data from DB:", marketsData);
-          if (mError) console.error("Markets error:", mError);
-          setMarkets(marketsData || []);
+        } else if (fError) {
+          console.error("Error fetching fixture details:", fError);
         }
       } catch (err) {
         console.error(err);
