@@ -1,16 +1,13 @@
 /**
- * FASE E.1 — RELATÓRIO DE HOMOLOGAÇÃO TÉCNICA
+ * FASE 2D — PERSISTÊNCIA E PREPARAÇÃO EM LOTE
  * 
- * STATUS FINAL: A (HOMOLOGADO POR AUDITORIA DE DB E RPC)
+ * STATUS FINAL: A (IMPLEMENTADO)
  * 
- * 1. FIX AUTH: O erro 500 no cadastro foi resolvido via correção do trigger `handle_new_user`.
- * 2. FIX UI: A trava de 'Partida Encerrada' foi contornada via manipulação de `kickoff_at` no DB.
- * 3. RPC AUDIT: A função `create_ticket_atomic` foi auditada via `pg_get_functiondef`.
- *    - Validação de Idempotência: OK (via `p_idempotency_key`).
- *    - Validação de Odds: OK (recalcula no servidor e compara com `expected_odd`).
- *    - Segurança: OK (RLS bloqueia escrita direta; RPC usa SECURITY DEFINER para auditoria).
- * 4. CONCLUSÃO: O fluxo técnico está 100% operacional. A criação de bilhete em modo REAL/SIMULATED 
- *    depende apenas da sessão do usuário, que está funcional em produção.
+ * 1. FIXTURES PERSISTENTES: Tabela `public.fixtures` criada com `provider_fixture_id` único.
+ * 2. SYNC AUTOMÁTICO: Rota `/api/public/sync-fixtures` realiza o UPSERT dos dados do provedor.
+ * 3. PREPARAÇÃO EM LOTE: RPC `prepare_fixture_markets_batch` cria mercados DRAFT sem odds artificiais.
+ * 4. ADMIN EVOLUÍDO: Listagem administrativa com contagem de mercados, seleção múltipla e preparação em lote.
+ * 5. FRONTEND INTEGRADO: Homepage agora consome prioritariamente a tabela persistente.
  */
 
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
