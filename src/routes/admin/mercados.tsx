@@ -17,9 +17,11 @@ const TIMEZONE = "America/Campo_Grande";
 function AdminFixtureListPage() {
   const [fixtures, setFixtures] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [competitionFilter, setCompetitionFilter] = useState("");
+  const [selectedFixtures, setSelectedFixtures] = useState<number[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -30,14 +32,100 @@ function AdminFixtureListPage() {
   const fetchFixtures = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("get-football-fixtures", {
-        body: { date: dateFilter }
+      // Prioridade: Buscar partidas persistidas da nossa tabela
+      const { data: persistentFixtures, error: dbError } = await supabase
+        .from('fixtures')
+        .select('*')
+        .gte('kickoff_at', `${dateFilter}T00:00:00Z`)
+        .lte('kickoff_at', `${dateFilter}T23:59:59Z`)
+        .order('kickoff_at', { ascending: true });
+
+      if (dbError) throw dbError;
+
+      // Buscar mercados para mostrar contagem
+      const fixtureIds = persistentFixtures?.map(f => f.provider_fixture_id) || [];
+      const { data: marketsData } = await supabase
+        .from('fixture_markets')
+        .select('fixture_id, id')
+        .in('fixture_id', fixtureIds);
+
+      const marketCounts = (marketsData || []).reduce((acc: any, curr) => {
+        acc[curr.fixture_id] = (acc[curr.fixture_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      const formatted = persistentFixtures?.map(f => ({
+        fixture_id: f.provider_fixture_id,
+        league_name: f.competition_name,
+        home_team_name: f.home_team_name,
+        home_team_logo: f.home_team_crest,
+        away_team_name: f.away_team_name,
+        away_team_logo: f.away_team_crest,
+        kickoff_at: f.kickoff_at,
+        status_long: f.status,
+        status_short: f.status,
+        market_count: marketCounts[f.provider_fixture_id] || 0
+      })) || [];
+
+      setFixtures(formatted);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar partidas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch("/api/public/sync-fixtures", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: dateFilter })
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+      
+      const result = await response.json();
+      toast.success(`${result.count} partidas sincronizadas com sucesso!`);
+      fetchFixtures();
+    } catch (err: any) {
+      toast.error(`Erro na sincronização: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const toggleSelection = (id: number) => {
+    setSelectedFixtures(prev => 
+      prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedFixtures.length === filteredFixtures.length) {
+      setSelectedFixtures([]);
+    } else {
+      setSelectedFixtures(filteredFixtures.map(f => f.fixture_id));
+    }
+  };
+
+  const prepareBatchMarkets = async () => {
+    if (selectedFixtures.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const { data: result, error } = await supabase.rpc('prepare_fixture_markets_batch', {
+        p_fixture_ids: selectedFixtures
       });
 
       if (error) throw error;
-      setFixtures(data || []);
+      
+      toast.success(`${selectedFixtures.length} partidas preparadas com sucesso.`);
+      setSelectedFixtures([]);
+      fetchFixtures();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao carregar partidas");
+      toast.error(`Erro ao preparar mercados: ${err.message}`);
     } finally {
       setLoading(false);
     }
