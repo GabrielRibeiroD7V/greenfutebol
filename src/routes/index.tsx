@@ -800,7 +800,14 @@ function Index() {
                                   to="/jogo/$fixtureId"
                                   params={{ fixtureId: String(match.fixture_id) }}
                                 >
-                                  <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm">
+                                  <div className={cn(
+                                    "rounded-xl border p-3 sm:p-4 hover:border-emerald-500/50 hover:shadow-md transition-all group-hover:bg-slate-50 shadow-sm",
+                                    FINISHED_STATUSES.includes(match.status) 
+                                      ? "bg-slate-50 border-slate-200 grayscale-[0.3]" 
+                                      : FUTURE_STATUSES.includes(match.status)
+                                        ? "bg-white border-emerald-100"
+                                        : "bg-white border-slate-200"
+                                  )}>
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
                                         <span className="text-[10px] font-black text-slate-900 whitespace-nowrap">
