@@ -35,8 +35,9 @@ function AdminLayout() {
         <nav className="p-4 space-y-2">
           {[
             { label: 'Bilhetes', icon: Ticket, to: '/admin/bilhetes' },
-            { label: 'Mercados', icon: BarChart3, to: '/admin/mercados' },
-            { label: 'Voltar', icon: Settings, to: '/' },
+            { label: 'Resultados', icon: BarChart3, to: '/admin/resultados' },
+            { label: 'Mercados', icon: Settings, to: '/admin/mercados' },
+            { label: 'Voltar', icon: ArrowRightLeft, to: '/' },
           ].map((item) => (
             <button
               key={item.to}
