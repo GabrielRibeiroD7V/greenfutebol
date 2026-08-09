@@ -30,7 +30,18 @@ export const Route = createFileRoute("/admin/mercados/$fixtureId")({
   component: AdminMarketManagerPage,
 });
 
-const MARKET_TEMPLATES = [
+interface MarketTemplate {
+  id: string;
+  name: string;
+  group: string;
+  selections: string[];
+  keys: string[];
+  line?: number;
+  isPlayerMarket?: boolean;
+  playerMarketType?: string;
+}
+
+const MARKET_TEMPLATES: MarketTemplate[] = [
   { id: "1X2", name: "Resultado Final", group: "PRINCIPAIS", selections: ["Casa", "Empate", "Visitante"], keys: ["H", "D", "A"] },
   { id: "DC", name: "Dupla Chance", group: "PRINCIPAIS", selections: ["1X", "12", "X2"], keys: ["1X", "12", "X2"] },
   { id: "DNB", name: "Empate Anula", group: "PRINCIPAIS", selections: ["Casa", "Visitante"], keys: ["H", "A"] },
