@@ -80,29 +80,29 @@ function AdminTicketsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-white text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
-              <Ticket size={28} />
+            <div className="w-12 h-12 bg-emerald-50 rounded-[8px] flex items-center justify-center text-emerald-600 border border-emerald-100">
+              <Ticket size={24} />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight italic">Auditório de Bilhetes</h1>
-              <p className="text-slate-500 text-sm font-medium">Controle total sobre as operações dos clientes.</p>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 uppercase tracking-tight">Auditório de Bilhetes</h1>
+              <p className="text-slate-500 text-[11px] font-medium uppercase tracking-wider">Gestão e Auditoria Operacional</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm">Home</Button>
-            <Button onClick={loadData} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 shadow-sm">
-              <RefreshCw size={16} className={cn("mr-2", loading && "animate-spin")} />
+            <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-[#E5E7EB] hover:bg-slate-50 text-slate-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">Home</Button>
+            <Button onClick={loadData} variant="outline" className="border-emerald-200 hover:bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-[6px]">
+              <RefreshCw size={14} className={cn("mr-2", loading && "animate-spin")} />
               Atualizar
             </Button>
           </div>
         </header>
 
         {/* Resumo Financeiro */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {[
             { label: 'Bilhetes Hoje', value: summary?.todayCount || 0, icon: Ticket, color: 'emerald' },
             { label: 'Stake Hoje', value: formatCurrency(summary?.todayStake || 0), icon: CreditCard, color: 'emerald' },
@@ -111,22 +111,22 @@ function AdminTicketsPage() {
             { label: 'Perdidos', value: summary?.lostCount || 0, icon: XCircle, color: 'red' },
             { label: 'Exposição Total', value: formatCurrency(summary?.potentialExposure || 0), icon: TrendingUp, color: 'slate' },
           ].map((item, idx) => (
-            <div key={idx} className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-3", 
+            <div key={idx} className="bg-white border border-[#E5E7EB] p-4 rounded-[8px]">
+              <div className={cn("w-7 h-7 rounded-[4px] flex items-center justify-center mb-3", 
                 item.color === 'emerald' ? "bg-emerald-50 text-emerald-600" :
                 item.color === 'amber' ? "bg-amber-50 text-amber-600" :
                 item.color === 'red' ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
               )}>
-                <item.icon size={18} />
+                <item.icon size={16} />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
-              <p className="text-lg font-black text-slate-900 leading-none">{item.value}</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{item.label}</p>
+              <p className="text-base font-bold text-slate-900 leading-none">{item.value}</p>
             </div>
           ))}
         </div>
 
         {/* Filtros e Busca */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 mb-8 shadow-sm space-y-4">
+        <div className="bg-[#F6F7F7] border border-[#E5E7EB] rounded-[8px] p-4 mb-8 space-y-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
