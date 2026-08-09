@@ -675,10 +675,14 @@ function AdminMarketManagerPage() {
                 variant="outline"
                 size="sm"
                 className="bg-zinc-900 border-white/10 text-white font-black uppercase text-[9px] rounded-xl h-9"
-                onClick={() => {
+                onClick={async () => {
                   const toOpen = markets.filter(m => m.status === 'DRAFT');
                   if (toOpen.length === 0) return;
-                  toOpen.forEach(m => updateMarketStatus(m.id, 'OPEN'));
+                  setIsActionLoading(true);
+                  for (const m of toOpen) {
+                    await updateMarketStatus(m.id, 'OPEN');
+                  }
+                  setIsActionLoading(false);
                 }}
               >
                 Publicar Todos Rascunhos
