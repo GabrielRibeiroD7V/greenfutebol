@@ -219,6 +219,81 @@ export type Database = {
         }
         Relationships: []
       }
+      fixtures: {
+        Row: {
+          away_score: number | null
+          away_team_crest: string | null
+          away_team_id: number | null
+          away_team_name: string
+          competition_code: string
+          competition_name: string | null
+          country: string | null
+          created_at: string | null
+          home_score: number | null
+          home_team_crest: string | null
+          home_team_id: number | null
+          home_team_name: string
+          id: string
+          kickoff_at: string
+          last_synced_at: string | null
+          metadata: Json | null
+          provider: string
+          provider_fixture_id: number
+          season: string | null
+          status: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_team_crest?: string | null
+          away_team_id?: number | null
+          away_team_name: string
+          competition_code: string
+          competition_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          home_score?: number | null
+          home_team_crest?: string | null
+          home_team_id?: number | null
+          home_team_name: string
+          id?: string
+          kickoff_at: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_fixture_id: number
+          season?: string | null
+          status?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_team_crest?: string | null
+          away_team_id?: number | null
+          away_team_name?: string
+          competition_code?: string
+          competition_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          home_score?: number | null
+          home_team_crest?: string | null
+          home_team_id?: number | null
+          home_team_name?: string
+          id?: string
+          kickoff_at?: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_fixture_id?: number
+          season?: string | null
+          status?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
       football_fixtures_cache: {
         Row: {
           cache_key: string
