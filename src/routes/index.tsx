@@ -392,14 +392,22 @@ function Index() {
           const result = await fetchDate(currentDate);
           finalPartial ||= result.partial;
 
-          if (result.fixtures.length > 0) {
+          // Filter for "available/future" games for fallback decision
+          const futureFixtures = result.fixtures.filter(f => 
+            !["FT", "AET", "PEN", "CANC", "PST", "SUSP", "ABD", "INT"].includes(f.status)
+          );
+
+          if (futureFixtures.length > 0) {
             foundFixtures = result.fixtures;
             break;
           }
 
-          if (activeTab === "live" || activeTab === "custom") break;
+          if (activeTab === "live" || activeTab === "custom") {
+            foundFixtures = result.fixtures;
+            break;
+          }
 
-          // If no results, try next day
+          // If no future results, try next day
           currentDate = getNextCGRDateString(currentDate);
           searchCount++;
 
@@ -779,8 +787,8 @@ function Index() {
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
                     <Info size={16} className="shrink-0" />
                     <p className="font-bold text-[10px] uppercase tracking-widest">
-                      Não há jogos na data selecionada. Exibindo os próximos jogos disponíveis.
-                      Data: {formatDateBR(displayedDate)}
+                      Não há mais jogos disponíveis nesta data. Exibindo os próximos jogos.
+                      Próximos jogos: {formatDateBR(displayedDate)}
                     </p>
                   </div>
                 )}
