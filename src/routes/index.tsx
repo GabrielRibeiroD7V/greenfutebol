@@ -763,8 +763,8 @@ function Index() {
 
                 {groupedFixtures.map((dateGroup) => (
                   <div key={dateGroup.date} className="space-y-4">
-                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
-                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                    <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-600">
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">
                         {formatGroupHeader(dateGroup.date)}
                       </span>
                     </div>
@@ -775,12 +775,12 @@ function Index() {
                           key={`${dateGroup.date}-${league.country}-${league.name}`}
                           className="space-y-2"
                         >
-                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                          <div className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg border border-slate-200 shadow-sm">
                             {league.logo ? (
                               <img
                                 src={league.logo}
                                 alt={league.name}
-                                className="w-4 h-4 object-contain brightness-125"
+                                className="w-4 h-4 object-contain brightness-100"
                               />
                             ) : (
                               <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">
@@ -788,7 +788,7 @@ function Index() {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-300">{league.name}</span>
+                              <span className="block truncate text-[10px] font-black uppercase tracking-widest text-slate-900">{league.name}</span>
                               <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-600">{league.country}</span>
                             </div>
                           </div>
