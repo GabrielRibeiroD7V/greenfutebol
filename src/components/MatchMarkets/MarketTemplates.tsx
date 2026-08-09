@@ -84,12 +84,13 @@ export function SelectionButton({
       disabled={false}
       onClick={handleClick}
       className={cn(
-        "relative flex flex-col items-center justify-center p-3 transition-all duration-200 min-h-[64px]",
+        "relative flex flex-col items-center justify-center p-2 sm:p-3 transition-all duration-200 min-h-[56px] sm:min-h-[64px]",
         selected 
-          ? "bg-emerald-600 border-emerald-500 shadow-md z-10" 
-          : "bg-white border border-slate-100 hover:bg-slate-50 hover:border-slate-200",
+          ? "bg-emerald-600 border-emerald-500 z-10" 
+          : "bg-[#F6F7F7] border border-[#E5E7EB] hover:bg-emerald-50 hover:border-emerald-100",
         isDisabled && "opacity-40 cursor-not-allowed grayscale",
         isSuspended && "border-amber-500/20",
+        "rounded-[6px]",
         className
       )}
     >
