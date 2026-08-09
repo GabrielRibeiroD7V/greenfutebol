@@ -189,7 +189,7 @@ function AdminMarketManagerPage() {
     try {
       const marketData = {
         fixture_id: parseInt(fixtureId),
-        competition_code: fixture.league_id.toString(),
+        competition_code: fixture.league_id?.toString() || "",
         market_type: template.id,
         market_name: template.name,
         market_group: template.group,
