@@ -124,62 +124,33 @@ function MatchDetails() {
           {/* Markets List */}
           <div className="space-y-4 pb-24">
             {markets.length === 0 ? (
-              <div className="text-center py-12 opacity-50">Nenhum mercado disponível no momento.</div>
-            ) : (
-              markets.map(m => (
-                <div key={m.id} className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">
-                  <div className="p-4 bg-zinc-800/50 flex justify-between items-center border-b border-white/5">
-                    <h3 className="text-sm font-black uppercase tracking-tight text-zinc-300">{m.market_name} {m.line && <span className="text-emerald-500">{m.line}</span>}</h3>
-                    <div className="flex items-center gap-2">
-                       {m.status !== 'OPEN' && <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-500">{m.status}</span>}
-                       <Info size={14} className="text-zinc-600" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3">
-                    {m.fixture_market_selections?.sort((a:any, b:any) => a.sort_order - b.sort_order).map((s:any) => {
-                      const isDisabled = m.status !== 'OPEN' || s.status !== 'OPEN' || s.odd <= 1.0;
-                      const isPastKickoff = isStarted && m.market_group !== 'LIVE';
-                      const selected = hasSelection(s.id);
-                      
-                      return (
-                        <button
-                          key={s.id}
-                          disabled={isDisabled || isPastKickoff}
-                          onClick={() => {
-                            if (isPastKickoff) {
-                              toast.error("Mercado indisponível após o início da partida.");
-                              return;
-                            }
-                            toggleSelection({
-                              fixtureId: fixture.fixture_id,
-                              fixtureName: `${fixture.home_team_name} x ${fixture.away_team_name}`,
-                              kickoffAt: fixture.kickoff_at,
-                              competitionName: fixture.league_name,
-                              marketId: m.id,
-                              marketName: m.market_name,
-                              marketType: m.market_group,
-                              selectionId: s.id,
-                              selectionName: s.selection_name,
-                              displayedOdd: s.odd,
-                              homeTeam: fixture.home_team_name,
-                              awayTeam: fixture.away_team_name
-                            });
-                          }}
-                          className={cn(
-                            "p-4 border-r border-b border-white/5 flex flex-col items-center justify-center transition-all",
-                            selected ? "bg-emerald-600" : "hover:bg-white/5",
-                            (isDisabled || isPastKickoff) && "opacity-30 cursor-not-allowed grayscale"
-                          )}
-                        >
-                          <span className={cn("text-[10px] font-bold uppercase", selected ? "text-emerald-100" : "text-zinc-500")}>{s.selection_name}</span>
-                          <span className="text-lg font-black">{s.odd.toFixed(2)}</span>
-                          {isPastKickoff && !selected && <span className="text-[8px] font-black text-red-500 uppercase">Fechado</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
+              <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-12 text-center space-y-4">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto text-zinc-600">
+                  <Info size={32} />
                 </div>
-              ))
+                <div>
+                  <h3 className="text-sm font-black uppercase text-white">Mercados ainda não disponíveis</h3>
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                    Esta partida está sendo processada ou as odds foram suspensas temporariamente.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              markets
+                .filter(m => m.status !== 'CLOSED')
+                .map(m => (
+                  <MarketRenderer 
+                    key={m.id} 
+                    market={m} 
+                    fixture={{
+                      fixture_id: fixture.fixture_id,
+                      home_team_name: fixture.home_team_name,
+                      away_team_name: fixture.away_team_name,
+                      kickoff_at: fixture.kickoff_at,
+                      league_name: fixture.league_name
+                    }} 
+                  />
+                ))
             )}
           </div>
         </main>
