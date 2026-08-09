@@ -31,24 +31,35 @@ export function isValidIsoDate(date: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
 }
 
-export function formatFixtureDateTime(iso: string, now = new Date()): string {
+export function formatFixtureDateTime(iso: string, showFullDate = false, now = new Date()): string {
   const date = new Date(iso);
-  const weekday = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: APP_TIMEZONE,
-    weekday: "short",
-  })
-    .format(date)
-    .replace(".", "");
-  const datePart = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: APP_TIMEZONE,
-    day: "2-digit",
-    month: "2-digit",
-  }).format(date);
   const time = new Intl.DateTimeFormat("pt-BR", {
     timeZone: APP_TIMEZONE,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+  }).format(date);
+
+  if (!showFullDate) {
+    const weekday = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: APP_TIMEZONE,
+      weekday: "short",
+    })
+      .format(date)
+      .replace(".", "");
+    const datePart = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: APP_TIMEZONE,
+      day: "2-digit",
+      month: "2-digit",
+    }).format(date);
+    const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    return `${label}, ${datePart} • ${time}`;
+  }
+
+  const datePart = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: APP_TIMEZONE,
+    day: "2-digit",
+    month: "2-digit",
   }).format(date);
   const year = new Intl.DateTimeFormat("pt-BR", {
     timeZone: APP_TIMEZONE,
@@ -58,10 +69,10 @@ export function formatFixtureDateTime(iso: string, now = new Date()): string {
     timeZone: APP_TIMEZONE,
     year: "numeric",
   }).format(now);
-  const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
   return year === currentYear
-    ? `${label}, ${datePart} • ${time}`
-    : `${label}, ${datePart}/${year} • ${time}`;
+    ? `${datePart} • ${time}`
+    : `${datePart}/${year} • ${time}`;
 }
 
 export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {

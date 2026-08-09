@@ -24,14 +24,14 @@ describe("fixtures-utils", () => {
   });
 
   it("shows weekday, date and Campo Grande time", () => {
-    expect(formatFixtureDateTime("2026-08-08T20:00:00Z", new Date("2026-01-01T16:00:00Z"))).toBe(
+    expect(formatFixtureDateTime("2026-08-08T20:00:00Z", false, new Date("2026-01-01T16:00:00Z"))).toBe(
       "Sáb, 08/08 • 16:00",
     );
   });
 
   it("includes the year when it differs", () => {
-    expect(formatFixtureDateTime("2027-08-08T20:00:00Z", new Date("2026-01-01"))).toBe(
-      "Dom, 08/08/2027 • 16:00",
+    expect(formatFixtureDateTime("2027-08-08T20:00:00Z", true, new Date("2026-01-01"))).toBe(
+      "08/08/2027 • 16:00",
     );
   });
 
