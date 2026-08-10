@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, User, Phone, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { normalizePhone, maskPhone, isValidBrazilianPhone } from "@/lib/phone-utils";
+import { normalizeBrazilPhone, maskPhone, isValidBrazilianPhone, technicalEmailFromPhone } from "@/lib/phone-utils";
 import logoAsset from "@/assets/logo.png.asset.json";
 
 const cadastroSearchSchema = z.object({
@@ -37,7 +37,7 @@ function CadastroComponent() {
       return;
     }
 
-    const normalized = normalizePhone(phone);
+    const normalized = normalizeBrazilPhone(phone);
     if (!isValidBrazilianPhone(normalized)) {
       toast.error("Por favor, insira um telefone celular brasileiro válido.");
       return;
@@ -56,25 +56,28 @@ function CadastroComponent() {
     setLoading(true);
 
     try {
-      // Sign up using phone and password
+      const technicalEmail = technicalEmailFromPhone(normalized);
       const { data, error } = await supabase.auth.signUp({
-        phone: normalized,
+        email: technicalEmail,
         password,
         options: {
           data: {
-            name: name.trim()
+            name: name.trim(),
+            phone: normalized,
           }
         }
       });
 
       if (error) {
-        if (error.message.includes("User already registered")) {
+        if (error.code === "user_already_exists" || error.message.toLowerCase().includes("already registered")) {
           throw new Error("Este telefone já está cadastrado.");
         }
-        throw error;
+        throw new Error("Não foi possível concluir agora. Tente novamente.");
       }
 
-      // Profile creation is handled by DB trigger handle_new_user
+      if (!data.session) {
+        throw new Error("Não foi possível concluir agora. Tente novamente.");
+      }
       
       toast.success("Cadastro realizado com sucesso!");
       

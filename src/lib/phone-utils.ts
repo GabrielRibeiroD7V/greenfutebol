@@ -1,10 +1,8 @@
-import { supabase } from "@/integrations/supabase/client";
-
 /**
  * Normalizes a Brazilian phone number to E.164 format.
  * Expected formats: (67) 99999-9999, 67999999999, +5567999999999
  */
-export function normalizePhone(phone: string): string {
+export function normalizeBrazilPhone(phone: string): string {
   // Remove non-numeric characters
   let cleaned = phone.replace(/\D/g, "");
 
@@ -22,6 +20,9 @@ export function normalizePhone(phone: string): string {
   return `+${cleaned}`;
 }
 
+// Kept as the canonical compatibility export for existing call sites.
+export const normalizePhone = normalizeBrazilPhone;
+
 /**
  * Validates if a normalized phone number is a valid Brazilian mobile number.
  * Format: +55 (2 digits DDD) (9 digits mobile)
@@ -31,6 +32,19 @@ export function isValidBrazilianPhone(normalizedPhone: string): boolean {
   // +55 XX 9XXXX-XXXX
   const regex = /^\+55\d{11}$/;
   return regex.test(normalizedPhone);
+}
+
+/**
+ * Maps a validated E.164 Brazilian phone number to its internal Auth email.
+ * This identifier is an implementation detail: it is never rendered or
+ * collected in the interface, and it is not an authorization mechanism.
+ */
+export function technicalEmailFromPhone(normalizedPhone: string): string {
+  if (!isValidBrazilianPhone(normalizedPhone)) {
+    throw new Error("Invalid normalized Brazilian phone number");
+  }
+
+  return `${normalizedPhone.slice(1)}@auth.greensport.internal`;
 }
 
 /**

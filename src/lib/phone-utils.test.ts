@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePhone, isValidBrazilianPhone, maskPhone } from './phone-utils';
+import { normalizeBrazilPhone, normalizePhone, isValidBrazilianPhone, maskPhone, technicalEmailFromPhone } from './phone-utils';
 
 describe('phone-utils', () => {
   describe('normalizePhone', () => {
+    it('normalizes the documented phone input to E.164', () => {
+      expect(normalizeBrazilPhone('(67) 99931-4634')).toBe('+5567999314634');
+    });
     it('should normalize phone with mask', () => {
       expect(normalizePhone('(67) 99999-9999')).toBe('+5567999999999');
     });
@@ -50,6 +53,18 @@ describe('phone-utils', () => {
     it('should return false for invalid DDD/length', () => {
       expect(isValidBrazilianPhone('+55679999999')).toBe(false); // 9 digits
       expect(isValidBrazilianPhone('+15551234567')).toBe(false);
+    });
+  });
+
+  describe('technicalEmailFromPhone', () => {
+    it('derives a deterministic internal email from the normalized phone', () => {
+      const phone = normalizeBrazilPhone('(67) 99931-4634');
+      expect(technicalEmailFromPhone(phone)).toBe('5567999314634@auth.greensport.internal');
+      expect(technicalEmailFromPhone(phone)).toBe(technicalEmailFromPhone(normalizePhone(phone)));
+    });
+
+    it('rejects a non-normalized or invalid phone', () => {
+      expect(() => technicalEmailFromPhone('67999999999')).toThrow();
     });
   });
 

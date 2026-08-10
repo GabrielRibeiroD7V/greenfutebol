@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, Phone, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { normalizePhone, maskPhone, isValidBrazilianPhone } from "@/lib/phone-utils";
+import { normalizeBrazilPhone, maskPhone, isValidBrazilianPhone, technicalEmailFromPhone } from "@/lib/phone-utils";
 import logoAsset from "@/assets/logo.png.asset.json";
 
 const loginSearchSchema = z.object({
@@ -29,7 +29,7 @@ function LoginComponent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalized = normalizePhone(phone);
+    const normalized = normalizeBrazilPhone(phone);
     
     if (!isValidBrazilianPhone(normalized)) {
       toast.error("Por favor, insira um telefone celular brasileiro válido.");
@@ -39,16 +39,17 @@ function LoginComponent() {
     setLoading(true);
 
     try {
+      const technicalEmail = technicalEmailFromPhone(normalized);
       const { error } = await supabase.auth.signInWithPassword({
-        phone: normalized,
+        email: technicalEmail,
         password,
       });
 
       if (error) {
         if (error.message.includes("Invalid login credentials") || error.status === 400) {
-          throw new Error("Telefone ou senha incorretos.");
+          throw new Error("Telefone ou senha inválidos.");
         }
-        throw error;
+        throw new Error("Não foi possível concluir agora. Tente novamente.");
       }
 
       toast.success("Login realizado com sucesso!");
