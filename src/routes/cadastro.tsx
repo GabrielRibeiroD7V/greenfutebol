@@ -15,6 +15,16 @@ const cadastroSearchSchema = z.object({
   redirect: z.string().optional().catch(""),
 });
 
+type CadastroAuthDiagnostics = {
+  error: {
+    code: unknown;
+    status: unknown;
+    message: string | null;
+  } | null;
+  hasUser: boolean;
+  hasSession: boolean;
+};
+
 const sanitizeAuthMessage = (message: unknown) => {
   if (typeof message !== "string") return null;
 
@@ -23,8 +33,8 @@ const sanitizeAuthMessage = (message: unknown) => {
     .replace(/\+?\d[\d\s().-]{7,}\d/g, "[telefone oculto]");
 };
 
-const logCadastroAuthResult = (data: { user: unknown; session: unknown }, error: { code?: unknown; status?: unknown; message?: unknown } | null) => {
-  console.info("[cadastro-auth-debug]", {
+const createCadastroAuthDiagnostics = (data: { user: unknown; session: unknown }, error: { code?: unknown; status?: unknown; message?: unknown } | null): CadastroAuthDiagnostics => {
+  return {
     error: error
       ? {
           code: error.code ?? null,
@@ -34,7 +44,7 @@ const logCadastroAuthResult = (data: { user: unknown; session: unknown }, error:
       : null,
     hasUser: Boolean(data.user),
     hasSession: Boolean(data.session),
-  });
+  };
 };
 
 export const Route = createFileRoute("/cadastro")({
@@ -50,6 +60,7 @@ function CadastroComponent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [authDiagnostics, setAuthDiagnostics] = useState<CadastroAuthDiagnostics | null>(null);
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +101,7 @@ function CadastroComponent() {
         }
       });
 
-      logCadastroAuthResult(data, error);
+      setAuthDiagnostics(createCadastroAuthDiagnostics(data, error));
 
       if (error) {
         if (error.code === "user_already_exists" || error.message.toLowerCase().includes("already registered")) {
@@ -223,6 +234,11 @@ function CadastroComponent() {
             </div>
           </CardFooter>
         </form>
+        {authDiagnostics && (
+          <pre data-testid="cadastro-auth-debug" className="mx-6 mb-6 overflow-x-auto rounded bg-slate-950 p-3 text-left text-xs text-slate-300">
+            {JSON.stringify(authDiagnostics, null, 2)}
+          </pre>
+        )}
       </Card>
 
       <button 
