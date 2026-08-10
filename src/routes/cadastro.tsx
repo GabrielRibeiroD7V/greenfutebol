@@ -87,6 +87,7 @@ function CadastroComponent() {
     }
 
     setLoading(true);
+    let receivedAuthResult = false;
 
     try {
       const technicalEmail = technicalEmailFromPhone(normalized);
@@ -101,6 +102,7 @@ function CadastroComponent() {
         }
       });
 
+      receivedAuthResult = true;
       setAuthDiagnostics(createCadastroAuthDiagnostics(data, error));
 
       if (error) {
@@ -124,7 +126,9 @@ function CadastroComponent() {
       navigate({ to: target });
     } catch (error: unknown) {
       const authError = error as { code?: unknown; status?: unknown; message?: unknown };
-      setAuthDiagnostics(createCadastroAuthDiagnostics({ user: null, session: null }, authError));
+      if (!receivedAuthResult) {
+        setAuthDiagnostics(createCadastroAuthDiagnostics({ user: null, session: null }, authError));
+      }
       toast.error(sanitizeAuthMessage(authError.message) || "Erro ao realizar cadastro");
     } finally {
       setLoading(false);
