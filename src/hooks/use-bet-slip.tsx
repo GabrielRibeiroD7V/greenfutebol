@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toggleSelection } from "@/lib/bet-slip-policy";
+import { calculateBetPreview, parseStakeInput } from "@/lib/bet-slip-finance";
 
 export interface Selection {
   selection_id: string;
@@ -13,150 +14,176 @@ export interface Selection {
   fixture_id: number;
 }
 
-export function useBetSlip() {
-  const [selections, setSelections] = useState<Selection[]>([]);
-  const [stake, setStake] = useState<number>(10);
+export interface BetSlipState {
+  id: string;
+  selections: Selection[];
+  stakeInput: string;
+  idempotencyKey: string;
+  returnToConfirm: boolean;
+}
+
+const STORAGE_KEY = "gf_bet_slips_v2";
+const LEGACY_STORAGE_KEY = "gf_bet_slip";
+const SELECTION_LIMIT = 20;
+
+function createEmptySlip(): BetSlipState {
+  return { id: crypto.randomUUID(), selections: [], stakeInput: "", idempotencyKey: crypto.randomUUID(), returnToConfirm: false };
+}
+
+interface StoredState { betSlips: BetSlipState[]; activeBetSlipId: string }
+
+function readStoredState(fallback: BetSlipState): StoredState {
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) {
+      const parsed = JSON.parse(current) as StoredState;
+      if (Array.isArray(parsed.betSlips) && parsed.betSlips.length > 0) {
+        const betSlips = parsed.betSlips.map((slip) => ({ ...slip, idempotencyKey: slip.idempotencyKey || crypto.randomUUID(), stakeInput: String(slip.stakeInput ?? "") }));
+        return { betSlips, activeBetSlipId: betSlips.some((slip) => slip.id === parsed.activeBetSlipId) ? parsed.activeBetSlipId : betSlips[0]!.id };
+      }
+    }
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      const migrated = { ...fallback, selections: parsed.selections || [], stakeInput: parsed.stake == null ? "" : String(parsed.stake), returnToConfirm: Boolean(parsed.returnToConfirm) };
+      return { betSlips: [migrated], activeBetSlipId: migrated.id };
+    }
+  } catch (error) {
+    console.error("Error loading bet slips from localStorage", error);
+  }
+  return { betSlips: [fallback], activeBetSlipId: fallback.id };
+}
+
+interface BetSlipContextValue {
+  betSlips: BetSlipState[];
+  activeBetSlipId: string;
+  activeBetSlip: BetSlipState;
+  selections: Selection[];
+  stakeInput: string;
+  stake: number | null;
+  totalOdd: number;
+  potentialReturn: number;
+  potentialProfit: number;
+  isValidating: boolean;
+  selectionLimit: number;
+  setActiveBetSlipId: (id: string) => void;
+  createBetSlip: () => void;
+  deleteActiveBetSlip: () => void;
+  setStakeInput: (value: string) => void;
+  addSelection: (selection: Selection) => void;
+  removeSelection: (id: string) => void;
+  clearSlip: () => void;
+  completeActiveSlip: () => void;
+  updateChangedOdds: (changes: Array<{ selection_id: string; current_odd?: number; new_odd?: number }>) => void;
+  refreshIdempotency: () => void;
+  returnToConfirm: boolean;
+  setReturnToConfirm: (value: boolean) => void;
+}
+
+const BetSlipContext = createContext<BetSlipContextValue | null>(null);
+
+export function BetSlipProvider({ children }: { children: ReactNode }) {
+  const [initial] = useState(createEmptySlip);
+  const [betSlips, setBetSlips] = useState<BetSlipState[]>([initial]);
+  const [activeBetSlipId, setActiveBetSlipId] = useState(initial.id);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(crypto.randomUUID());
-  const [returnToConfirm, setReturnToConfirm] = useState(false);
-  
-  const isFirstMount = useRef(true);
 
-  const revalidateSelections = useCallback(async (currentSelections: Selection[]) => {
-    if (currentSelections.length === 0) return;
-    
-    setIsValidating(true);
-    try {
-      const selectionIds = currentSelections.map(s => s.selection_id);
-      
-      const { data, error } = await (supabase as any)
-        .from('fixture_market_selections')
-        .select('id, market_id, odd, status')
-        .in('id', selectionIds);
+  useEffect(() => {
+    const stored = readStoredState(initial);
+    setBetSlips(stored.betSlips);
+    setActiveBetSlipId(stored.activeBetSlipId);
+    setIsHydrated(true);
+  }, [initial]);
 
-      if (error || !data) throw error;
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ betSlips, activeBetSlipId }));
+  }, [activeBetSlipId, betSlips, isHydrated]);
 
-      const marketIds = [...new Set(data.map((selection: any) => selection.market_id))];
-      const { data: markets, error: marketsError } = await (supabase as any)
-        .from('fixture_markets')
-        .select('id, status, fixture_id, kickoff_at')
-        .in('id', marketIds);
+  const updateActive = useCallback((updater: (slip: BetSlipState) => BetSlipState) => {
+    setBetSlips((current) => current.map((slip) => slip.id === activeBetSlipId ? updater(slip) : slip));
+  }, [activeBetSlipId]);
 
-      if (marketsError || !markets) throw marketsError;
-
-      // 4. Revalidate cache for kickoff
-      const { data: fixturesCache } = await supabase
-        .from('football_fixtures_cache')
-        .select('payload');
-
-      const allFixtures: any[] = fixturesCache?.flatMap(f => (f.payload as any).fixtures || []) || [];
-      const now = new Date();
-
-      const validSelections: Selection[] = [];
-      const removedLabels: string[] = [];
-      const updatedLabels: string[] = [];
-
-      for (const s of currentSelections) {
-        const dbOpt = data.find((d: any) => d.id === s.selection_id);
-        const market = markets.find((m: any) => m.id === dbOpt?.market_id);
-        const fixture = allFixtures.find(f => f.fixture_id === s.fixture_id);
-        
-        const kickoffAt = market?.kickoff_at || fixture?.kickoff_at;
-        const isStarted = !kickoffAt || new Date(kickoffAt) <= now;
-        const isSuspended = !dbOpt || dbOpt.status !== 'OPEN' || market?.status !== 'OPEN' || Number(dbOpt.odd) <= 1;
-
-        if (!dbOpt || isSuspended || isStarted) {
-          removedLabels.push(`${s.home_team} x ${s.away_team} (${s.label})`);
-          continue;
-        }
-
-        if (Math.abs(Number(dbOpt.odd) - s.odd) > 0.0001) {
-          updatedLabels.push(s.label);
-          validSelections.push({
-            ...s,
-            odd: Number(dbOpt.odd)
-          });
-        } else {
-          validSelections.push(s);
-        }
-      }
-
-      setSelections(validSelections);
-      
-      // We could use toast here if we had access to it, 
-      // but usually hooks shouldn't trigger UI side effects directly.
-      // We'll let the component handle the feedback if needed via state.
-      
-    } catch (e) {
-      console.error("Error revalidating bet slip:", e);
-    } finally {
-      setIsValidating(false);
-    }
+  const createBetSlip = useCallback(() => {
+    const slip = createEmptySlip();
+    setBetSlips((current) => [...current, slip]);
+    setActiveBetSlipId(slip.id);
   }, []);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (!isFirstMount.current) return;
-    isFirstMount.current = false;
+  const deleteActiveBetSlip = useCallback(() => {
+    setBetSlips((current) => {
+      if (current.length === 1) {
+        const replacement = createEmptySlip();
+        setActiveBetSlipId(replacement.id);
+        return [replacement];
+      }
+      const index = current.findIndex((slip) => slip.id === activeBetSlipId);
+      const remaining = current.filter((slip) => slip.id !== activeBetSlipId);
+      setActiveBetSlipId(remaining[Math.max(0, index - 1)]?.id ?? remaining[0]!.id);
+      return remaining;
+    });
+  }, [activeBetSlipId]);
 
-    const saved = localStorage.getItem("gf_bet_slip");
-    if (saved) {
+  const setStakeInput = useCallback((value: string) => updateActive((slip) => ({ ...slip, stakeInput: value, idempotencyKey: crypto.randomUUID() })), [updateActive]);
+  const addSelection = useCallback((selection: Selection) => updateActive((slip) => {
+    const selections = toggleSelection(slip.selections, selection, SELECTION_LIMIT);
+    return selections === slip.selections ? slip : { ...slip, selections, idempotencyKey: crypto.randomUUID() };
+  }), [updateActive]);
+  const removeSelection = useCallback((id: string) => updateActive((slip) => ({ ...slip, selections: slip.selections.filter((selection) => selection.selection_id !== id), idempotencyKey: crypto.randomUUID() })), [updateActive]);
+  const clearSlip = useCallback(() => updateActive((slip) => ({ ...slip, selections: [], stakeInput: "", idempotencyKey: crypto.randomUUID(), returnToConfirm: false })), [updateActive]);
+  const completeActiveSlip = useCallback(() => deleteActiveBetSlip(), [deleteActiveBetSlip]);
+  const refreshIdempotency = useCallback(() => updateActive((slip) => ({ ...slip, idempotencyKey: crypto.randomUUID() })), [updateActive]);
+  const setReturnToConfirm = useCallback((value: boolean) => updateActive((slip) => ({ ...slip, returnToConfirm: value })), [updateActive]);
+  const updateChangedOdds = useCallback((changes: Array<{ selection_id: string; current_odd?: number; new_odd?: number }>) => updateActive((slip) => ({
+    ...slip,
+    selections: slip.selections.map((selection) => {
+      const change = changes.find((item) => item.selection_id === selection.selection_id);
+      const odd = change?.current_odd ?? change?.new_odd;
+      return odd == null ? selection : { ...selection, odd: Number(odd) };
+    }),
+    idempotencyKey: crypto.randomUUID(),
+  })), [updateActive]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    const validate = async () => {
+      const all = betSlips.flatMap((slip) => slip.selections);
+      if (!all.length) return;
+      setIsValidating(true);
       try {
-        const parsed = JSON.parse(saved);
-        setSelections(parsed.selections || []);
-        setStake(parsed.stake || 10);
-        setReturnToConfirm(parsed.returnToConfirm || false);
-        if (parsed.selections?.length > 0) {
-          revalidateSelections(parsed.selections);
-        }
-      } catch (e) {
-        console.error("Error loading bet slip from localStorage", e);
-      }
-    }
-  }, [revalidateSelections]);
+        const ids = [...new Set(all.map((selection) => selection.selection_id))];
+        const { data, error } = await (supabase as any).from("fixture_market_selections").select("id, odd").in("id", ids);
+        if (error || !data) return;
+        setBetSlips((current) => current.map((slip) => {
+          let changed = false;
+          const selections = slip.selections.map((selection) => {
+            const remote = data.find((item: any) => item.id === selection.selection_id);
+            const remoteOdd = Number(remote?.odd);
+            if (remoteOdd > 1 && Math.abs(remoteOdd - selection.odd) > 0.0001) {
+              changed = true;
+              return { ...selection, odd: remoteOdd };
+            }
+            return selection;
+          });
+          return changed ? { ...slip, selections, idempotencyKey: crypto.randomUUID() } : slip;
+        }));
+      } finally { setIsValidating(false); }
+    };
+    void validate();
+    // Revalidate only once after restoring persisted state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated]);
 
-  // Save to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("gf_bet_slip", JSON.stringify({
-      selections,
-      stake,
-      returnToConfirm
-    }));
-  }, [selections, stake, returnToConfirm]);
+  const activeBetSlip = betSlips.find((slip) => slip.id === activeBetSlipId) ?? betSlips[0] ?? initial;
+  const stake = parseStakeInput(activeBetSlip.stakeInput);
+  const preview = calculateBetPreview(activeBetSlip.selections.map((selection) => selection.odd), stake);
 
-  const addSelection = useCallback((newSelection: Selection) => {
-    setSelections(prev => toggleSelection(prev, newSelection));
-  }, []);
+  return <BetSlipContext.Provider value={{ betSlips, activeBetSlipId, activeBetSlip, selections: activeBetSlip.selections, stakeInput: activeBetSlip.stakeInput, stake, ...preview, isValidating, selectionLimit: SELECTION_LIMIT, setActiveBetSlipId, createBetSlip, deleteActiveBetSlip, setStakeInput, addSelection, removeSelection, clearSlip, completeActiveSlip, updateChangedOdds, refreshIdempotency, returnToConfirm: activeBetSlip.returnToConfirm, setReturnToConfirm }}>{children}</BetSlipContext.Provider>;
+}
 
-  const removeSelection = useCallback((id: string) => {
-    setSelections(prev => prev.filter(s => s.selection_id !== id));
-  }, []);
-
-  const clearSlip = useCallback(() => {
-    setSelections([]);
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
-
-  const refreshIdempotency = useCallback(() => {
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
-
-  const totalOdd = selections.reduce((acc, s) => acc * s.odd, 1);
-  const potentialReturn = stake * totalOdd;
-
-  return {
-    selections,
-    stake,
-    setStake,
-    addSelection,
-    removeSelection,
-    clearSlip,
-    totalOdd,
-    potentialReturn,
-    isValidating,
-    idempotencyKey,
-    refreshIdempotency,
-    returnToConfirm,
-    setReturnToConfirm
-  };
+export function useBetSlip() {
+  const context = useContext(BetSlipContext);
+  if (!context) throw new Error("useBetSlip must be used within BetSlipProvider");
+  return context;
 }

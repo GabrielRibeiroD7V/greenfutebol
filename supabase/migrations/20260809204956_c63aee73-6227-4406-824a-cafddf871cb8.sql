@@ -1,0 +1,1 @@
+UPDATE public.fixture_markets SET kickoff_at = '2026-08-09 14:00:00+00' WHERE fixture_id = 554954;

@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+import { BetSlipProvider } from "@/hooks/use-bet-slip";
 
 function NotFoundComponent() {
   return (
@@ -109,8 +110,10 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         <AuthProvider>
-          {children}
-          <Toaster />
+          <BetSlipProvider>
+            {children}
+            <Toaster />
+          </BetSlipProvider>
         </AuthProvider>
         <Scripts />
       </body>
@@ -127,4 +130,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

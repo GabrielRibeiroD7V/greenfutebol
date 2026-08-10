@@ -64,7 +64,7 @@ const selectionSchema = z.object({
 });
 
 const createTicketInput = z.object({
-  stake: z.number().min(5).max(5000),
+  stake: z.number().min(10),
   idempotency_key: z.string().uuid(),
   selections: z.array(selectionSchema).min(1).max(20),
 });
@@ -78,8 +78,9 @@ interface RPCResult {
   changed_selections?: Array<{
     selection_id: string;
     old_odd: number;
-    current_odd: number;
-    label: string;
+    current_odd?: number;
+    new_odd?: number;
+    label?: string;
   }>;
 }
 
@@ -100,6 +101,16 @@ export const createTicket = createServerFn({ method: "POST" })
 
     if (rpcError) {
       console.error("RPC Error:", rpcError);
+
+      if (rpcError.message === 'ODDS_CHANGED') {
+        let changedSelections: RPCResult['changed_selections'] = [];
+        try {
+          changedSelections = JSON.parse(rpcError.details || '[]');
+        } catch {
+          // Preserve the canonical error even if PostgREST omits malformed details.
+        }
+        return { success: false, error_code: 'ODDS_CHANGED', changed_selections: changedSelections };
+      }
       
       if (rpcError.code === 'P0001') {
         throw new Error(rpcError.message.replace('Market or option is suspended: ', 'O mercado ou opção não está mais disponível: '));

@@ -15,7 +15,29 @@ import { BetSlip } from "@/components/BetSlip";
 import { PublicSidebar } from "@/components/PublicSidebar";
 import { maskPhone } from "@/lib/phone-utils";
 
+type ActiveTab = 'today' | 'tomorrow' | 'live' | 'custom';
+type CompetitionCode = 'BSA' | 'PL' | 'CL' | 'BL1' | 'PD' | 'SA' | 'FL1' | 'DED' | 'ELC' | 'PPL' | 'ALL';
+type HomeSearch = {
+  tab?: ActiveTab | undefined;
+  comp?: CompetitionCode | undefined;
+  date?: string | undefined;
+};
+
+const ACTIVE_TABS: ActiveTab[] = ['today', 'tomorrow', 'live', 'custom'];
+const SUPPORTED_COMPETITIONS: Exclude<CompetitionCode, 'ALL'>[] = [
+  'BSA', 'PL', 'CL', 'BL1', 'PD', 'SA', 'FL1', 'DED', 'ELC', 'PPL'
+];
+
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): HomeSearch => ({
+    tab: ACTIVE_TABS.includes(search['tab'] as ActiveTab) ? search['tab'] as ActiveTab : undefined,
+    comp: [...SUPPORTED_COMPETITIONS, 'ALL'].includes(search['comp'] as CompetitionCode)
+      ? search['comp'] as CompetitionCode
+      : undefined,
+    date: typeof search['date'] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(search['date'])
+      ? search['date']
+      : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "GreenFutebol - Plataforma Premium de Futebol" },
@@ -43,6 +65,7 @@ interface Fixture {
 }
 
 const LIVE_STATUSES = ["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"];
+const PREMATCH_STATUSES = new Set(["NS", "SCHEDULED", "TIMED", "NOT_STARTED", "TBD"]);
 
 const STATUS_MAP: Record<string, string> = {
   NS: "Não iniciado",
@@ -65,25 +88,33 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 function Index() {
+  const routeSearch = Route.useSearch();
   const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
-  const { selections } = useBetSlip();
-  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'live' | 'custom'>('today');
+  const { selections, totalOdd } = useBetSlip();
+  const [activeTab, setActiveTab] = useState<ActiveTab>(routeSearch.tab ?? 'today');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [isPartial, setIsPartial] = useState(false);
   const [displayedDate, setDisplayedDate] = useState<string | null>(null);
   const [isShowingNextAvailable, setIsShowingNextAvailable] = useState(false);
-  const [competitionCode, setCompetitionCode] = useState<'BSA' | 'PL' | 'CL' | 'BL1' | 'PD' | 'SA' | 'FL1' | 'DED' | 'ELC' | 'PPL' | 'ALL'>('ALL');
+  const [competitionCode, setCompetitionCode] = useState<CompetitionCode>(routeSearch.comp ?? 'ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [customDate, setCustomDate] = useState("");
+  const [customDate, setCustomDate] = useState(routeSearch.tab === 'custom' ? routeSearch.date || "" : "");
   const [reachedLimit, setReachedLimit] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    if (routeSearch.tab) setActiveTab(routeSearch.tab);
+    if (routeSearch.comp) setCompetitionCode(routeSearch.comp);
+    if (routeSearch.tab === "custom" && routeSearch.date) setCustomDate(routeSearch.date);
+  }, [routeSearch.comp, routeSearch.date, routeSearch.tab]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -171,6 +202,18 @@ function Index() {
   };
 
   useEffect(() => {
+    navigate({
+      to: "/",
+      search: {
+        tab: activeTab,
+        comp: competitionCode,
+        date: activeTab === 'custom' ? customDate || undefined : displayedDate || undefined,
+      },
+      replace: true,
+    });
+  }, [activeTab, competitionCode, customDate, displayedDate, navigate]);
+
+  useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
     
     const fetchFixtures = async () => {
@@ -215,66 +258,92 @@ function Index() {
 
         let currentDate = requestedDate;
         let foundFixtures: Fixture[] = [];
-        let searchCount = 0;
         const maxSearchDays = 14;
         let finalPartial = false;
+        let finalReachedLimit = false;
 
-        // Sequence search loop
-        while (searchCount < maxSearchDays) {
-          // If live or custom, we only search once
-          if (activeTab === 'live' || activeTab === 'custom') {
-             const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-              body: { 
-                date: currentDate,
-                competition_code: competitionCode
-              }
-            });
-            if (invokeError) throw invokeError;
-            
-            let results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
-            if (activeTab === 'live') {
-              results = results.filter(f => LIVE_STATUSES.includes(f.status));
-            }
-            foundFixtures = results;
-            finalPartial = !!data?.partial;
-            break; // Stop after first try for live/custom
-          }
-
-          // Search for today/tomorrow
+        const invokeFixtures = async (date: string, competition: CompetitionCode) => {
           const { data, error: invokeError } = await supabase.functions.invoke("get-football-fixtures", {
-            body: { 
-              date: currentDate,
-              competition_code: competitionCode
-            }
+            body: { date, competition_code: competition }
           });
-
           if (invokeError) throw invokeError;
+          return {
+            fixtures: Array.isArray(data?.fixtures) ? data.fixtures as Fixture[] : [],
+            partial: !!data?.partial,
+          };
+        };
 
-          const results: Fixture[] = Array.isArray(data?.fixtures) ? data.fixtures : [];
-          finalPartial = finalPartial || !!data?.partial;
+        const onlyUpcoming = (items: Fixture[]) => items.filter((fixture) =>
+          PREMATCH_STATUSES.has(fixture.status) && new Date(fixture.kickoff_at).getTime() > Date.now()
+        );
 
-          if (results.length > 0) {
-            foundFixtures = results;
-            break;
+        const dedupeAndSort = (items: Fixture[]) => {
+          const unique = new Map<number, Fixture>();
+          items.forEach((fixture) => unique.set(fixture.fixture_id, fixture));
+          return Array.from(unique.values()).sort(
+            (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
+          );
+        };
+
+        const findNextForCompetition = async (competition: Exclude<CompetitionCode, 'ALL'>) => {
+          let candidateDate = requestedDate;
+          let partial = false;
+
+          for (let dayOffset = 0; dayOffset < maxSearchDays; dayOffset++) {
+            const response = await invokeFixtures(candidateDate, competition);
+            partial = partial || response.partial;
+            const upcoming = onlyUpcoming(response.fixtures);
+            if (upcoming.length > 0) {
+              return { fixtures: upcoming, date: candidateDate, partial, reachedLimit: false };
+            }
+            candidateDate = getNextCGRDateString(candidateDate);
           }
 
-          // If no results, try next day
-          currentDate = getNextCGRDateString(currentDate);
-          searchCount++;
-          
-          if (searchCount >= maxSearchDays) {
-            setReachedLimit(true);
+          return { fixtures: [] as Fixture[], date: null, partial, reachedLimit: true };
+        };
+
+        if (activeTab === 'live' || activeTab === 'custom') {
+          const response = await invokeFixtures(currentDate, competitionCode);
+          foundFixtures = activeTab === 'live'
+            ? response.fixtures.filter((fixture) => LIVE_STATUSES.includes(fixture.status))
+            : response.fixtures;
+          finalPartial = response.partial;
+        } else if (competitionCode === 'ALL') {
+          const searches = await Promise.allSettled(
+            SUPPORTED_COMPETITIONS.map((competition) => findNextForCompetition(competition))
+          );
+          const completed = searches
+            .filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof findNextForCompetition>>> => result.status === 'fulfilled')
+            .map((result) => result.value);
+
+          if (completed.length === 0) {
+            const firstFailure = searches.find((result) => result.status === 'rejected') as PromiseRejectedResult | undefined;
+            throw firstFailure?.reason || new Error('Nenhuma competição pôde ser consultada');
           }
+
+          foundFixtures = dedupeAndSort(completed.flatMap((result) => result.fixtures));
+          finalPartial = completed.some((result) => result.partial) || searches.some((result) => result.status === 'rejected');
+          finalReachedLimit = completed.every((result) => result.reachedLimit);
+          currentDate = foundFixtures.length > 0 ? getCGRDateString(new Date(foundFixtures[0]!.kickoff_at)) : requestedDate;
+        } else {
+          const result = await findNextForCompetition(competitionCode);
+          foundFixtures = dedupeAndSort(result.fixtures);
+          finalPartial = result.partial;
+          finalReachedLimit = result.reachedLimit;
+          currentDate = result.date || requestedDate;
         }
 
         if (currentRequestId !== requestIdRef.current) return;
 
-        foundFixtures.sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+        foundFixtures = dedupeAndSort(foundFixtures);
         
         setFixtures(foundFixtures);
         setDisplayedDate(currentDate);
-        setIsShowingNextAvailable(currentDate !== requestedDate);
+        setIsShowingNextAvailable(foundFixtures.some(
+          (fixture) => getCGRDateString(new Date(fixture.kickoff_at)) !== requestedDate
+        ));
         setIsPartial(finalPartial);
+        setReachedLimit(finalReachedLimit);
       } catch (err: any) {
         if (currentRequestId !== requestIdRef.current) return;
         console.error("Erro ao buscar jogos:", err);
@@ -287,7 +356,7 @@ function Index() {
     };
 
     fetchFixtures();
-  }, [activeTab, customDate, competitionCode]);
+  }, [activeTab, customDate, competitionCode, retryNonce]);
 
   const groupedFixtures = useMemo(() => {
     const search = normalizeText(searchQuery);
@@ -430,9 +499,9 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[120px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[88px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
       <PublicSidebar />
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen min-w-0 flex-col">
       {/* Header Fixo e Denso */}
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-950">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
@@ -502,7 +571,7 @@ function Index() {
       </header>
 
       {/* Estrutura 3 Colunas Desktop */}
-      <div className="mx-auto flex w-auto max-w-[1920px] flex-1 overflow-hidden">
+      <div className="mx-auto flex w-full min-w-0 max-w-[1920px] flex-1 overflow-hidden">
         {/* Sidebar Esquerda: Ligas e Favoritos */}
         <aside className={cn(
           "hidden"
@@ -560,8 +629,8 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 p-2 sm:p-4">
-          <div className="max-w-4xl mx-auto space-y-4">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-slate-50 p-2 pb-24 sm:p-4 sm:pb-24 xl:pb-4">
+          <div className="mx-auto min-w-0 max-w-4xl space-y-4">
             {/* Banner e Filtros Mobile */}
             <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">
               {['BSA', 'PL', 'CL', 'BL1'].map(id => (
@@ -587,7 +656,7 @@ function Index() {
                 <h3 className="text-white font-black uppercase tracking-widest text-sm">Erro de Conexão</h3>
                 <p className="text-slate-400 text-xs">{error}</p>
                 <button 
-                  onClick={() => setActiveTab(activeTab)}
+                  onClick={() => setRetryNonce((value) => value + 1)}
                   className="mt-4 px-6 py-2 bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl text-[10px] font-black uppercase transition-all"
                 >
                   Tentar novamente
@@ -604,7 +673,7 @@ function Index() {
                 {isShowingNextAvailable && displayedDate && (
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]">
                     <Info size={16} className="shrink-0" />
-                    <p className="font-bold text-[10px] uppercase tracking-widest">Exibindo próximos jogos em {formatDateBR(displayedDate)}</p>
+                    <p className="font-bold text-[10px] uppercase tracking-widest">Exibindo próximos jogos disponíveis a partir de {formatDateBR(displayedDate)}</p>
                   </div>
                 )}
                 
@@ -698,13 +767,13 @@ function Index() {
 
       {/* Mobile Bet Slip Toggle */}
       {!isBetSlipOpen && selections.length > 0 && (
-        <div className="fixed bottom-6 left-0 z-50 w-full px-4 xl:hidden">
+        <div className="fixed bottom-0 left-[88px] right-0 z-50 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:left-64 xl:hidden">
           <button 
             onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
+            className="flex w-full items-center justify-between rounded-lg bg-emerald-600 px-3 py-3 font-black uppercase tracking-wider text-white shadow-[0_0_30px_rgba(16,185,129,0.35)] sm:px-4 sm:tracking-widest"
           >
-            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
-            <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
+            <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete · {selections.length}</span>
+            <span className="rounded-full bg-black/20 px-2 py-1 text-xs tabular-nums sm:px-3">Odd {totalOdd.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
           </button>
         </div>
       )}
@@ -712,12 +781,12 @@ function Index() {
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
         <div className="fixed inset-0 z-[60] bg-slate-900/35 backdrop-blur-sm">
-          <div className="absolute bottom-0 flex max-h-[90vh] w-full flex-col rounded-t-xl border-t border-emerald-200 bg-white">
+          <div className="absolute bottom-0 left-0 flex max-h-[92dvh] w-full min-w-0 flex-col rounded-t-xl border-t border-emerald-200 bg-white pb-[env(safe-area-inset-bottom)]">
             <div className="flex items-center justify-between border-b border-slate-200 p-3">
               <span className="text-sm font-black uppercase tracking-widest text-slate-900">Seu Bilhete</span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:p-4">
               <BetSlip isMobile />
             </div>
           </div>
