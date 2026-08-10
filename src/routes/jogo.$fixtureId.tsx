@@ -5,7 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
+import { PublicSidebar } from "@/components/PublicSidebar";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  countMarketsByCategory,
+  filterMarketsByCategory,
+  MARKET_CATEGORIES,
+  type MarketCategory,
+  sortCatalogMarkets,
+} from "@/lib/market-catalog";
 
 export const Route = createFileRoute("/jogo/$fixtureId")({
   head: () => ({
@@ -50,6 +58,9 @@ interface FixtureMarket {
   marketType: string;
   name: string;
   category: string;
+  sortOrder: number;
+  line: number | null;
+  settlementMode: string;
   selections: FixtureMarketSelection[];
 }
 
@@ -60,16 +71,6 @@ interface FixtureMarketSelection {
   label: string;
   sortOrder: number;
 }
-
-const CATEGORY_MAP: Record<string, string> = {
-  RESULT: "Principais",
-  GOALS: "Gols",
-  CORNERS: "Escanteios",
-  CARDS: "Cartões",
-  FIRST_HALF: "Primeiro Tempo"
-};
-
-const CATEGORY_ORDER = ["RESULT", "GOALS", "CORNERS", "CARDS", "FIRST_HALF"];
 
 const STATUS_MAP: Record<string, string> = {
   NS: "Não iniciado",
@@ -104,10 +105,8 @@ function MatchDetails() {
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [marketsError, setMarketsError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    RESULT: true,
-    GOALS: true
-  });
+  const [activeCategory, setActiveCategory] = useState<MarketCategory>("ALL");
+  const [collapsedMarkets, setCollapsedMarkets] = useState<Record<string, boolean>>({});
   const [isBetSlipOpen, setIsBetSlipOpen] = useState(false);
 
   const TIMEZONE = "America/Campo_Grande";
@@ -119,8 +118,10 @@ function MatchDetails() {
       const marketsClient = supabase as any;
       const { data: dbMarkets, error: marketQueryError } = await marketsClient
         .from('fixture_markets')
-        .select('id,status,market_type,market_name,market_group,line,period')
+        .select('id,status,market_type,market_name,market_group,line,period,sort_order,settlement_mode')
         .eq('fixture_id', parseInt(fixtureId))
+        .eq('status', 'OPEN')
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (marketQueryError) throw marketQueryError;
@@ -132,25 +133,27 @@ function MatchDetails() {
           .from('fixture_market_selections')
           .select('id,market_id,selection_key,selection_name,odd,status,sort_order')
           .in('market_id', marketIds)
+          .eq('status', 'OPEN')
+          .gt('odd', 1)
           .order('sort_order', { ascending: true });
         if (selectionQueryError) throw selectionQueryError;
         dbSelections = data || [];
       }
 
       const formattedMarkets: FixtureMarket[] = (dbMarkets || [])
-        .filter((market: any) => market.status === 'OPEN')
         .map((market: any) => ({
           id: market.id,
           status: market.status,
           marketType: market.market_type,
           name: market.market_name,
           category: market.market_group,
+          sortOrder: market.sort_order ?? 999,
+          line: market.line,
+          settlementMode: market.settlement_mode ?? "MANUAL_SETTLE",
           selections: dbSelections
             .filter((selection: any) =>
               selection.market_id === market.id &&
-              selection.status === 'OPEN' &&
-              selection.odd !== null &&
-              Number(selection.odd) > 1
+              selection.status === 'OPEN' && Number(selection.odd) > 1
             )
             .map((selection: any) => ({
               id: selection.id,
@@ -162,7 +165,7 @@ function MatchDetails() {
         }))
         .filter((market: FixtureMarket) => market.selections.length > 0);
 
-      setMarkets(formattedMarkets);
+      setMarkets(sortCatalogMarkets(formattedMarkets));
     } catch (err) {
       console.error("Erro ao buscar mercados:", err);
       setMarketsError("Não foi possível carregar os mercados desta partida.");
@@ -212,15 +215,11 @@ function MatchDetails() {
     fetchMarkets();
   }, [fixtureId]);
 
-  const groupedMarkets = useMemo(() => {
-    const groups: Record<string, FixtureMarket[]> = {};
-    markets.forEach(m => {
-      const cat = m.category;
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(m);
-    });
-    return groups;
-  }, [markets]);
+  const visibleMarkets = useMemo(
+    () => filterMarketsByCategory(markets, activeCategory),
+    [markets, activeCategory],
+  );
+  const categoryCounts = useMemo(() => countMarketsByCategory(markets), [markets]);
 
   const formatTime = (isoString: string) => {
     return new Intl.DateTimeFormat("pt-BR", {
@@ -249,8 +248,8 @@ function MatchDetails() {
     }
   };
 
-  const toggleCategory = (cat: string) => {
-    setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+  const toggleMarket = (marketId: string) => {
+    setCollapsedMarkets((current) => ({ ...current, [marketId]: !current[marketId] }));
   };
 
   if (isLoading) {
@@ -279,13 +278,15 @@ function MatchDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200">
-      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[120px] font-sans text-slate-800 md:pl-64">
+      <PublicSidebar />
+      <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-950">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <button 
               onClick={handleBack}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-emerald-500"
+              className="rounded-lg p-2 text-emerald-600 transition-colors hover:bg-emerald-50"
             >
               <ArrowLeft size={24} />
             </button>
@@ -310,11 +311,11 @@ function MatchDetails() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1920px] mx-auto w-full p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[1fr_350px] lg:gap-8 items-start">
+      <main className="mx-auto flex-1 max-w-[1920px] p-2 sm:p-4 md:p-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-5 items-start">
         <div className="space-y-6">
           {/* Match Scoreboard Card */}
-          <div className="bg-white/5 rounded-2xl border border-white/5 shadow-2xl overflow-hidden backdrop-blur-sm relative group">
-            <div className="relative z-10 p-6 md:p-8 space-y-6">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div className="space-y-3 p-3 md:p-4">
               <div className="flex flex-col items-center space-y-2">
                 <div className="flex items-center gap-3">
                   {fixture.league_logo && (
@@ -326,18 +327,18 @@ function MatchDetails() {
 
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-8">
                 <div className="flex flex-col items-center space-y-2 text-center">
-                  <div className="w-16 h-16 md:w-24 md:h-24 bg-black/40 border border-white/5 rounded-xl flex items-center justify-center p-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2 md:h-16 md:w-16">
                     {fixture.home_team_logo ? (
                       <img src={fixture.home_team_logo} alt={fixture.home_team_name} className="w-full h-full object-contain brightness-110" />
                     ) : (
                       <Trophy className="w-8 h-8 text-white/5" />
                     )}
                   </div>
-                  <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.home_team_name}</h2>
+                  <h2 className="text-xs font-black uppercase tracking-tight text-slate-950 md:text-sm">{fixture.home_team_name}</h2>
                 </div>
 
                 <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="flex items-center gap-4 text-4xl md:text-6xl font-black italic tracking-tighter text-white">
+                  <div className="flex items-center gap-3 text-3xl font-black italic tracking-tighter text-slate-950 md:text-4xl">
                     {typeof fixture.home_score === 'number' ? (
                       <>
                         <span>{fixture.home_score}</span>
@@ -345,7 +346,7 @@ function MatchDetails() {
                         <span>{fixture.away_score}</span>
                       </>
                     ) : (
-                      <span className="text-white/20 text-xl font-black tracking-widest uppercase">VS</span>
+                      <span className="text-xl font-black uppercase tracking-widest text-slate-300">VS</span>
                     )}
                   </div>
                   <div className={cn(
@@ -359,14 +360,14 @@ function MatchDetails() {
                 </div>
 
                 <div className="flex flex-col items-center space-y-2 text-center">
-                  <div className="w-16 h-16 md:w-24 md:h-24 bg-black/40 border border-white/5 rounded-xl flex items-center justify-center p-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2 md:h-16 md:w-16">
                     {fixture.away_team_logo ? (
                       <img src={fixture.away_team_logo} alt={fixture.away_team_name} className="w-full h-full object-contain brightness-110" />
                     ) : (
                       <Trophy className="w-8 h-8 text-white/5" />
                     )}
                   </div>
-                  <h2 className="text-xs md:text-base font-black uppercase tracking-tight text-white">{fixture.away_team_name}</h2>
+                  <h2 className="text-xs font-black uppercase tracking-tight text-slate-950 md:text-sm">{fixture.away_team_name}</h2>
                 </div>
               </div>
             </div>
@@ -374,16 +375,16 @@ function MatchDetails() {
 
           {/* Mercados Filtros Chips */}
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            {CATEGORY_ORDER.map(cat => (
+            {MARKET_CATEGORIES.map(category => (
               <button 
-                key={cat}
-                onClick={() => toggleCategory(cat)}
+                key={category.key}
+                onClick={() => setActiveCategory(category.key)}
                 className={cn(
                   "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap",
-                  expandedCategories[cat] ? "bg-emerald-600 border-emerald-400 text-white" : "bg-white/5 border-white/10 text-slate-500"
+                  activeCategory === category.key ? "bg-emerald-600 border-emerald-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:border-emerald-300"
                 )}
               >
-                {CATEGORY_MAP[cat] || cat}
+                {category.label} <span className="ml-1 opacity-60">{categoryCounts[category.key] || 0}</span>
               </button>
             ))}
           </div>
@@ -405,19 +406,25 @@ function MatchDetails() {
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sem mercados para esta partida</span>
               </div>
             ) : (
-              <div className="space-y-4">
-                {CATEGORY_ORDER.map(cat => {
-                  const catMarkets = groupedMarkets[cat];
-                  if (!catMarkets || catMarkets.length === 0 || !expandedCategories[cat]) return null;
-
-                  return (
-                    <div key={cat} className="space-y-3 animate-in fade-in duration-300">
-                      {catMarkets.map(market => (
-                        <div key={market.id} className="bg-[#0c0c0c] border border-white/5 rounded-xl overflow-hidden">
-                          <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{market.name}</span>
-                          </div>
-                          <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="space-y-3" data-testid="market-catalog" data-market-count={visibleMarkets.length}>
+                {visibleMarkets.length === 0 ? (
+                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-8 text-center text-xs text-slate-500">
+                    Nenhum mercado publicado nesta categoria.
+                  </div>
+                ) : (
+                  visibleMarkets.map(market => (
+                        <div key={market.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                          <button
+                            type="button"
+                            onClick={() => toggleMarket(market.id)}
+                            className="flex w-full items-center justify-between border-b border-slate-200 px-3 py-2.5 text-left"
+                          >
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">
+                              {market.name}{market.line !== null ? ` · ${market.line}` : ""}
+                            </span>
+                            {collapsedMarkets[market.id] ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                          </button>
+                          {!collapsedMarkets[market.id] && <div className="grid grid-cols-1 gap-1.5 p-2 sm:grid-cols-2 xl:grid-cols-4">
                             {market.selections.map(opt => {
                               const isSelected = selections.some(s => s.selection_id === opt.id);
                               return (
@@ -434,23 +441,21 @@ function MatchDetails() {
                                     fixture_id: fixture.fixture_id
                                   })}
                                   className={cn(
-                                    "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
+                                    "flex min-h-12 items-center justify-between gap-2 rounded-md border px-2.5 py-2 transition-all active:scale-[0.99]",
                                     isSelected 
                                       ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]" 
-                                      : "bg-white/5 border-white/5 text-slate-400 hover:border-emerald-500/30"
+                                      : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50"
                                   )}
                                 >
-                                  <span className="text-[9px] font-bold uppercase truncate w-full text-center">{opt.label}</span>
+                                  <span className="truncate text-left text-[10px] font-bold uppercase">{opt.label}</span>
                                   <span className="text-base font-black">{opt.odd.toFixed(2)}</span>
                                 </button>
                               );
                             })}
-                          </div>
+                          </div>}
                         </div>
-                      ))}
-                    </div>
-                  );
-                })}
+                  ))
+                )}
               </div>
             )}
           </div>
@@ -463,10 +468,10 @@ function MatchDetails() {
 
       {/* Mobile Bet Slip */}
       {!isBetSlipOpen && selections.length > 0 && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
+        <div className="fixed bottom-3 left-[120px] right-0 z-40 px-2 lg:hidden">
           <button 
             onClick={() => setIsBetSlipOpen(true)}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
+            className="flex w-full items-center justify-between rounded-lg bg-emerald-600 px-4 py-3 font-black uppercase tracking-widest text-white shadow-lg"
           >
             <span className="flex items-center gap-2"><Ticket size={20} /> Bilhete</span>
             <span className="bg-black/20 px-3 py-1 rounded-full text-xs">{selections.length}</span>
@@ -476,10 +481,10 @@ function MatchDetails() {
 
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
+        <div className="fixed inset-0 z-[60] bg-slate-900/35 backdrop-blur-sm">
+          <div className="absolute bottom-0 flex max-h-[90vh] w-full flex-col rounded-t-xl border-t border-emerald-200 bg-white">
+            <div className="flex items-center justify-between border-b border-slate-200 p-3">
+              <span className="text-sm font-black uppercase tracking-widest text-slate-900">Seu Bilhete</span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
@@ -489,9 +494,10 @@ function MatchDetails() {
         </div>
       )}
 
-      <footer className="py-6 border-t border-white/5 text-center bg-black mt-auto">
-        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">&copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE</span>
+      <footer className="mt-auto border-t border-slate-200 bg-white py-4 text-center">
+        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">&copy; 2026 GREENSPORT</span>
       </footer>
+      </div>
     </div>
   );
 }

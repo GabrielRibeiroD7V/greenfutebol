@@ -24,12 +24,12 @@ function AdminLayout() {
   if (profile?.role !== 'admin') return null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-slate-200 flex flex-col md:flex-row font-sans">
+    <div className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 bg-black/40 backdrop-blur-xl z-20 sticky top-0 md:h-screen">
-        <div className="p-6 flex items-center gap-3 border-b border-white/5">
+      <aside className="sticky top-0 z-20 w-full border-b border-slate-200 bg-white md:h-screen md:w-64 md:border-b-0 md:border-r">
+        <div className="flex items-center gap-3 border-b border-slate-200 p-6">
           <ShieldCheck className="text-emerald-500" />
-          <h2 className="font-black text-white uppercase tracking-tighter">Painel Admin</h2>
+          <h2 className="font-black uppercase tracking-tighter text-slate-950">Painel Admin</h2>
         </div>
         
         <nav className="p-4 space-y-2">
@@ -45,7 +45,7 @@ function AdminLayout() {
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm",
                 window.location.pathname.startsWith(item.to) 
                   ? "bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.2)]" 
-                  : "text-slate-400 hover:bg-white/5"
+                  : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
               )}
             >
               <item.icon size={18} />

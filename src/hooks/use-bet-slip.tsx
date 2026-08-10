@@ -39,7 +39,7 @@ export function useBetSlip() {
       const marketIds = [...new Set(data.map((selection: any) => selection.market_id))];
       const { data: markets, error: marketsError } = await (supabase as any)
         .from('fixture_markets')
-        .select('id, status, fixture_id, kickoff_at_snapshot')
+        .select('id, status, fixture_id, kickoff_at')
         .in('id', marketIds);
 
       if (marketsError || !markets) throw marketsError;
@@ -61,7 +61,7 @@ export function useBetSlip() {
         const market = markets.find((m: any) => m.id === dbOpt?.market_id);
         const fixture = allFixtures.find(f => f.fixture_id === s.fixture_id);
         
-        const kickoffAt = market?.kickoff_at_snapshot || fixture?.kickoff_at;
+        const kickoffAt = market?.kickoff_at || fixture?.kickoff_at;
         const isStarted = !kickoffAt || new Date(kickoffAt) <= now;
         const isSuspended = !dbOpt || dbOpt.status !== 'OPEN' || market?.status !== 'OPEN' || Number(dbOpt.odd) <= 1;
 

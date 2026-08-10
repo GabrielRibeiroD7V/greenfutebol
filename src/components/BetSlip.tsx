@@ -121,7 +121,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
   }
 
   return (
-    <div className={cn("flex flex-col h-full bg-[#0a0a0a] border border-white/5 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl", className)}>
+    <div className={cn("flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm", className)}>
       <div className="p-4 bg-emerald-600 flex items-center justify-between">
         <div className="flex items-center gap-2 text-white">
           <Ticket size={20} className="brightness-125" />
@@ -135,7 +135,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar min-h-[300px]">
+      <div className="min-h-[220px] flex-1 space-y-2 overflow-y-auto p-3">
         {selections.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-10 opacity-40">
             <Ticket size={48} className="text-slate-600" />
@@ -146,9 +146,9 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           </div>
         ) : (
           <>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-3">
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
               <Info className="text-amber-500 shrink-0" size={16} />
-              <p className="text-[9px] text-amber-200 font-bold leading-relaxed uppercase tracking-tighter">
+              <p className="text-[9px] font-bold leading-relaxed uppercase tracking-tighter text-amber-800">
                 Você só recebe se TODAS as seleções vencerem. Uma seleção perdida encerra este bilhete. Sem cash out.
               </p>
             </div>
@@ -175,7 +175,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
             )}
             
             {selections.map((s) => (
-              <div key={s.selection_id} className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-2 relative group animate-in slide-in-from-right-4 duration-300">
+              <div key={s.selection_id} className="group relative space-y-1.5 rounded-lg border border-slate-200 bg-slate-50 p-2.5 animate-in slide-in-from-right-4 duration-300">
                 <button 
                   onClick={() => removeSelection(s.selection_id)}
                   className="absolute top-2 right-2 p-1 text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
@@ -185,10 +185,10 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                 
                 <div className="flex flex-col">
                   <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{s.market_name}</span>
-                  <span className="text-sm font-black text-white leading-tight">{s.label}</span>
+                  <span className="text-sm font-black leading-tight text-slate-900">{s.label}</span>
                 </div>
 
-                <div className="flex flex-col border-t border-white/5 pt-2">
+                <div className="flex flex-col border-t border-slate-200 pt-1.5">
                   <span className="text-[10px] text-slate-500 font-bold truncate">
                     {s.home_team} x {s.away_team}
                   </span>
@@ -204,11 +204,11 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
       </div>
 
       {selections.length > 0 && (
-        <div className="p-4 bg-black/60 border-t border-white/10 space-y-4">
+        <div className="space-y-3 border-t border-slate-200 bg-white p-3">
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Cotação Total</span>
-              <span className="text-xl font-black text-white">{totalOdd.toFixed(2)}</span>
+              <span className="text-xl font-black text-slate-950">{totalOdd.toFixed(2)}</span>
             </div>
 
             <div className="space-y-2">
@@ -221,7 +221,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                   onChange={(e) => setStake(Number(e.target.value))}
                   min={5}
                   max={5000}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white font-black text-lg focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
+                  className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-lg font-black text-slate-950 outline-none transition-all focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
             </div>

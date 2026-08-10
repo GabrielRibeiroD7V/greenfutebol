@@ -137,8 +137,9 @@
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: #f8fafc;
+    color: #1e293b;
+    overflow-x: hidden;
   }
 }
 

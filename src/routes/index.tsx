@@ -2,17 +2,17 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { 
   Search, Ticket, Calendar, Clock, PlayCircle, AlertCircle, 
-  Loader2, LogIn, LogOut, Info, Menu, X, ChevronRight, 
+  Loader2, LogIn, LogOut, Info, X, ChevronRight,
   ShieldCheck, RefreshCw, Star, Trophy, Target, Zap
 } from "lucide-react";
 
-import logoAsset from "@/assets/logo.png.asset.json";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useBetSlip } from "@/hooks/use-bet-slip";
 import { BetSlip } from "@/components/BetSlip";
+import { PublicSidebar } from "@/components/PublicSidebar";
 import { maskPhone } from "@/lib/phone-utils";
 
 export const Route = createFileRoute("/")({
@@ -430,27 +430,14 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col font-sans text-slate-200 overflow-x-hidden w-full max-w-[100vw]" data-testid="main-container">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[120px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
+      <PublicSidebar />
+      <div className="flex min-h-screen flex-col">
       {/* Header Fixo e Denso */}
-      <header className="bg-black border-b border-emerald-500/10 text-white shadow-2xl sticky top-0 z-50 transition-all duration-300">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-950">
         <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center gap-4">
-            <button 
-              className="p-2 text-emerald-500 hover:bg-white/5 rounded-lg transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <Menu size={24} />
-            </button>
-            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate({ to: "/" })}>
-              <div className="relative">
-                <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/20 transition-colors" />
-                <img 
-                  src={logoAsset.url} 
-                  alt="GreenFutebol" 
-                  className="h-6 sm:h-8 w-auto relative z-10 brightness-110 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]" 
-                />
-              </div>
-            </div>
+            <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Jogos</span>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
@@ -515,11 +502,10 @@ function Index() {
       </header>
 
       {/* Estrutura 3 Colunas Desktop */}
-      <div className="flex-1 flex w-full max-w-[1920px] mx-auto overflow-hidden">
+      <div className="mx-auto flex w-auto max-w-[1920px] flex-1 overflow-hidden">
         {/* Sidebar Esquerda: Ligas e Favoritos */}
         <aside className={cn(
-          "bg-[#080808] border-r border-white/5 overflow-y-auto no-scrollbar transition-all duration-300 z-40 shrink-0",
-          isMenuOpen ? "w-64 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static" : "w-0 lg:w-64"
+          "hidden"
         )}>
           <div className="p-4 space-y-6">
             <div className="space-y-2">
@@ -574,7 +560,7 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="flex-1 overflow-y-auto no-scrollbar bg-[#050505] p-2 sm:p-4">
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-2 sm:p-4">
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Banner e Filtros Mobile */}
             <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -625,7 +611,7 @@ function Index() {
                 {groupedFixtures.map((dateGroup) => (
                   <div key={dateGroup.date} className="space-y-4">
                     <div className="flex items-center gap-3 px-2 border-l-2 border-emerald-500/50">
-                      <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-800">
                         {formatGroupHeader(dateGroup.date)}
                       </span>
                     </div>
@@ -633,23 +619,23 @@ function Index() {
                     <div className="space-y-3">
                       {dateGroup.leagues.map((league) => (
                         <div key={`${dateGroup.date}-${league.country}-${league.name}`} className="space-y-2">
-                          <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                          <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1">
                             {league.logo ? (
                               <img src={league.logo} alt={league.name} className="w-4 h-4 object-contain brightness-125" />
                             ) : (
                               <div className="w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center text-[8px]">⚽</div>
                             )}
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{league.name}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">{league.name}</span>
                           </div>
 
                           <div className="grid grid-cols-1 gap-2">
                             {league.matches.map((match) => (
                               <div key={match.fixture_id} className="relative group">
                                 <Link to="/jogo/$fixtureId" params={{ fixtureId: String(match.fixture_id) }}>
-                                  <div className="bg-[#0c0c0c] rounded-xl border border-white/5 p-3 sm:p-4 hover:border-emerald-500/30 transition-all group-hover:bg-[#101010]">
+                                  <div className="rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-emerald-400 hover:bg-emerald-50/30 sm:p-4">
                                     <div className="flex items-center justify-between gap-4">
                                       <div className="flex flex-col min-w-[60px]">
-                                        <span className="text-[11px] font-black text-white">{formatTimeOnly(match.kickoff_at)}</span>
+                                        <span className="text-[11px] font-black text-slate-950">{formatTimeOnly(match.kickoff_at)}</span>
                                         <span className={cn(
                                           "text-[9px] font-black uppercase tracking-tighter",
                                           LIVE_STATUSES.includes(match.status) ? "text-emerald-500 animate-pulse" : "text-slate-600"
@@ -662,16 +648,16 @@ function Index() {
                                         <div className="flex items-center justify-between gap-2">
                                           <div className="flex items-center gap-2 min-w-0">
                                             {match.home_team_logo && <img src={match.home_team_logo} className="w-4 h-4 object-contain" />}
-                                            <span className="text-xs font-bold text-slate-200 truncate">{match.home_team_name}</span>
+                                            <span className="truncate text-xs font-bold text-slate-800">{match.home_team_name}</span>
                                           </div>
-                                          <span className="text-xs font-black text-white">{match.home_score ?? 0}</span>
+                                          <span className="text-xs font-black text-slate-950">{match.home_score ?? 0}</span>
                                         </div>
                                         <div className="flex items-center justify-between gap-2">
                                           <div className="flex items-center gap-2 min-w-0">
                                             {match.away_team_logo && <img src={match.away_team_logo} className="w-4 h-4 object-contain" />}
-                                            <span className="text-xs font-bold text-slate-200 truncate">{match.away_team_name}</span>
+                                            <span className="truncate text-xs font-bold text-slate-800">{match.away_team_name}</span>
                                           </div>
-                                          <span className="text-xs font-black text-white">{match.away_score ?? 0}</span>
+                                          <span className="text-xs font-black text-slate-950">{match.away_score ?? 0}</span>
                                         </div>
                                       </div>
 
@@ -681,7 +667,7 @@ function Index() {
                                           { label: 'Empate', value: 'X', odd: 3.40 },
                                           { label: 'Fora', value: '2', odd: 3.85 }
                                         ].map(o => (
-                                          <div key={o.value} className="bg-white/5 border border-white/10 rounded-lg p-2 min-w-[60px] text-center">
+                                          <div key={o.value} className="min-w-[60px] rounded-md border border-slate-200 bg-slate-50 p-2 text-center">
                                             <span className="text-[8px] font-black text-slate-500 block uppercase leading-none mb-1">{o.label}</span>
                                             <span className="text-xs font-black text-emerald-400">{o.odd.toFixed(2)}</span>
                                           </div>
@@ -705,14 +691,14 @@ function Index() {
         </main>
 
         {/* Bilhete Lateral Desktop */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l border-white/5 p-4 overflow-y-auto no-scrollbar bg-[#080808]">
+        <aside className="hidden w-80 shrink-0 overflow-y-auto border-l border-slate-200 bg-white p-4 xl:block">
           <BetSlip />
         </aside>
       </div>
 
       {/* Mobile Bet Slip Toggle */}
       {!isBetSlipOpen && selections.length > 0 && (
-        <div className="lg:hidden fixed bottom-6 left-0 w-full px-4 z-50">
+        <div className="fixed bottom-6 left-0 z-50 w-full px-4 xl:hidden">
           <button 
             onClick={() => setIsBetSlipOpen(true)}
             className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(16,185,129,0.4)] flex items-center justify-between px-6"
@@ -725,10 +711,10 @@ function Index() {
 
       {/* Mobile Drawer */}
       {isBetSlipOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md">
-          <div className="absolute bottom-0 w-full max-h-[90vh] bg-[#0c0c0c] rounded-t-3xl border-t border-emerald-500/20 flex flex-col">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <span className="text-sm font-black text-white uppercase tracking-widest">Seu Bilhete</span>
+        <div className="fixed inset-0 z-[60] bg-slate-900/35 backdrop-blur-sm">
+          <div className="absolute bottom-0 flex max-h-[90vh] w-full flex-col rounded-t-xl border-t border-emerald-200 bg-white">
+            <div className="flex items-center justify-between border-b border-slate-200 p-3">
+              <span className="text-sm font-black uppercase tracking-widest text-slate-900">Seu Bilhete</span>
               <button onClick={() => setIsBetSlipOpen(false)} className="p-2 text-slate-400"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
@@ -738,9 +724,10 @@ function Index() {
         </div>
       )}
 
-      <footer className="py-6 border-t border-white/5 text-center bg-black">
-        <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">&copy; 2026 GREENFUTEBOL &bull; PREMIUM EXPERIENCE</span>
+      <footer className="border-t border-slate-200 bg-white py-4 text-center">
+        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">&copy; 2026 GREENSPORT</span>
       </footer>
+      </div>
     </div>
   );
 }
