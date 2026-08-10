@@ -47,13 +47,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fixture_market_options_fixture_market_id_fkey"
-            columns: ["fixture_market_id"]
-            isOneToOne: false
-            referencedRelation: "fixture_markets"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fixture_market_options_market_option_id_fkey"
             columns: ["market_option_id"]
             isOneToOne: false
@@ -62,46 +55,168 @@ export type Database = {
           },
         ]
       }
+      fixture_market_selections: {
+        Row: {
+          created_at: string
+          id: string
+          market_id: string
+          metadata: Json | null
+          odd: number | null
+          result: string | null
+          selection_key: string
+          selection_name: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          market_id: string
+          metadata?: Json | null
+          odd?: number | null
+          result?: string | null
+          selection_key: string
+          selection_name: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          market_id?: string
+          metadata?: Json | null
+          odd?: number | null
+          result?: string | null
+          selection_key?: string
+          selection_name?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixture_market_selections_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "fixture_markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixture_markets: {
         Row: {
-          closes_at: string | null
+          away_team: string | null
+          competition_code: string
           created_at: string
           fixture_id: number
+          home_team: string | null
           id: string
-          market_type_id: string
+          kickoff_at: string | null
+          line: number | null
+          market_group: string
+          market_name: string
+          market_type: string
+          metadata: Json
           opens_at: string | null
+          period: string
+          settlement_mode: string
+          sort_order: number
           status: string
           suspends_at: string | null
           updated_at: string
         }
         Insert: {
-          closes_at?: string | null
+          away_team?: string | null
+          competition_code: string
           created_at?: string
           fixture_id: number
+          home_team?: string | null
           id?: string
-          market_type_id: string
+          kickoff_at?: string | null
+          line?: number | null
+          market_group: string
+          market_name: string
+          market_type: string
+          metadata?: Json
           opens_at?: string | null
+          period?: string
+          settlement_mode?: string
+          sort_order?: number
           status?: string
           suspends_at?: string | null
           updated_at?: string
         }
         Update: {
-          closes_at?: string | null
+          away_team?: string | null
+          competition_code?: string
           created_at?: string
           fixture_id?: number
+          home_team?: string | null
           id?: string
-          market_type_id?: string
+          kickoff_at?: string | null
+          line?: number | null
+          market_group?: string
+          market_name?: string
+          market_type?: string
+          metadata?: Json
           opens_at?: string | null
+          period?: string
+          settlement_mode?: string
+          sort_order?: number
           status?: string
           suspends_at?: string | null
           updated_at?: string
         }
+        Relationships: []
+      }
+      fixture_players: {
+        Row: {
+          created_at: string
+          fixture_id: number
+          id: string
+          player_id: string | null
+          position: string | null
+          shirt_number: number | null
+          source: string | null
+          status: string | null
+          team_name: string
+          team_side: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fixture_id: number
+          id?: string
+          player_id?: string | null
+          position?: string | null
+          shirt_number?: number | null
+          source?: string | null
+          status?: string | null
+          team_name: string
+          team_side?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fixture_id?: number
+          id?: string
+          player_id?: string | null
+          position?: string | null
+          shirt_number?: number | null
+          source?: string | null
+          status?: string | null
+          team_name?: string
+          team_side?: string | null
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "fixture_markets_market_type_id_fkey"
-            columns: ["market_type_id"]
+            foreignKeyName: "fixture_players_player_id_fkey"
+            columns: ["player_id"]
             isOneToOne: false
-            referencedRelation: "market_types"
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
@@ -163,6 +278,81 @@ export type Database = {
         }
         Relationships: []
       }
+      fixtures: {
+        Row: {
+          away_score: number | null
+          away_team_crest: string | null
+          away_team_id: number | null
+          away_team_name: string
+          competition_code: string
+          competition_name: string | null
+          country: string | null
+          created_at: string | null
+          home_score: number | null
+          home_team_crest: string | null
+          home_team_id: number | null
+          home_team_name: string
+          id: string
+          kickoff_at: string
+          last_synced_at: string | null
+          metadata: Json | null
+          provider: string
+          provider_fixture_id: number
+          season: string | null
+          status: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_team_crest?: string | null
+          away_team_id?: number | null
+          away_team_name: string
+          competition_code: string
+          competition_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          home_score?: number | null
+          home_team_crest?: string | null
+          home_team_id?: number | null
+          home_team_name: string
+          id?: string
+          kickoff_at: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_fixture_id: number
+          season?: string | null
+          status?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_team_crest?: string | null
+          away_team_id?: number | null
+          away_team_name?: string
+          competition_code?: string
+          competition_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          home_score?: number | null
+          home_team_crest?: string | null
+          home_team_id?: number | null
+          home_team_name?: string
+          id?: string
+          kickoff_at?: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_fixture_id?: number
+          season?: string | null
+          status?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
       football_fixtures_cache: {
         Row: {
           cache_key: string
@@ -192,6 +382,51 @@ export type Database = {
           fetched_at?: string
           fixture_date?: string
           payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_catalog_templates: {
+        Row: {
+          active: boolean
+          category: string
+          code: string
+          default_lines: number[]
+          line_required: boolean
+          name: string
+          period: string
+          requires_players: boolean
+          selection_blueprint: Json
+          settlement_mode: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          code: string
+          default_lines?: number[]
+          line_required?: boolean
+          name: string
+          period?: string
+          requires_players?: boolean
+          selection_blueprint: Json
+          settlement_mode: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string
+          default_lines?: number[]
+          line_required?: boolean
+          name?: string
+          period?: string
+          requires_players?: boolean
+          selection_blueprint?: Json
+          settlement_mode?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -320,6 +555,36 @@ export type Database = {
         }
         Relationships: []
       }
+      players: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          provider: string | null
+          provider_player_id: string | null
+          team_provider_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          provider?: string | null
+          provider_player_id?: string | null
+          team_provider_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          provider?: string | null
+          provider_player_id?: string | null
+          team_provider_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -411,6 +676,33 @@ export type Database = {
           },
         ]
       }
+      ticket_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          payload: Json | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ticket_selections: {
         Row: {
           away_team_logo_snapshot: string | null
@@ -427,6 +719,7 @@ export type Database = {
           kickoff_at_snapshot: string
           market_name_snapshot: string
           market_type_code_snapshot: string
+          metadata: Json | null
           odd_snapshot: number
           option_code_snapshot: string
           option_label_snapshot: string
@@ -454,6 +747,7 @@ export type Database = {
           kickoff_at_snapshot: string
           market_name_snapshot: string
           market_type_code_snapshot: string
+          metadata?: Json | null
           odd_snapshot: number
           option_code_snapshot: string
           option_label_snapshot: string
@@ -481,6 +775,7 @@ export type Database = {
           kickoff_at_snapshot?: string
           market_name_snapshot?: string
           market_type_code_snapshot?: string
+          metadata?: Json | null
           odd_snapshot?: number
           option_code_snapshot?: string
           option_label_snapshot?: string
@@ -502,10 +797,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ticket_selections_fixture_market_option_id_fkey"
+            foreignKeyName: "ticket_selections_selection_id_fkey"
             columns: ["fixture_market_option_id"]
             isOneToOne: false
-            referencedRelation: "fixture_market_options"
+            referencedRelation: "fixture_market_selections"
             referencedColumns: ["id"]
           },
           {
@@ -521,11 +816,20 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          expires_at: string | null
           id: string
           idempotency_key: string
+          invoice_url: string | null
+          payment_attempt: number
+          payment_id: string | null
+          payment_idempotency_key: string | null
+          payment_mode: string
           payment_status: string
+          pix_copy_paste: string | null
+          pix_qr_code: string | null
           potential_return: number
           selection_count: number
+          selections: Json | null
           settled_at: string | null
           settled_return: number | null
           settled_total_odd: number | null
@@ -538,11 +842,20 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           idempotency_key?: string
+          invoice_url?: string | null
+          payment_attempt?: number
+          payment_id?: string | null
+          payment_idempotency_key?: string | null
+          payment_mode?: string
           payment_status?: string
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
           potential_return: number
           selection_count: number
+          selections?: Json | null
           settled_at?: string | null
           settled_return?: number | null
           settled_total_odd?: number | null
@@ -555,11 +868,20 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           idempotency_key?: string
+          invoice_url?: string | null
+          payment_attempt?: number
+          payment_id?: string | null
+          payment_idempotency_key?: string | null
+          payment_mode?: string
           payment_status?: string
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
           potential_return?: number
           selection_count?: number
+          selections?: Json | null
           settled_at?: string | null
           settled_return?: number | null
           settled_total_odd?: number | null
@@ -594,10 +916,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_payment_lock: {
+        Args: { p_ticket_id: string }
+        Returns: {
+          current_attempt: number
+          existing_payment_id: string
+          idempotency_key: string
+          success: boolean
+        }[]
+      }
+      add_fixture_market_from_template: {
+        Args: { p_fixture_id: number; p_line?: number; p_template_code: string }
+        Returns: Json
+      }
       create_ticket_atomic: {
         Args: { p_idempotency_key: string; p_selections: Json; p_stake: number }
         Returns: Json
       }
+      get_admin_tickets_summary: { Args: { _since: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -605,11 +941,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      prepare_fixture_markets: { Args: { p_fixture_id: number }; Returns: Json }
+      prepare_fixture_markets_batch: {
+        Args: { p_fixture_ids: number[] }
+        Returns: Json
+      }
       preview_fixture_settlement: {
         Args: { p_fixture_id: number }
         Returns: Json
       }
-      settle_fixture_atomic: { Args: { p_fixture_id: number }; Returns: Json }
+      settle_fixture_atomic:
+        | { Args: { _admin_id?: string; _fixture_id: number }; Returns: Json }
+        | { Args: { p_fixture_id: number }; Returns: Json }
+      transition_fixture_market: {
+        Args: { p_market_id: string; p_status: string }
+        Returns: Json
+      }
+      update_market_selection_odd: {
+        Args: { p_odd: number; p_selection_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
