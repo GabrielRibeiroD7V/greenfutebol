@@ -122,8 +122,10 @@ function CadastroComponent() {
       }
       
       navigate({ to: target });
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao realizar cadastro");
+    } catch (error: unknown) {
+      const authError = error as { code?: unknown; status?: unknown; message?: unknown };
+      setAuthDiagnostics(createCadastroAuthDiagnostics({ user: null, session: null }, authError));
+      toast.error(sanitizeAuthMessage(authError.message) || "Erro ao realizar cadastro");
     } finally {
       setLoading(false);
     }
