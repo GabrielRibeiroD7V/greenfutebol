@@ -15,6 +15,28 @@ const cadastroSearchSchema = z.object({
   redirect: z.string().optional().catch(""),
 });
 
+const sanitizeAuthMessage = (message: unknown) => {
+  if (typeof message !== "string") return null;
+
+  return message
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[e-mail oculto]")
+    .replace(/\+?\d[\d\s().-]{7,}\d/g, "[telefone oculto]");
+};
+
+const logCadastroAuthResult = (data: { user: unknown; session: unknown }, error: { code?: unknown; status?: unknown; message?: unknown } | null) => {
+  console.info("[cadastro-auth-debug]", {
+    error: error
+      ? {
+          code: error.code ?? null,
+          status: error.status ?? null,
+          message: sanitizeAuthMessage(error.message),
+        }
+      : null,
+    hasUser: Boolean(data.user),
+    hasSession: Boolean(data.session),
+  });
+};
+
 export const Route = createFileRoute("/cadastro")({
   validateSearch: cadastroSearchSchema,
   component: CadastroComponent,
@@ -67,6 +89,8 @@ function CadastroComponent() {
           }
         }
       });
+
+      logCadastroAuthResult(data, error);
 
       if (error) {
         if (error.code === "user_already_exists" || error.message.toLowerCase().includes("already registered")) {
