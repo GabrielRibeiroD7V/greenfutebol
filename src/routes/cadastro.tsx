@@ -87,33 +87,46 @@ function CadastroComponent() {
     }
 
     setLoading(true);
-    let receivedAuthResult = false;
-
     try {
-      const technicalEmail = technicalEmailFromPhone(normalized);
-      const { data, error } = await supabase.auth.signUp({
-        email: technicalEmail,
-        password,
-        options: {
-          data: {
-            name: name.trim(),
-            phone: normalized,
-          }
-        }
-      });
+      let data: { user: unknown; session: unknown };
+      let error: { code?: unknown; status?: unknown; message?: unknown } | null;
 
-      receivedAuthResult = true;
+      try {
+        const technicalEmail = technicalEmailFromPhone(normalized);
+        const result = await supabase.auth.signUp({
+          email: technicalEmail,
+          password,
+          options: {
+            data: {
+              name: name.trim(),
+              phone: normalized,
+            }
+          }
+        });
+        data = result.data;
+        error = result.error;
+      } catch (error: unknown) {
+        const authError = error as { code?: unknown; status?: unknown; message?: unknown };
+        setAuthDiagnostics(createCadastroAuthDiagnostics({ user: null, session: null }, authError));
+        toast.error(sanitizeAuthMessage(authError.message) || "Erro ao realizar cadastro");
+        return;
+      }
+
       setAuthDiagnostics(createCadastroAuthDiagnostics(data, error));
 
       if (error) {
-        if (error.code === "user_already_exists" || error.message.toLowerCase().includes("already registered")) {
-          throw new Error("Este telefone já está cadastrado.");
+        const errorMessage = typeof error.message === "string" ? error.message : "";
+        if (error.code === "user_already_exists" || errorMessage.toLowerCase().includes("already registered")) {
+          toast.error("Este telefone já está cadastrado.");
+          return;
         }
-        throw new Error("Não foi possível concluir agora. Tente novamente.");
+        toast.error("Não foi possível concluir agora. Tente novamente.");
+        return;
       }
 
       if (!data.session) {
-        throw new Error("Não foi possível concluir agora. Tente novamente.");
+        toast.error("Não foi possível concluir agora. Tente novamente.");
+        return;
       }
       
       toast.success("Cadastro realizado com sucesso!");
@@ -124,12 +137,6 @@ function CadastroComponent() {
       }
       
       navigate({ to: target });
-    } catch (error: unknown) {
-      const authError = error as { code?: unknown; status?: unknown; message?: unknown };
-      if (!receivedAuthResult) {
-        setAuthDiagnostics(createCadastroAuthDiagnostics({ user: null, session: null }, authError));
-      }
-      toast.error(sanitizeAuthMessage(authError.message) || "Erro ao realizar cadastro");
     } finally {
       setLoading(false);
     }
