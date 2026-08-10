@@ -1,0 +1,15 @@
+REVOKE ALL ON FUNCTION public.acquire_payment_lock(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.add_fixture_market_from_template(bigint, text, numeric) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.create_ticket_atomic(numeric, uuid, jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_admin_tickets_summary(timestamptz) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.handle_updated_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.prevent_profile_privilege_change() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_role(uuid, app_role) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.prepare_fixture_markets(bigint) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.prepare_fixture_markets_batch(bigint[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.preview_fixture_settlement(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.settle_fixture_atomic(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.settle_fixture_atomic(bigint, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.transition_fixture_market(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_market_selection_odd(uuid, numeric) FROM PUBLIC;
