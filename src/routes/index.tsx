@@ -514,13 +514,13 @@ function Index() {
 
           <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
             <Link 
-              to="/futebol" 
+              to={"/futebol" as any} 
               className={cn("pb-5 pt-5 transition-all border-b-2 border-transparent text-slate-500 hover:text-emerald-600")}
             >
               Futebol
             </Link>
             <Link 
-              to="/ao-vivo" 
+              to={"/ao-vivo" as any} 
               className={cn("pb-5 pt-5 transition-all border-b-2 border-transparent text-slate-500 hover:text-emerald-600")}
             >
               Ao Vivo
