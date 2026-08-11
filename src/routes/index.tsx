@@ -136,7 +136,7 @@ function Index() {
   };
 
   const normalizeText = (text: string | null | undefined) => {
-    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   };
 
   const TIMEZONE = "America/Campo_Grande";
@@ -252,7 +252,10 @@ function Index() {
           requestedDate = getTomorrowCGRDateString();
         } else if (activeTab === 'custom') {
           requestedDate = customDate;
+        } else if (activeTab === 'live') {
+          requestedDate = getCGRDateString(new Date());
         } else {
+          // HOJE ou qualquer outro tab não mapeado
           requestedDate = getCGRDateString(new Date());
         }
 
@@ -499,12 +502,12 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[88px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
+    <div className="min-h-screen bg-white pl-[88px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
       <PublicSidebar />
       <div className="flex min-h-screen min-w-0 flex-col">
       {/* Header Fixo e Denso */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-950">
-        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
+      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-md text-slate-950">
+        <div className="max-w-[1920px] mx-auto px-6 flex justify-between items-center h-16 sm:h-20">
           <div className="flex items-center gap-4">
             <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Jogos</span>
           </div>
@@ -629,7 +632,7 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-slate-50 p-2 pb-24 sm:p-4 sm:pb-24 xl:pb-4">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-white p-2 pb-24 sm:p-4 sm:pb-24 xl:pb-4">
           <div className="mx-auto min-w-0 max-w-4xl space-y-4">
             {/* Banner e Filtros Mobile */}
             <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">

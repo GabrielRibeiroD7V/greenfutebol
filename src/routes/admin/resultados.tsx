@@ -115,21 +115,21 @@ function AdminResultsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-slate-200 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-white text-slate-800 p-4 md:p-8 font-sans">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
               <Trophy size={28} />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">Gestão de Resultados</h1>
-              <p className="text-slate-400 text-sm">Liquidação de bilhetes e auditoria de placares.</p>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight">Gestão de Resultados</h1>
+              <p className="text-slate-500 text-sm">Liquidação de bilhetes e auditoria de placares.</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate({ to: "/" })} variant="outline" className="border-white/10 hover:bg-white/5">Home</Button>
-            <Button onClick={loadResults} variant="outline" className="border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-500">
+            <Button onClick={() => navigate({ to: "/" as any })} variant="outline" className="border-slate-200">Home</Button>
+            <Button onClick={loadResults} variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
               <RefreshCw size={16} className={cn("mr-2", loading && "animate-spin")} />
               Atualizar
             </Button>
@@ -139,8 +139,8 @@ function AdminResultsPage() {
         <div className="grid lg:grid-cols-[400px_1fr] gap-8">
           {/* Sidebar: Search & Results List */}
           <div className="space-y-6">
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-6 backdrop-blur-sm">
-              <h3 className="text-xs font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-xs font-black text-emerald-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                 <Search size={14} />
                 Localizar Partida
               </h3>
@@ -149,27 +149,27 @@ function AdminResultsPage() {
                   placeholder="ID da Fixture (ex: 12345)" 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="bg-black/40 border-white/10 text-white placeholder:text-slate-600 focus:ring-emerald-500/50"
+                  className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-emerald-500"
                   onKeyDown={(e) => e.key === 'Enter' && handleSearchFixture()}
                 />
-                <Button onClick={handleSearchFixture} className="bg-emerald-600 hover:bg-emerald-500 shrink-0">
+                <Button onClick={handleSearchFixture} className="bg-emerald-600 hover:bg-emerald-700 shrink-0">
                   Buscar
                 </Button>
               </div>
             </div>
 
-            <div className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-              <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Últimos Lançamentos</h3>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold">{results.length}</span>
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos Lançamentos</h3>
+                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold">{results.length}</span>
               </div>
-              <div className="divide-y divide-white/5 max-h-[500px] overflow-y-auto no-scrollbar">
+              <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto no-scrollbar">
                 {results.map(r => (
                   <div 
                     key={r.fixture_id} 
                     className={cn(
-                      "p-4 hover:bg-white/5 cursor-pointer transition-colors group",
-                      selectedFixture?.fixture_id === r.fixture_id && "bg-emerald-500/5 border-l-2 border-l-emerald-500"
+                      "p-4 hover:bg-slate-50 cursor-pointer transition-colors group",
+                      selectedFixture?.fixture_id === r.fixture_id && "bg-emerald-50 border-l-2 border-l-emerald-600"
                     )}
                     onClick={() => {
                       setSelectedFixture(r);
@@ -177,18 +177,18 @@ function AdminResultsPage() {
                     }}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-black text-white">ID: {r.fixture_id}</span>
+                      <span className="text-xs font-black text-slate-900">ID: {r.fixture_id}</span>
                       <span className={cn(
                         "text-[9px] px-1.5 py-0.5 rounded font-black uppercase",
-                        r.confirmed_at ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
+                        r.confirmed_at ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
                       )}>
                         {r.confirmed_at ? 'Confirmado' : 'Rascunho'}
                       </span>
                     </div>
-                    <div className="text-lg font-black text-white italic tracking-tighter">
-                      {r.home_score} <span className="text-emerald-500/50 not-italic mx-1">x</span> {r.away_score}
+                    <div className="text-lg font-black text-slate-900 italic tracking-tighter">
+                      {r.home_score} <span className="text-emerald-600/50 not-italic mx-1">x</span> {r.away_score}
                     </div>
-                    <div className="text-[9px] text-slate-500 font-bold uppercase mt-1">
+                    <div className="text-[9px] text-slate-400 font-bold uppercase mt-1">
                       {new Date(r.updated_at).toLocaleString('pt-BR')}
                     </div>
                   </div>
@@ -206,20 +206,20 @@ function AdminResultsPage() {
           {/* Main Content: Edit & Settlement */}
           <div className="space-y-6">
             {!selectedFixture ? (
-              <div className="h-[400px] bg-white/5 border border-white/5 rounded-3xl flex flex-col items-center justify-center text-slate-600 border-dashed">
-                <ShieldCheck size={48} className="mb-4 opacity-10" />
+              <div className="h-[400px] bg-white border border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400 border-dashed shadow-sm">
+                <ShieldCheck size={48} className="mb-4 opacity-10 text-emerald-600" />
                 <p className="text-sm font-bold uppercase tracking-[0.2em]">Selecione uma partida para gerenciar</p>
               </div>
             ) : (
               <>
-                <div className="bg-white/5 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-sm">
-                  <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between bg-emerald-500/5">
+                <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                  <div className="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between bg-emerald-50">
                     <div>
-                      <h2 className="text-2xl font-black text-white uppercase tracking-tight">Fixture #{selectedFixture.fixture_id}</h2>
-                      <p className="text-slate-400 text-xs">Configure os dados oficiais da partida para liquidação.</p>
+                      <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fixture #{selectedFixture.fixture_id}</h2>
+                      <p className="text-slate-500 text-xs">Configure os dados oficiais da partida para liquidação.</p>
                     </div>
                     {selectedFixture.confirmed_at && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500 text-black rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-200">
                         <CheckCircle2 size={14} />
                         Confirmado
                       </div>
@@ -231,42 +231,42 @@ function AdminResultsPage() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gols Mandante</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gols Mandante</label>
                           <Input 
                             type="number" 
                             value={selectedFixture.home_score ?? 0}
                             onChange={(e) => setSelectedFixture({...selectedFixture, home_score: parseInt(e.target.value)})}
-                            className="bg-black/40 border-white/10 text-white text-xl font-black text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-xl font-black text-center"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gols Visitante</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gols Visitante</label>
                           <Input 
                             type="number" 
                             value={selectedFixture.away_score ?? 0}
                             onChange={(e) => setSelectedFixture({...selectedFixture, away_score: parseInt(e.target.value)})}
-                            className="bg-black/40 border-white/10 text-white text-xl font-black text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-xl font-black text-center"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">1º Tempo (Mandante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">1º Tempo (Mandante)</label>
                           <Input 
                             type="number" 
                             value={selectedFixture.first_half_home_score ?? 0}
                             onChange={(e) => setSelectedFixture({...selectedFixture, first_half_home_score: parseInt(e.target.value)})}
-                            className="bg-black/40 border-white/10 text-white font-bold text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 font-bold text-center"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">1º Tempo (Visitante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">1º Tempo (Visitante)</label>
                           <Input 
                             type="number" 
                             value={selectedFixture.first_half_away_score ?? 0}
                             onChange={(e) => setSelectedFixture({...selectedFixture, first_half_away_score: parseInt(e.target.value)})}
-                            className="bg-black/40 border-white/10 text-white font-bold text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 font-bold text-center"
                           />
                         </div>
                       </div>
@@ -276,67 +276,67 @@ function AdminResultsPage() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Escanteios (Mandante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Escanteios (Mandante)</label>
                           <Input 
                             type="number" 
                             placeholder="N/A"
                             value={selectedFixture.home_corners ?? ""}
                             onChange={(e) => setSelectedFixture({...selectedFixture, home_corners: e.target.value ? parseInt(e.target.value) : null})}
-                            className="bg-black/40 border-white/10 text-white text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-center"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Escanteios (Visitante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Escanteios (Visitante)</label>
                           <Input 
                             type="number" 
                             placeholder="N/A"
                             value={selectedFixture.away_corners ?? ""}
                             onChange={(e) => setSelectedFixture({...selectedFixture, away_corners: e.target.value ? parseInt(e.target.value) : null})}
-                            className="bg-black/40 border-white/10 text-white text-center"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-center"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cartões (Mandante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cartões (Mandante)</label>
                           <Input 
                             type="number" 
                             placeholder="N/A"
                             value={selectedFixture.home_cards ?? ""}
                             onChange={(e) => setSelectedFixture({...selectedFixture, home_cards: e.target.value ? parseInt(e.target.value) : null})}
-                            className="bg-black/40 border-white/10 text-white text-center text-amber-500"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-center text-amber-600 font-bold"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cartões (Visitante)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cartões (Visitante)</label>
                           <Input 
                             type="number" 
                             placeholder="N/A"
                             value={selectedFixture.away_cards ?? ""}
                             onChange={(e) => setSelectedFixture({...selectedFixture, away_cards: e.target.value ? parseInt(e.target.value) : null})}
-                            className="bg-black/40 border-white/10 text-white text-center text-amber-500"
+                            className="bg-slate-50 border-slate-200 text-slate-900 text-center text-amber-600 font-bold"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-6 md:p-8 bg-black/40 border-t border-white/5 flex flex-wrap gap-4 items-center justify-between">
+                  <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-4 items-center justify-between">
                     <div className="flex gap-4">
                       <Button 
                         onClick={() => handleSave(false)} 
                         variant="outline" 
-                        disabled={isSaving}
-                        className="border-white/10 hover:bg-white/5"
+                        disabled={isSaving as any}
+                        className="border-slate-200 hover:bg-white"
                       >
                         <Save size={16} className="mr-2" />
                         Salvar Rascunho
                       </Button>
                       <Button 
                         onClick={() => handleSave(true)} 
-                        disabled={isSaving}
-                        className="bg-amber-600 hover:bg-amber-500"
+                        disabled={isSaving as any}
+                        className="bg-amber-600 hover:bg-amber-700"
                       >
                         <ShieldCheck size={16} className="mr-2" />
                         Confirmar Resultado
@@ -350,7 +350,7 @@ function AdminResultsPage() {
                           setPreviewData(preview);
                         }}
                         variant="ghost"
-                        className="text-emerald-500 hover:bg-emerald-500/10"
+                        className="text-emerald-600 hover:bg-emerald-50"
                       >
                         <Eye size={16} className="mr-2" />
                         Ver Prévia de Liquidação
@@ -361,51 +361,51 @@ function AdminResultsPage() {
 
                 {/* Preview Section */}
                 {previewData && (
-                  <div className="bg-white/5 border border-emerald-500/20 rounded-3xl overflow-hidden backdrop-blur-sm animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between bg-emerald-500/10">
+                  <div className="bg-white border border-emerald-200 rounded-3xl overflow-hidden shadow-sm animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="p-6 md:p-8 border-b border-emerald-100 flex items-center justify-between bg-emerald-50">
                       <div className="flex items-center gap-3">
-                        <PlayCircle className="text-emerald-500 animate-pulse" />
-                        <h3 className="text-xl font-black text-white uppercase tracking-tight">Prévia de Impacto</h3>
+                        <PlayCircle className="text-emerald-600 animate-pulse" />
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Prévia de Impacto</h3>
                       </div>
-                      <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Simulação Atômica</div>
+                      <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Simulação Atômica</div>
                     </div>
                     
                     <div className="p-6 md:p-8">
                       <div className="grid md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                          <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Seleções Afetadas</span>
-                          <div className="text-2xl font-black text-white">{previewData.affected_selections?.length || 0}</div>
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                          <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Seleções Afetadas</span>
+                          <div className="text-2xl font-black text-slate-900">{previewData.affected_selections?.length || 0}</div>
                         </div>
-                        <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10">
-                          <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">Vencedoras (Est.)</span>
-                          <div className="text-2xl font-black text-emerald-400">---</div>
+                        <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                          <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest">Vencedoras (Est.)</span>
+                          <div className="text-2xl font-black text-emerald-600">---</div>
                         </div>
-                        <div className="bg-red-500/5 p-4 rounded-2xl border border-red-500/10">
-                          <span className="text-[9px] text-red-500 font-black uppercase tracking-widest">Bilhetes Perdidos (Est.)</span>
-                          <div className="text-2xl font-black text-red-400">---</div>
+                        <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
+                          <span className="text-[9px] text-red-600 font-black uppercase tracking-widest">Bilhetes Perdidos (Est.)</span>
+                          <div className="text-2xl font-black text-red-600">---</div>
                         </div>
                       </div>
 
                       <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar mb-8">
                         {previewData.affected_selections?.map((sel: any) => (
-                          <div key={sel.selection_id} className="bg-black/40 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                          <div key={sel.selection_id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
                             <div>
-                              <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{sel.market}</div>
-                              <div className="text-sm font-bold text-white">{sel.option}</div>
+                              <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{sel.market}</div>
+                              <div className="text-sm font-bold text-slate-900">{sel.option}</div>
                             </div>
                             <div className="text-right">
-                              <div className="text-[9px] text-slate-500 font-bold uppercase">Status Atual</div>
-                              <div className="text-xs font-black text-amber-500 uppercase tracking-widest">{sel.current_status}</div>
+                              <div className="text-[9px] text-slate-400 font-bold uppercase">Status Atual</div>
+                              <div className="text-xs font-black text-amber-600 uppercase tracking-widest">{sel.current_status}</div>
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6">
-                        <AlertTriangle className="text-amber-500 shrink-0" size={32} />
+                      <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                        <AlertTriangle className="text-amber-600 shrink-0" size={32} />
                         <div className="flex-1">
-                          <h4 className="text-sm font-black text-white uppercase tracking-tight">Atenção: Ação Irreversível</h4>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Atenção: Ação Irreversível</h4>
+                          <p className="text-xs text-slate-500 mt-1">
                             A liquidação atualizará o status de todos os bilhetes vinculados a esta fixture. 
                             Certifique-se de que os placares estão corretos antes de prosseguir.
                           </p>
