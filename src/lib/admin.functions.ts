@@ -109,3 +109,26 @@ export const getAdminUsers = createServerFn({ method: "GET" })
       totalCount: count || 0,
     };
   });
+
+export const getAdminFixturesSummary = createServerFn({ method: "GET" })
+  .handler(async () => {
+    await requireAdmin();
+    
+    // Count active and scheduled fixtures
+    const now = new Date().toISOString();
+    
+    const { count: activeCount } = await supabase
+      .from('fixtures')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE']);
+
+    const { count: scheduledCount } = await supabase
+      .from('fixtures')
+      .select('*', { count: 'exact', head: true })
+      .gt('start_time', now);
+
+    return {
+      active: activeCount || 0,
+      scheduled: scheduledCount || 0
+    };
+  });
