@@ -76,3 +76,59 @@ export const getAdminTicketDetail = createServerFn({ method: "GET" })
     if (ticketError) throw ticketError;
     return ticket;
   });
+
+export const getAdminUsers = createServerFn({ method: "GET" })
+  .validator((data: any) => z.object({
+    search: z.string().optional(),
+    page: z.number().default(1),
+    pageSize: z.number().default(20),
+  }).parse(data))
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { search, page, pageSize } = input;
+    
+    let query = supabase
+      .from('profiles')
+      .select('*, user_roles(role)', { count: 'exact' });
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, count, error } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    return {
+      users: data,
+      totalCount: count || 0,
+    };
+  });
+
+export const getAdminFixturesSummary = createServerFn({ method: "GET" })
+  .handler(async () => {
+    await requireAdmin();
+    
+    // Count active and scheduled fixtures
+    const now = new Date().toISOString();
+    
+    const { count: activeCount } = await supabase
+      .from('fixtures')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE']);
+
+    const { count: scheduledCount } = await supabase
+      .from('fixtures')
+      .select('*', { count: 'exact', head: true })
+      .gt('start_time', now);
+
+    return {
+      active: activeCount || 0,
+      scheduled: scheduledCount || 0
+    };
+  });

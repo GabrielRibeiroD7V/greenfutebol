@@ -4,9 +4,9 @@ import { Clock, Home, Radio, Ticket, Trophy } from "lucide-react";
 export function PublicSidebar() {
   const items = [
     { label: "Início", to: "/", search: {}, icon: Home },
-    { label: "Futebol", to: "/", search: { tab: "today", comp: "ALL" }, icon: Trophy },
-    { label: "Ao vivo", to: "/", search: { tab: "live", comp: "ALL" }, icon: Radio },
-    { label: "Bilhetes", to: "/meus-bilhetes", search: undefined, icon: Ticket },
+    { label: "Futebol", to: "/futebol", search: {}, icon: Trophy },
+    { label: "Ao vivo", to: "/ao-vivo", search: {}, icon: Radio },
+    { label: "Bilhetes", to: "/meus-bilhetes", search: {}, icon: Ticket },
   ] as const;
 
   return (
@@ -24,8 +24,8 @@ export function PublicSidebar() {
         {items.map((item) => (
           <Link
             key={`${item.label}-${item.to}`}
-            to={item.to}
-            search={item.search as never}
+            to={item.to as any}
+            search={item.search as any}
             className="flex min-h-11 w-full flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-center text-[10px] font-bold text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 md:flex-row md:justify-start md:gap-2 md:px-3 md:text-left md:text-sm"
             activeProps={{ className: "bg-emerald-50 text-emerald-700" }}
           >

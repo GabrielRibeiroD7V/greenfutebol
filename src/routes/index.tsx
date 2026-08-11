@@ -136,7 +136,7 @@ function Index() {
   };
 
   const normalizeText = (text: string | null | undefined) => {
-    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   };
 
   const TIMEZONE = "America/Campo_Grande";
@@ -252,7 +252,10 @@ function Index() {
           requestedDate = getTomorrowCGRDateString();
         } else if (activeTab === 'custom') {
           requestedDate = customDate;
+        } else if (activeTab === 'live') {
+          requestedDate = getCGRDateString(new Date());
         } else {
+          // HOJE ou qualquer outro tab não mapeado
           requestedDate = getCGRDateString(new Date());
         }
 
@@ -499,49 +502,49 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pl-[88px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
+    <div className="min-h-screen bg-white pl-[88px] font-sans text-slate-800 md:pl-64" data-testid="main-container">
       <PublicSidebar />
       <div className="flex min-h-screen min-w-0 flex-col">
       {/* Header Fixo e Denso */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-950">
-        <div className="max-w-[1920px] mx-auto px-4 flex justify-between items-center h-14 sm:h-16">
+      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-md text-slate-950">
+        <div className="max-w-[1920px] mx-auto px-6 flex justify-between items-center h-16 sm:h-20">
           <div className="flex items-center gap-4">
             <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Jogos</span>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 font-black uppercase tracking-widest text-[11px]">
-            <button 
-              onClick={() => { navigate({ to: "/" }); setCompetitionCode('ALL'); }} 
-              className={cn("pb-5 pt-5 transition-all border-b-2", competitionCode === 'ALL' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            <Link 
+              to={"/futebol" as any} 
+              className={cn("pb-5 pt-5 transition-all border-b-2 border-transparent text-slate-500 hover:text-emerald-600")}
             >
               Futebol
-            </button>
-            <button 
-              onClick={() => { setActiveTab('live'); navigate({ to: "/" }); }} 
-              className={cn("pb-5 pt-5 transition-all border-b-2", activeTab === 'live' ? "text-emerald-500 border-emerald-500" : "text-slate-400 border-transparent hover:text-white")}
+            </Link>
+            <Link 
+              to={"/ao-vivo" as any} 
+              className={cn("pb-5 pt-5 transition-all border-b-2 border-transparent text-slate-500 hover:text-emerald-600")}
             >
               Ao Vivo
-            </button>
-            <button onClick={() => navigate({ to: "/meus-bilhetes" })} className="text-slate-400 hover:text-white transition-colors">Minhas Apostas</button>
+            </Link>
+            <Link to="/meus-bilhetes" className="text-slate-500 hover:text-emerald-600 transition-colors">Minhas Apostas</Link>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden md:relative md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
               <input 
                 type="text" 
                 placeholder="Buscar jogo..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/50 w-40 text-white placeholder:text-white/20 transition-all outline-none"
+                className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs focus:ring-1 focus:ring-emerald-500 w-40 text-slate-900 placeholder:text-slate-400 transition-all outline-none"
               />
             </div>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter">Saldo</span>
-                  <span className="text-sm font-black text-white">R$ 0,00</span>
+                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Saldo</span>
+                  <span className="text-sm font-black text-slate-900">R$ 0,00</span>
                 </div>
                 <div 
                   className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 cursor-pointer"
@@ -554,7 +557,7 @@ function Index() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => navigate({ to: "/login" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-300 hover:text-white transition-all uppercase tracking-widest"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-slate-500 hover:text-emerald-600 transition-all uppercase tracking-widest"
                 >
                   Entrar
                 </button>
@@ -629,7 +632,7 @@ function Index() {
         </aside>
 
         {/* Conteúdo Central: Jogos */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-slate-50 p-2 pb-24 sm:p-4 sm:pb-24 xl:pb-4">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-white p-2 pb-24 sm:p-4 sm:pb-24 xl:pb-4">
           <div className="mx-auto min-w-0 max-w-4xl space-y-4">
             {/* Banner e Filtros Mobile */}
             <div className="lg:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2">

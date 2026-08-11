@@ -207,27 +207,27 @@ function AdminMarketDetailPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-emerald-500" /></div>;
-  if (error || !fixture) return <div className="m-8 flex items-center gap-3 rounded-xl border border-red-500/20 p-5 text-red-300"><AlertCircle /> {error}</div>;
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-emerald-600" /></div>;
+  if (error || !fixture) return <div className="m-8 flex items-center gap-3 rounded-xl border border-red-500/20 p-5 text-red-600 bg-red-50"><AlertCircle /> {error}</div>;
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 bg-white min-h-screen text-slate-800">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">{fixture.competition_name}</span>
-          <h1 className="text-2xl font-black text-white">{fixture.home_team_name} × {fixture.away_team_name}</h1>
-          <p className="text-sm text-slate-400">{new Date(fixture.kickoff_at).toLocaleString("pt-BR")}</p>
+          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{fixture.competition_name}</span>
+          <h1 className="text-2xl font-black text-slate-900">{fixture.home_team_name} × {fixture.away_team_name}</h1>
+          <p className="text-sm text-slate-500">{new Date(fixture.kickoff_at).toLocaleString("pt-BR")}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={prepare} variant="outline" disabled={saving}><WandSparkles className="mr-2" size={16} /> Preparar partida</Button>
-          <Button onClick={saveDraft} disabled={saving || markets.length === 0}><Save className="mr-2" size={16} /> Salvar rascunho</Button>
+          <Button onClick={prepare} variant="outline" className="border-slate-200" disabled={saving}><WandSparkles className="mr-2" size={16} /> Preparar partida</Button>
+          <Button onClick={saveDraft} disabled={saving || markets.length === 0} className="bg-emerald-600 hover:bg-emerald-700 text-white"><Save className="mr-2" size={16} /> Salvar rascunho</Button>
         </div>
       </div>
 
-      <section className="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4">
+      <section className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
         <div className="mb-3">
-          <h2 className="text-sm font-black uppercase tracking-wider text-white">Adicionar mercado</h2>
-          <p className="text-xs text-slate-400">Cria apenas estrutura DRAFT. Todas as odds permanecem NULL.</p>
+          <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">Adicionar mercado</h2>
+          <p className="text-xs text-slate-500">Cria apenas estrutura DRAFT. Todas as odds permanecem NULL.</p>
         </div>
         <div className="grid gap-3 md:grid-cols-[minmax(240px,1fr)_160px_auto]">
           <select
@@ -238,7 +238,7 @@ function AdminMarketDetailPage() {
               const next = templates.find((item) => item.code === code);
               setTemplateLine(next?.default_lines?.[0]?.toString() || "");
             }}
-            className="h-10 rounded-md border border-white/10 bg-black/60 px-3 text-sm text-white"
+            className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900"
           >
             {templates.map((template) => (
               <option key={template.code} value={template.code} disabled={template.requires_players}>
@@ -252,44 +252,44 @@ function AdminMarketDetailPage() {
             onChange={(event) => setTemplateLine(event.target.value)}
             placeholder={templates.find((item) => item.code === templateCode)?.line_required ? "Linha (ex.: 2,5)" : "Sem linha"}
             disabled={!templates.find((item) => item.code === templateCode)?.line_required}
-            className="bg-black/40 text-white"
+            className="bg-white border-slate-200 text-slate-900"
           />
-          <Button onClick={addMarket} disabled={saving || !templateCode}>
+          <Button onClick={addMarket} disabled={saving || !templateCode} className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-2" size={16} /> Adicionar mercado
           </Button>
         </div>
       </section>
 
       {markets.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/15 p-12 text-center text-slate-400">Sem mercados. Use “Preparar partida”.</div>
+        <div className="rounded-xl border border-dashed border-slate-200 p-12 text-center text-slate-400 bg-white">Sem mercados. Use “Preparar partida”.</div>
       ) : (
         <div className="space-y-5">
           {markets.map((market) => (
-            <section key={market.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
-              <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <section key={market.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <header className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50/50">
                 <div>
-                  <h2 className="font-black text-white">{market.market_name}{market.line !== null ? ` ${market.line}` : ""}</h2>
-                  <span className="text-[10px] font-black text-amber-400">{market.status} · {market.settlement_mode}</span>
+                  <h2 className="font-black text-slate-900">{market.market_name}{market.line !== null ? ` ${market.line}` : ""}</h2>
+                  <span className="text-[10px] font-black text-amber-600">{market.status} · {market.settlement_mode}</span>
                 </div>
                 <div className="flex gap-2">
                   {market.status === "OPEN" ? (
-                    <Button size="sm" variant="outline" onClick={() => transition(market.id, "SUSPENDED")} disabled={saving}><Pause className="mr-2" size={14} /> Suspender</Button>
+                    <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-white" onClick={() => transition(market.id, "SUSPENDED")} disabled={saving}><Pause className="mr-2" size={14} /> Suspender</Button>
                   ) : (
-                    <Button size="sm" onClick={() => transition(market.id, "OPEN")} disabled={saving}><Play className="mr-2" size={14} /> {market.status === "SUSPENDED" ? "Reabrir" : "Publicar"}</Button>
+                    <Button size="sm" onClick={() => transition(market.id, "OPEN")} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700"><Play className="mr-2" size={14} /> {market.status === "SUSPENDED" ? "Reabrir" : "Publicar"}</Button>
                   )}
                 </div>
               </header>
               <div className="grid gap-3 p-5 md:grid-cols-3">
                 {market.selections.map((selection) => (
                   <label key={selection.id} className="space-y-2">
-                    <span className="text-xs font-bold text-slate-300">{selection.selection_name}</span>
+                    <span className="text-xs font-bold text-slate-600">{selection.selection_name}</span>
                     <Input
                       inputMode="decimal"
                       value={oddInputs[selection.id] ?? ""}
                       disabled={market.status === "OPEN" || saving}
                       placeholder="Sem preço"
                       onChange={(event) => setOddInputs((current) => ({ ...current, [selection.id]: event.target.value }))}
-                      className="bg-black/40 text-white"
+                      className="bg-slate-50 border-slate-200 text-slate-900"
                     />
                   </label>
                 ))}

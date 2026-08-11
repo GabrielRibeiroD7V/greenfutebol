@@ -77,10 +77,10 @@ function AdminMarketsPage() {
     <div className="p-4 md:p-8">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-white">Gestão de Mercados</h1>
-          <p className="text-sm text-slate-400">Preparação, precificação e publicação manual.</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">Gestão de Mercados</h1>
+          <p className="text-sm text-slate-500">Preparação, precificação e publicação manual.</p>
         </div>
-        <Button onClick={loadFixtures} variant="outline" disabled={loading}>
+        <Button onClick={loadFixtures} variant="outline" className="border-slate-200" disabled={loading}>
           <RefreshCw className={loading ? "mr-2 animate-spin" : "mr-2"} size={16} /> Atualizar
         </Button>
       </div>
@@ -92,23 +92,23 @@ function AdminMarketsPage() {
           <AlertCircle size={20} /> {error}
         </div>
       ) : fixtures.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-10 text-center text-slate-400">Nenhuma fixture futura elegível.</div>
+        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-400">Nenhuma fixture futura elegível.</div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-white/10">
+        <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm bg-white">
           {fixtures.map((fixture) => (
             <button
               key={fixture.provider_fixture_id}
               onClick={() => navigate({ to: `/admin/mercados/${fixture.provider_fixture_id}` as any })}
-              className="grid w-full gap-3 border-b border-white/5 bg-white/[0.03] p-5 text-left transition hover:bg-white/[0.06] md:grid-cols-[1fr_180px_160px_30px] md:items-center"
+              className="grid w-full gap-3 border-b border-slate-100 bg-white p-5 text-left transition hover:bg-slate-50 md:grid-cols-[1fr_180px_160px_30px] md:items-center"
             >
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">{fixture.competition_name}</span>
-                <div className="font-bold text-white">{fixture.home_team_name} × {fixture.away_team_name}</div>
-                <div className="text-xs text-slate-500">{new Date(fixture.kickoff_at).toLocaleString("pt-BR")}</div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{fixture.competition_name}</span>
+                <div className="font-bold text-slate-900">{fixture.home_team_name} × {fixture.away_team_name}</div>
+                <div className="text-xs text-slate-400">{new Date(fixture.kickoff_at).toLocaleString("pt-BR")}</div>
               </div>
-              <div className="text-xs text-slate-400">{fixture.marketCount} mercados</div>
-              <div className="text-xs font-black text-amber-400">{fixture.operationalStatus}</div>
-              <ArrowRight size={18} className="text-slate-600" />
+              <div className="text-xs text-slate-500">{fixture.marketCount} mercados</div>
+              <div className="text-xs font-black text-amber-600">{fixture.operationalStatus}</div>
+              <ArrowRight size={18} className="text-slate-300" />
             </button>
           ))}
         </div>
