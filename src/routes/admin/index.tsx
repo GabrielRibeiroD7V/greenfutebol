@@ -18,5 +18,5 @@ function AdminIndex() {
   }
 
   // Se não for admin, o root layout do admin já deve tratar, mas garantimos aqui
-  return <Navigate to="/admin/mercados" replace />;
+  return <Navigate to="/admin/bilhetes" replace />;
 }
