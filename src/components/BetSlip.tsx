@@ -100,16 +100,16 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
 
   if (showConfirmation && confirmedTicket) {
     return (
-      <div className={cn("bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-6 text-center space-y-4 backdrop-blur-xl animate-in fade-in zoom-in duration-300", className)}>
-        <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+      <div className={cn("bg-white border border-emerald-500/30 rounded-2xl p-6 text-center space-y-4 shadow-sm animate-in fade-in zoom-in duration-300", className)}>
+        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
         </div>
-        <h3 className="text-xl font-black text-white uppercase tracking-tight">Bilhete Confirmado!</h3>
-        <p className="text-emerald-300 font-medium text-sm">Seu bilhete foi registrado com sucesso.</p>
+        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Bilhete Confirmado!</h3>
+        <p className="text-emerald-700 font-medium text-sm">Seu bilhete foi registrado com sucesso.</p>
         
-        <div className="bg-black/40 border border-emerald-500/20 rounded-xl p-4 my-4">
-          <span className="text-[10px] text-emerald-500/50 uppercase font-black tracking-widest block mb-1">Código do Bilhete</span>
-          <span className="text-2xl font-black text-white tracking-widest">{confirmedTicket.code}</span>
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 my-4">
+          <span className="text-[10px] text-slate-400 uppercase font-black tracking-widest block mb-1">Código do Bilhete</span>
+          <span className="text-2xl font-black text-slate-900 tracking-widest">{confirmedTicket.code}</span>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -121,7 +121,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
           </button>
           <button 
             onClick={() => setShowConfirmation(false)}
-            className="w-full py-3 bg-white/5 text-white/50 rounded-xl font-bold uppercase text-xs hover:text-white transition-all"
+            className="w-full py-3 bg-slate-50 text-slate-500 rounded-xl font-bold uppercase text-xs hover:bg-slate-100 transition-all border border-slate-200"
           >
             Fazer novo bilhete
           </button>
@@ -184,21 +184,21 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
             </div>
 
             {oddsChangedError && (
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                <AlertTriangle className="text-amber-500 shrink-0" size={16} />
-                <p className="text-[10px] text-amber-200 font-bold leading-relaxed">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <AlertTriangle className="text-amber-600 shrink-0" size={16} />
+                <p className="text-[10px] text-amber-800 font-bold leading-relaxed">
                   As odds do seu bilhete foram atualizadas. Revise os novos valores antes de confirmar.
                 </p>
               </div>
             )}
 
             {returnToConfirm && isAuthenticated && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                <CheckCircle2 className="text-emerald-500 shrink-0" size={16} />
-                <p className="text-[10px] text-emerald-100 font-bold leading-relaxed">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <CheckCircle2 className="text-emerald-600 shrink-0" size={16} />
+                <p className="text-[10px] text-emerald-800 font-bold leading-relaxed">
                   Bem-vindo de volta! Revise seu bilhete e clique em confirmar para finalizar.
                 </p>
-                <button onClick={() => setReturnToConfirm(false)} className="text-white/30 hover:text-white">
+                <button onClick={() => setReturnToConfirm(false)} className="text-emerald-300 hover:text-emerald-600">
                   <X size={14} />
                 </button>
               </div>
@@ -224,7 +224,7 @@ export function BetSlip({ className, isMobile }: BetSlipProps) {
                   </span>
                   <div className="flex justify-between items-end mt-1">
                     <span className="text-[9px] text-slate-600 font-bold uppercase">Odd</span>
-                    <span className="text-base font-black text-emerald-400">{s.odd.toFixed(2)}</span>
+                    <span className="text-base font-black text-emerald-600">{s.odd.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
