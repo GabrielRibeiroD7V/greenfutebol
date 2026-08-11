@@ -38,7 +38,7 @@ function AdminLayout() {
             { label: 'Bilhetes', icon: Ticket, to: '/admin/bilhetes' },
             { label: 'Mercados', icon: BarChart3, to: '/admin/mercados' },
             { label: 'Partidas', icon: BarChart3, to: '/admin/partidas' },
-            { label: 'Usuários', icon: BarChart3, to: '/admin/usuarios' },
+            { label: 'Usuários', icon: ShieldCheck, to: '/admin/usuarios' },
             { label: 'Voltar', icon: Settings, to: '/' },
           ].map((item) => (
             <button

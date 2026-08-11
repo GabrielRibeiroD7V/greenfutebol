@@ -76,3 +76,36 @@ export const getAdminTicketDetail = createServerFn({ method: "GET" })
     if (ticketError) throw ticketError;
     return ticket;
   });
+
+export const getAdminUsers = createServerFn({ method: "GET" })
+  .validator((data: any) => z.object({
+    search: z.string().optional(),
+    page: z.number().default(1),
+    pageSize: z.number().default(20),
+  }).parse(data))
+  .handler(async ({ data: input }) => {
+    await requireAdmin();
+    const { search, page, pageSize } = input;
+    
+    let query = supabase
+      .from('profiles')
+      .select('*, user_roles(role)', { count: 'exact' });
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, count, error } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    return {
+      users: data,
+      totalCount: count || 0,
+    };
+  });
